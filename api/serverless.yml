@@ -9,9 +9,9 @@ plugins:
   - serverless-offline
 
 functions:
-  hello:
-    handler: handler.hello
+  unauthenticated:
+    handler: handler-unauthenticated.handler
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /google-authenticate
+          method: post

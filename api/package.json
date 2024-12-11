@@ -15,5 +15,8 @@
     "serverless": "^4.4.15",
     "serverless-offline": "^14.4.0",
     "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "google-auth-library": "^9.15.0"
   }
 }

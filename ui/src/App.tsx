@@ -1,23 +1,14 @@
-import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
-import { GoogleLogin } from '@react-oauth/google';
-import { useEffect, useState } from 'react';
-import { callApi } from './api';
+import { Button, createTheme, CssBaseline, ThemeProvider } from '@mui/material'
+import { useUser } from './UserContext';
 
 function App() {
   const theme = createTheme();
-  const [info, setInfo] = useState('');
 
-  const [stuff, setStuff] = useState(null)
-
-  useEffect(() => {
-    callApi<any>('blah', "GET", '/').then(setStuff)
-  }, [])
+  const { login } = useUser();
 
   return <ThemeProvider theme={theme}>
     <CssBaseline />
-    <p>{info}</p>
-    <p>{JSON.stringify(stuff)}</p>
-    <GoogleLogin onSuccess={res => setInfo(JSON.stringify(res))} onError={console.error} />
+    <Button onClick={() => login()}>Log in</Button>
   </ThemeProvider>
 }
 

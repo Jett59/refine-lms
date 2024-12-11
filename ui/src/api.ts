@@ -5,7 +5,7 @@ export async function callApi<T>(token: string, method: 'GET' | 'POST', path: st
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
         },
-        body,
+        body: JSON.stringify(body),
     });
     return await res.json();
 }
