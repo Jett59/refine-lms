@@ -1,11 +1,11 @@
-export async function callApi<T>(token: string, method: 'GET' | 'POST', path: string, body?: any): Promise<T> {
+export async function callUnauthenticatedApi<Res, Req = undefined>(method: 'GET' | 'POST', path: string, body: Req): Promise<Res> {
     const res = await fetch(`http://localhost:3000/${path}`, {
         method,
         headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
+        body: body ? JSON.stringify(body) : undefined,
     });
     return await res.json();
 }

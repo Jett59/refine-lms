@@ -4,6 +4,9 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: ap-southeast-2
+  environment:
+    GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
+    GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
 
 plugins:
   - serverless-offline
@@ -14,4 +17,7 @@ functions:
     events:
       - httpApi:
           path: /google-authenticate
+          method: post
+      - httpApi:
+          path: /google-refresh
           method: post

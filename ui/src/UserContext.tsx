@@ -1,48 +1,80 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import React, { ReactNode, useEffect, useState } from "react";
-import { callApi } from "./api";
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { callUnauthenticatedApi } from "./api";
+import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
+import { jwtDecode } from "jwt-decode";
 
 export interface UserContextValue {
     login: () => void,
-    token?: string,
+    getIdToken: () => Promise<string | null>,
+    loggedIn: boolean,
     name?: string,
     profile_picture_url?: string,
 }
 
 const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
     login: () => { },
+    getIdToken: async () => null as string | null, // Why?
+    loggedIn: false as boolean,
 })
 
-const LOCAL_STORAGE_TOKEN_KEY = 'access_token'
+const LOCAL_STORAGE_ID_TOKEN_KEY = 'access_token'
 
 export function UserContextProvider({ children }: {
     children: ReactNode
 }) {
-    const [tokenString, setTokenString] = useState<string | undefined>(undefined)
+    const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
 
     useEffect(() => {
-        const token = localStorage.getItem(LOCAL_STORAGE_TOKEN_KEY)
-        if (token !== null) {
-            setTokenString(token)
+        const tokens = localStorage.getItem(LOCAL_STORAGE_ID_TOKEN_KEY)
+        if (tokens !== null) {
+            try {
+                setGoogleTokens(JSON.parse(tokens))
+            } catch (e) { }
         }
     }, [])
 
     useEffect(() => {
-        if (tokenString !== undefined) {
-            localStorage.setItem(LOCAL_STORAGE_TOKEN_KEY, tokenString)
+        if (googleTokens !== undefined) {
+            localStorage.setItem(LOCAL_STORAGE_ID_TOKEN_KEY, JSON.stringify(googleTokens))
         }
-    }, [tokenString])
+    }, [googleTokens])
 
     const login = useGoogleLogin({
-        onSuccess: (tokenResponse) => {
-            callApi<any>('', "POST", 'google-authenticate', {
+        onSuccess: async (tokenResponse) => {
+            const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleAuthenticateRequest>("POST", 'google-authenticate', {
                 code: tokenResponse.code
-            }).then(console.log)
+            })
+            console.log(response)
+            setGoogleTokens(response)
         },
         flow: 'auth-code'
     })
+
+    const idToken = useMemo(() => googleTokens ? jwtDecode(googleTokens.idToken) : null, [googleTokens?.idToken])
+
+    const getIdToken: () => Promise<string | null> = useCallback(async () => {
+        if (googleTokens) {
+            if (Date.now() >= googleTokens.expiryDate) {
+                const newTokens = await callUnauthenticatedApi<GoogleTokenResponse, GoogleRefreshRequest>("POST", 'google-refresh', {
+                    refreshToken: googleTokens.refreshToken
+                })
+                setGoogleTokens(newTokens)
+                return (await newTokens).idToken
+            } else {
+                return googleTokens.idToken
+            }
+        } else {
+            return null
+        }
+    }, [googleTokens])
+
     return <USER_CONTEXT.Provider value={{
-        login
+        login,
+        getIdToken,
+        loggedIn: !!googleTokens,
+        name: (idToken as any)?.name,
+        profile_picture_url: (idToken as any)?.picture,
     }}>
         {children}
     </USER_CONTEXT.Provider>
