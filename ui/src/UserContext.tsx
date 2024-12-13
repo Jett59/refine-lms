@@ -18,7 +18,7 @@ const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
     loggedIn: false as boolean,
 })
 
-const LOCAL_STORAGE_ID_TOKEN_KEY = 'access_token'
+const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
 
 export function UserContextProvider({ children }: {
     children: ReactNode
@@ -26,7 +26,7 @@ export function UserContextProvider({ children }: {
     const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
 
     useEffect(() => {
-        const tokens = localStorage.getItem(LOCAL_STORAGE_ID_TOKEN_KEY)
+        const tokens = localStorage.getItem(LOCAL_STORAGE_TOKENS_KEY)
         if (tokens !== null) {
             try {
                 setGoogleTokens(JSON.parse(tokens))
@@ -36,7 +36,7 @@ export function UserContextProvider({ children }: {
 
     useEffect(() => {
         if (googleTokens !== undefined) {
-            localStorage.setItem(LOCAL_STORAGE_ID_TOKEN_KEY, JSON.stringify(googleTokens))
+            localStorage.setItem(LOCAL_STORAGE_TOKENS_KEY, JSON.stringify(googleTokens))
         }
     }, [googleTokens])
 

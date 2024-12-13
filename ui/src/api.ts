@@ -3,7 +3,6 @@ export async function callUnauthenticatedApi<Res, Req = undefined>(method: 'GET'
         method,
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
         },
         body: body ? JSON.stringify(body) : undefined,
     });
