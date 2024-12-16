@@ -8,6 +8,7 @@ export interface UserContextValue {
     login: () => void,
     getIdToken: () => Promise<string | null>,
     loggedIn: boolean,
+    loggingIn: boolean,
     name?: string,
     profile_picture_url?: string,
 }
@@ -16,6 +17,7 @@ const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
     login: () => { },
     getIdToken: async () => null as string | null, // Why?
     loggedIn: false as boolean,
+    loggingIn: false as boolean,
 })
 
 const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
@@ -24,6 +26,8 @@ export function UserContextProvider({ children }: {
     children: ReactNode
 }) {
     const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
+
+    const [loggingIn, setLoggingIn] = useState(false)
 
     useEffect(() => {
         const tokens = localStorage.getItem(LOCAL_STORAGE_TOKENS_KEY)
@@ -45,8 +49,8 @@ export function UserContextProvider({ children }: {
             const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleAuthenticateRequest>("POST", 'google-authenticate', {
                 code: tokenResponse.code
             })
-            console.log(response)
             setGoogleTokens(response)
+            setLoggingIn(false)
         },
         flow: 'auth-code'
     })
@@ -70,9 +74,15 @@ export function UserContextProvider({ children }: {
     }, [googleTokens])
 
     return <USER_CONTEXT.Provider value={{
-        login,
+        login: () => {
+            if (!loggingIn) {
+                setLoggingIn(true)
+                login()
+            }
+        },
         getIdToken,
         loggedIn: !!googleTokens,
+        loggingIn,
         name: (idToken as any)?.name,
         profile_picture_url: (idToken as any)?.picture,
     }}>

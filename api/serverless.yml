@@ -16,8 +16,8 @@ functions:
     handler: handler-unauthenticated.handler
     events:
       - httpApi:
-          path: /google-authenticate
+          path: /api/google-authenticate
           method: post
       - httpApi:
-          path: /google-refresh
+          path: /api/google-refresh
           method: post

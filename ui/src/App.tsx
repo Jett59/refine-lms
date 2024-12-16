@@ -1,16 +1,21 @@
 import { Button, createTheme, CssBaseline, ThemeProvider } from '@mui/material'
 import { useUser } from './UserContext';
+import { Route, Routes } from 'react-router-dom';
 
 function App() {
   const theme = createTheme();
 
-  const { login, name, profile_picture_url } = useUser();
+  const { loggedIn, login } = useUser();
 
   return <ThemeProvider theme={theme}>
     <CssBaseline />
-    <p>{name}</p>
-    {profile_picture_url && <img src={profile_picture_url}></img>}
-    <Button onClick={() => login()}>Log in</Button>
+    {loggedIn ?
+      <Routes>
+        <Route index element={<Button>Logged in</Button>} />
+      </Routes>
+      :
+      <Button onClick={() => login()}>Login</Button>
+    }
   </ThemeProvider>
 }
 
