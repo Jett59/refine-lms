@@ -13,7 +13,7 @@ const authenticatedAPIs = useAuthenticatedAPIs()
   return <ThemeProvider theme={theme}>
     <CssBaseline />
     <Button onClick={() => {
-      authenticatedAPIs.call("GET", "try-it", undefined).then(console.log)
+    authenticatedAPIs.call("GET", "try-it", undefined).then(console.log)
     }}>Try it 2</Button>
     {loggedIn ?
       <Routes>

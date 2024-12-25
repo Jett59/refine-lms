@@ -5,7 +5,9 @@
   "main": "handler.js",
   "scripts": {
     "dev": "sls offline --disableCookieValidation --ignoreJWTSignature",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typescript-compile": "tsc",
+    "deploy": "sls deploy"
   },
   "author": "",
   "license": "ISC",

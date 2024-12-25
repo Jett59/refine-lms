@@ -4,7 +4,7 @@ exports.handler = async (event: APIGatewayProxyEvent, context: Context): Promise
   return {
     statusCode: 200,
     body: JSON.stringify({
-      message: "Go Serverless v4! Your function executed successfully!",
+      message: "Go Serverless v4! Your updated function executed successfully!",
       thing: event.headers,
     }),
   };

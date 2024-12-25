@@ -1,0 +1,74 @@
+name: api-main
+concurrency: api-main
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '.github/workflows/api-main.yml'
+      - 'api/**'
+      - 'data/**'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: 'api/package-lock.json'
+
+      - name: Node Install Dependencies
+        run: npm ci
+
+#      - name: Start MongoDB
+#        uses: supercharge/mongodb-github-action@1.7.0
+#        with:
+#          mongodb-version: ?
+#          mongodb-replica-set: test-rs
+#
+#      - name: Node Run Tests
+#        run: npm test
+
+      - name: Node Compile TypeScript
+        run: npm run typescript-compile
+
+# Ref: https://github.com/serverless/serverless/issues/10469
+      - name: Workaround for strange cloudwatch error
+        run: aws logs put-resource-policy --policy-name AWSLogDeliveryWrite20150319 --policy-document "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"AWSLogDeliveryWrite\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"delivery.logs.amazonaws.com\"},\"Action\":[\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":[\"*\"]}]}"
+
+#      - name: Serverless Deploy Dev
+#        env:
+#          GOOGLE_CLIENT_ID: ${{ secrets.DEV_GOOGLE_CLIENT_ID }}
+#            GOOGLE_CLIENT_SECRET: ${{ secrets.DEV_GOOGLE_CLIENT_SECRET }}
+#        run: |
+#          npm run deploy -- --stage dev
+
+#      - name: Run Develop Deployed Tests
+#        run: curl --silent --show-error --fail https://dev.refine.cleancode.app/api-main/health
+
+      - name: Serverless Deploy Prod
+        env:
+            GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: npm run deploy -- --stage prod
+
+#      - name: Run Production Deployed Tests
+#        run: curl --silent --show-error --fail https://refine.cleancode.app/api-main/health
