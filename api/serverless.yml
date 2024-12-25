@@ -7,6 +7,13 @@ provider:
   environment:
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+  httpApi:
+    authorizers:
+      google:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl: 'https://accounts.google.com'
+        audience: '440807713733-li6c8t0f1pmjrlaceen6afndskghlrrm.apps.googleusercontent.com'
 
 plugins:
   - serverless-offline
@@ -21,3 +28,12 @@ functions:
       - httpApi:
           path: /api/google-refresh
           method: post
+  authenticated:
+    handler: handler-authenticated.handler
+    events:
+      - httpApi:
+          path: /api/try-it
+          method: get
+          authorizer:
+            name: google
+            type: request

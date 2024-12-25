@@ -1,6 +1,6 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { callUnauthenticatedApi } from "./api";
+import { APIResponse, callUnauthenticatedApi, isFailedAPIResponse, isSuccessfulAPIResponse } from "./api";
 import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
 import { jwtDecode } from "jwt-decode";
 
@@ -44,12 +44,23 @@ export function UserContextProvider({ children }: {
         }
     }, [googleTokens])
 
+    const handleUnsuccessfulLogin = (apiResponse: APIResponse<unknown>) => {
+        if (isFailedAPIResponse(apiResponse)) {
+            // TODO: Report this somehow (maybe in the dialog?)
+            console.error(apiResponse)
+        }
+    }
+
     const login = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
             const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleAuthenticateRequest>("POST", 'google-authenticate', {
                 code: tokenResponse.code
             })
-            setGoogleTokens(response)
+            if (isSuccessfulAPIResponse(response)) {
+                setGoogleTokens(response.body)
+            } else {
+                handleUnsuccessfulLogin(response)
+            }
             setLoggingIn(false)
         },
         flow: 'auth-code'
@@ -60,11 +71,16 @@ export function UserContextProvider({ children }: {
     const getIdToken: () => Promise<string | null> = useCallback(async () => {
         if (googleTokens) {
             if (Date.now() >= googleTokens.expiryDate) {
-                const newTokens = await callUnauthenticatedApi<GoogleTokenResponse, GoogleRefreshRequest>("POST", 'google-refresh', {
+                const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleRefreshRequest>("POST", 'google-refresh', {
                     refreshToken: googleTokens.refreshToken
                 })
-                setGoogleTokens(newTokens)
-                return (await newTokens).idToken
+                if (isSuccessfulAPIResponse(response)) {
+                    setGoogleTokens(response.body)
+                    return response.body.idToken
+                }else {
+                    handleUnsuccessfulLogin(response)
+                    return null
+                }
             } else {
                 return googleTokens.idToken
             }
