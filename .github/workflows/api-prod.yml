@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - '.github/workflows/api-main.yml'
+      - '.github/workflows/api-prod.yml'
       - 'api/**'
       - 'data/**'
 
