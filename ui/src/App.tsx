@@ -14,7 +14,7 @@ const authenticatedAPIs = useAuthenticatedAPIs()
     <CssBaseline />
     <Button onClick={() => {
       authenticatedAPIs.call("GET", "try-it", undefined).then(console.log)
-    }}>Try it</Button>
+    }}>Try it 2</Button>
     {loggedIn ?
       <Routes>
         <Route index element={<Button>Logged in</Button>} />
