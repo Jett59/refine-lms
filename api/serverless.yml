@@ -32,7 +32,7 @@ functions:
     handler: handler-authenticated.handler
     events:
       - httpApi:
-          path: /api/try-it
+          path: /api/visible-schools
           method: get
           authorizer:
             name: google

@@ -1,11 +1,20 @@
 import { APIGatewayProxyEvent, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda";
+import { errorResponse, getPath, raiseInternalServerError } from "./handlers";
 
 exports.handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyStructuredResultV2> => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: "Go Serverless v4! Your updated function executed successfully!",
-      thing: event.headers,
-    }),
-  };
-};
+  try {
+          const path = getPath(event)
+          let body
+          if (event.body) {
+              try {
+                  body = JSON.parse(event.body)
+              } catch (e) { }
+          }
+          switch (path) {
+              default:
+                  return errorResponse(404, `Unknown path '${path}'`)
+          }
+      } catch (e) {
+          return raiseInternalServerError(e)
+      }
+  }

@@ -1,9 +1,10 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { APIResponse, callUnauthenticatedApi, isFailedAPIResponse, isSuccessfulAPIResponse } from "./api";
+import { APIResponse, callUnauthenticatedApi, isSuccessfulAPIResponse } from "./api";
 import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
 import { jwtDecode } from "jwt-decode";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useError } from "./ErrorContext";
 
 export interface UserContextValue {
     login: () => void,
@@ -26,6 +27,8 @@ const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
 export function UserContextProvider({ children }: {
     children: ReactNode
 }) {
+    const { addAPIError } = useError()
+
     const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
 
     const [loggingIn, setLoggingIn] = useState(false)
@@ -49,10 +52,7 @@ export function UserContextProvider({ children }: {
     const [_loginHooks, setLoginHooks] = useState<((token: string) => void)[]>([])
 
     const handleLoggedOut = async (apiResponse: APIResponse<unknown>): Promise<string | null> => {
-        if (isFailedAPIResponse(apiResponse)) {
-            // TODO: Report this somehow (maybe in the dialog?)
-            console.error(apiResponse)
-        }
+        console.log(apiResponse)
         setHandlingLogout(true)
         return await new Promise(resolve => {
             setLoginHooks(loginHooks => [...loginHooks, resolve])
@@ -72,8 +72,7 @@ export function UserContextProvider({ children }: {
                 })
                 setHandlingLogout(false)
             } else {
-                // TODO: do something to alert the user
-                console.error(response)
+                addAPIError(response)
             }
             setLoggingIn(false)
         },
@@ -123,8 +122,8 @@ export function UserContextProvider({ children }: {
                 You have been logged out. Please log in again to continue.
             </DialogContent>
             <DialogActions>
-                <Button color='primary' onClick={login}>Log in</Button>
-                <Button color='secondary' onClick={() => {
+                <Button variant="contained" color='primary' onClick={login}>Log in</Button>
+                <Button variant="outlined" color='secondary' onClick={() => {
                     setHandlingLogout(false)
                     setGoogleTokens(undefined)
                 }}>Stay logged out</Button>

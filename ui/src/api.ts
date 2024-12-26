@@ -58,7 +58,7 @@ export async function callUnauthenticatedApi<Res, Req = undefined>(method: 'GET'
 export class AuthenticatedAPIs {
     constructor (private readonly getIDToken: () => Promise<string | null>) { }
 
-    async call<Res, Req = undefined>(method: 'GET' | 'POST', path: string, body: Req): Promise<APIResponse<Res>> {
+    async call<Res, Req = undefined>(method: 'GET' | 'POST', path: string, body: Req, queryParams?: {[key: string]: string}): Promise<APIResponse<Res>> {
         try {
             const token = await this.getIDToken()
             if (token === null) {
@@ -68,7 +68,8 @@ export class AuthenticatedAPIs {
                     error: 'Not logged in'
                 } as FailedAPIResponse
             }
-            const res = await fetch(`${API_BASE_URL}/api/${path}`, {
+            const queryString = new URLSearchParams(queryParams).toString()
+            const res = await fetch(`${API_BASE_URL}/api/${path}?${queryString}`, {
                 method,
                 headers: {
                     'Content-Type': 'application/json',
