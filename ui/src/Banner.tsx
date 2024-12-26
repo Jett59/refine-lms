@@ -20,7 +20,7 @@ function ErrorButton() {
             >
                 {errors.length}
             </Button>
-            <Dialog open={open}>
+            <Dialog open={open} onClose={() => setOpen(false)}>
                 <DialogTitle>Errors</DialogTitle>
                 <DialogContent>
                     <ul>

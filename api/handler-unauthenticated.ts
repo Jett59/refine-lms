@@ -1,4 +1,4 @@
-import { APIGatewayProxyEvent, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda"
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda"
 import { OAuth2Client, UserRefreshClient } from "google-auth-library"
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers"
 import { GoogleTokenResponse, GoogleAuthenticateRequest, GoogleRefreshRequest } from "../data/api"
@@ -12,7 +12,7 @@ const oAuth2Client = new OAuth2Client(
     'postmessage',
 )
 
-exports.handler = async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyStructuredResultV2> => {
+exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promise<APIGatewayProxyStructuredResultV2> => {
     try {
         const path = getPath(event)
         let body

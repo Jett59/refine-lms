@@ -1,7 +1,7 @@
-import { APIGatewayProxyEvent, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { randomUUID } from "crypto";
 
-export function getPath(event: APIGatewayProxyEvent): string {
+export function getPath<T extends APIGatewayProxyEventV2>(event: T): string {
     if ('http' in event.requestContext && 'path' in (event.requestContext.http as any)) {
         const rawPath: string = (event.requestContext.http as any).path
         if (rawPath.startsWith('/api')) {
