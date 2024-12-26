@@ -3,6 +3,7 @@ import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "rea
 import { APIResponse, callUnauthenticatedApi, isFailedAPIResponse, isSuccessfulAPIResponse } from "./api";
 import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
 import { jwtDecode } from "jwt-decode";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 
 export interface UserContextValue {
     login: () => void,
@@ -44,11 +45,20 @@ export function UserContextProvider({ children }: {
         }
     }, [googleTokens])
 
-    const handleUnsuccessfulLogin = (apiResponse: APIResponse<unknown>) => {
+    const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
+
+    // The loginHooks value here should never be read. It should be updated using the setter which provides an up-to-date copy.
+    const [_loginHooks, setLoginHooks] = useState<((token: string) => void)[]>([])
+
+    const handleLoggedOut = async (apiResponse: APIResponse<unknown>): Promise<string | null> => {
         if (isFailedAPIResponse(apiResponse)) {
             // TODO: Report this somehow (maybe in the dialog?)
             console.error(apiResponse)
         }
+        setHandlingLogout(true)
+        return await new Promise(resolve => {
+            setLoginHooks(loginHooks => [...loginHooks, resolve])
+        })
     }
 
     const login = useGoogleLogin({
@@ -58,8 +68,14 @@ export function UserContextProvider({ children }: {
             })
             if (isSuccessfulAPIResponse(response)) {
                 setGoogleTokens(response.body)
+                setLoginHooks(loginHooks => {
+                    loginHooks.forEach(hook => hook(response.body.idToken))
+                    return []
+                })
+                setHandlingLogout(false)
             } else {
-                handleUnsuccessfulLogin(response)
+                // TODO: do something to alert the user
+                console.error(response)
             }
             setLoggingIn(false)
         },
@@ -77,9 +93,8 @@ export function UserContextProvider({ children }: {
                 if (isSuccessfulAPIResponse(response)) {
                     setGoogleTokens(response.body)
                     return response.body.idToken
-                }else {
-                    handleUnsuccessfulLogin(response)
-                    return null
+                } else {
+                    return await handleLoggedOut(response)
                 }
             } else {
                 return googleTokens.idToken
@@ -103,6 +118,20 @@ export function UserContextProvider({ children }: {
         profile_picture_url: (idToken as any)?.picture,
     }}>
         {children}
+        {/* TODO: Should this go somewhere else? */}
+        <Dialog open={handlingLogout}>
+            <DialogTitle>Logged out</DialogTitle>
+            <DialogContent>
+                You have been logged out. Please log in again to continue.
+            </DialogContent>
+            <DialogActions>
+                <Button color='primary' onClick={login}>Log in</Button>
+                <Button color='secondary' onClick={() => {
+                    setHandlingLogout(false)
+                    setGoogleTokens(undefined)
+                }}>Stay logged out</Button>
+            </DialogActions>
+        </Dialog>
     </USER_CONTEXT.Provider>
 }
 

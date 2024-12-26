@@ -36,4 +36,3 @@ functions:
           method: get
           authorizer:
             name: google
-            type: request
