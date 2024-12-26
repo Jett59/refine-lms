@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Tooltip } from "@mui/material";
+import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from "@mui/material";
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
