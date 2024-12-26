@@ -1,27 +1,16 @@
 import { Button, createTheme, CssBaseline, ThemeProvider } from '@mui/material'
-import { useUser } from './UserContext';
 import { Route, Routes } from 'react-router-dom';
-import { useAuthenticatedAPIs } from './api';
+import Banner from './Banner';
 
 function App() {
   const theme = createTheme();
 
-  const { loggedIn, login } = useUser();
-
-const authenticatedAPIs = useAuthenticatedAPIs()
-
   return <ThemeProvider theme={theme}>
     <CssBaseline />
-    <Button onClick={() => {
-    authenticatedAPIs.call("GET", "try-it", undefined).then(console.log)
-    }}>Try it 2</Button>
-    {loggedIn ?
+    <Banner />
       <Routes>
-        <Route index element={<Button>Logged in</Button>} />
+        <Route index element={<Button>TODO</Button>} />
       </Routes>
-      :
-      <Button onClick={() => login()}>Login</Button>
-    }
   </ThemeProvider>
 }
 

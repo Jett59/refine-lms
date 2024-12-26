@@ -40,9 +40,7 @@ export function UserContextProvider({ children }: {
     }, [])
 
     useEffect(() => {
-        if (googleTokens !== undefined) {
-            localStorage.setItem(LOCAL_STORAGE_TOKENS_KEY, JSON.stringify(googleTokens))
-        }
+        localStorage.setItem(LOCAL_STORAGE_TOKENS_KEY, JSON.stringify(googleTokens))
     }, [googleTokens])
 
     const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
