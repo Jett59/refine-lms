@@ -30,6 +30,6 @@ export function errorResponse(status: number, message: string): APIGatewayProxyS
 
 export function raiseInternalServerError(error: any): APIGatewayProxyStructuredResultV2 {
     const id = randomUUID();
-    console.error(`Error id ${id}: ${JSON.stringify(error, null, 2)}`)
+    console.error(`Error id ${id}:`, error)
     return errorResponse(500, `Internal server error ${id}`)
 }
