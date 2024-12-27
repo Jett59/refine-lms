@@ -7,6 +7,8 @@ provider:
   environment:
     GOOGLE_CLIENT_ID: ${env:GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${env:GOOGLE_CLIENT_SECRET}
+    REFINE_LMS_DATABASE: ${env:REFINE_LMS_DATABASE, 'refine-dev'}
+    MONGO_CONNECTION_STRING: ${env:MONGO_CONNECTION_STRING, 'mongodb://localhost:27017'}
   httpApi:
     authorizers:
       google:

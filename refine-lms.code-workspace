@@ -1,17 +1,24 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "ui"
-		},
-		{
-			"path": "api"
-		},
-		{
-			"path": "data"
-		}
-	],
-	"settings": {}
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "ui"
+        },
+        {
+            "path": "api"
+        },
+        {
+            "path": "data"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/*.js": {
+                "when": "$(basename).ts"
+            },
+            "**/*.js.map": true
+        }
+    }
 }
