@@ -1,7 +1,8 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda";
-import { errorResponse, getPath, raiseInternalServerError } from "./handlers";
+import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
+import { listVisibleSchools } from "./schools";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -37,6 +38,9 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
         }
 
         switch (path) {
+            case "/visible-schools": {
+                return successResponse(await listVisibleSchools(db, user._id!))
+            }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
         }

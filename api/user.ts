@@ -1,4 +1,5 @@
 import { Db, ObjectId } from "mongodb";
+import { UserInfo } from "../data/user";
 
 export interface User {
     _id?: ObjectId
@@ -39,4 +40,19 @@ export async function ensureUserExists(db: Db, user: User): Promise<User> {
         _id: userId,
         ...user
     }
+}
+
+export async function findUsers(db: Db, ids: ObjectId[]): Promise<User[]> {
+    return await getCollection(db).find({
+        _id: { $in: ids }
+    }).toArray()
+}
+
+export async function findUserInfos(db: Db, ids: ObjectId[]): Promise<UserInfo[]> {
+    return (await findUsers(db, ids)).map(user => ({
+        id: user._id!.toHexString(),
+        name: user.name,
+        email: user.email,
+        picture: user.picture
+    }))
 }
