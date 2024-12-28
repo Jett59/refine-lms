@@ -1,10 +1,12 @@
 import { SchoolInfo } from "./school"
+import { UserInfo } from "./user"
 
 export interface GoogleTokenResponse {
     accessToken: string
     idToken: string
     refreshToken: string
     expiryDate: number
+    userInfo?: UserInfo
 }
 
 export interface GoogleAuthenticateRequest {

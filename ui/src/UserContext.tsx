@@ -1,8 +1,7 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useState } from "react";
 import { APIResponse, callUnauthenticatedApi, isSuccessfulAPIResponse } from "./api";
 import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
-import { jwtDecode } from "jwt-decode";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { useError } from "./ErrorContext";
 
@@ -80,8 +79,6 @@ export function UserContextProvider({ children }: {
         flow: 'auth-code'
     })
 
-    const idToken = useMemo(() => googleTokens ? jwtDecode(googleTokens.idToken) : null, [googleTokens?.idToken])
-
     const getIdToken: () => Promise<string | null> = useCallback(async () => {
         if (googleTokens) {
             if (Date.now() >= googleTokens.expiryDate) {
@@ -112,8 +109,8 @@ export function UserContextProvider({ children }: {
         getIdToken,
         loggedIn: !!googleTokens,
         loggingIn,
-        name: (idToken as any)?.name,
-        profile_picture_url: (idToken as any)?.picture,
+        name: googleTokens?.userInfo?.name,
+        profile_picture_url: googleTokens?.userInfo?.picture,
     }}>
         {children}
         {/* TODO: Should this go somewhere else? */}

@@ -49,12 +49,21 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                     return raiseInternalServerError(["Missing token or expiry date from Google oAuth2", tokens])
                 }
                 const userInfo = await getGoogleProfileInformation(tokens.access_token)
-                await ensureUserExists(db, userInfo)
+                const user = await ensureUserExists(db, userInfo)
+                if (!user._id) {
+                    return raiseInternalServerError(["User does not have an _id", user])
+                }
                 return successResponse<GoogleTokenResponse>({
                     accessToken: tokens.access_token,
                     idToken: tokens.id_token,
                     refreshToken: tokens.refresh_token,
                     expiryDate: tokens.expiry_date,
+                    userInfo: {
+                        id: user._id.toHexString(),
+                        email: user.email,
+                        name: user.name,
+                        picture: user.picture
+                    }
                 })
             }
             case "/google-refresh": {

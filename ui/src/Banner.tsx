@@ -36,7 +36,7 @@ function ErrorButton() {
 }
 
 export default function Banner() {
-    const { login, loggedIn, name, profile_picture_url } = useUser()
+    const { login, loggedIn, loggingIn, name, profile_picture_url } = useUser()
 
     const { schools } = useData()
 
@@ -54,7 +54,7 @@ export default function Banner() {
                     </Box>
                 </Stack>
                 :
-                <Button onClick={() => login()}>Login</Button>
+                <Button disabled={loggingIn} onClick={() => login()}>Login</Button>
             }
         </Box>
     </AppBar>
