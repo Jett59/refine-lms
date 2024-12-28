@@ -86,7 +86,7 @@ export function UserContextProvider({ children }: {
                     refreshToken: googleTokens.refreshToken
                 })
                 if (isSuccessfulAPIResponse(response)) {
-                    setGoogleTokens(response.body)
+                    setGoogleTokens({...response.body, userInfo: googleTokens.userInfo})
                     return response.body.idToken
                 } else {
                     return await handleLoggedOut(response)
