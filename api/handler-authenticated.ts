@@ -33,19 +33,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
         }
         let user = await findUserByJwtUserId(db, jwtUserId)
         if (!user) {
-            const jwtClaims = event.requestContext.authorizer.jwt.claims
-            if (jwtClaims.name && jwtClaims.email && jwtClaims.picture) {
-                const newUser: User = {
-                    jwtUserId,
-                    name: jwtClaims.name.toString(),
-                    email: jwtClaims.email.toString(),
-                    picture: jwtClaims.picture.toString(),
-                }
-                const userId = await createUser(db, newUser)
-                user = await findUser(db, userId)
-            }else {
-                return errorResponse(401, 'Missing user information in JWT')
-            }
+            return errorResponse(401, `User not found for JWT user ID '${jwtUserId}'`)
         }
 
         switch (path) {

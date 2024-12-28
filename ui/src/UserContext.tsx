@@ -76,6 +76,7 @@ export function UserContextProvider({ children }: {
             }
             setLoggingIn(false)
         },
+        scope: 'openid profile email',
         flow: 'auth-code'
     })
 

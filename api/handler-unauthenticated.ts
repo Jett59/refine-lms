@@ -2,6 +2,9 @@ import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } fr
 import { OAuth2Client, UserRefreshClient } from "google-auth-library"
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers"
 import { GoogleTokenResponse, GoogleAuthenticateRequest, GoogleRefreshRequest } from "../data/api"
+import { getGoogleProfileInformation } from "./googleProfile"
+import { ensureUserExists } from "./user"
+import { MongoClient } from "mongodb"
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
@@ -12,8 +15,19 @@ const oAuth2Client = new OAuth2Client(
     'postmessage',
 )
 
+const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
+const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
+
+const mongoClient: MongoClient = new MongoClient(CONNECTION_STRING)
+
 exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promise<APIGatewayProxyStructuredResultV2> => {
     try {
+        // Set this flag on the context as specified in MongoDB best practices for caching in Lambda:
+        // https://docs.atlas.mongodb.com/best-practices-connecting-to-aws-lambda/
+        (context as any).callbackWaitsForEmptyEventLoop = false
+
+        const db = await mongoClient.db(DATABASE_NAME)
+
         const path = getPath(event)
         let body
         if (event.body) {
@@ -28,9 +42,14 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 if (!tokens.access_token) {
                     return errorResponse(401, 'Invalid authorization code')
                 }
-                if (!tokens.access_token || !tokens.id_token || !tokens.refresh_token || !tokens.expiry_date) {
-                    return raiseInternalServerError(["Missing token(s) from Google oAuth2", tokens])
+                if (!tokens.refresh_token) {
+                    return errorResponse(401, 'Missing refresh token')
                 }
+                if (!tokens.id_token || !tokens.expiry_date) {
+                    return raiseInternalServerError(["Missing token or expiry date from Google oAuth2", tokens])
+                }
+                const userInfo = await getGoogleProfileInformation(tokens.access_token)
+                await ensureUserExists(db, userInfo)
                 return successResponse<GoogleTokenResponse>({
                     accessToken: tokens.access_token,
                     idToken: tokens.id_token,

@@ -28,3 +28,15 @@ export async function createUser(db: Db, user: User): Promise<ObjectId> {
     const result = await getCollection(db).insertOne(user)
     return result.insertedId
 }
+
+export async function ensureUserExists(db: Db, user: User): Promise<User> {
+    const existingUser = await findUserByJwtUserId(db, user.jwtUserId)
+    if (existingUser) {
+        return existingUser
+    }
+    const userId = await createUser(db, user)
+    return {
+        _id: userId,
+        ...user
+    }
+}
