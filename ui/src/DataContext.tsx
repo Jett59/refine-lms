@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { VisibleSchoolsResponse } from "../../data/api";
+import { SchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -10,12 +10,12 @@ export interface DataContextValue {
         name: string
         id: string
     }[]
-    getSchoolInfo(schoolId: string, refreshCache?: boolean): SchoolInfo | null
+    getSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
 }
 
 const DataContext = createContext<DataContextValue>({
     schools: [],
-    getSchoolInfo: () => null
+    getSchoolInfo: async () => null
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -40,9 +40,25 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }
     }, [loggedIn])
 
+    const [schoolInfos, setSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
+
     return <DataContext.Provider value={{
         schools,
-        getSchoolInfo: () => null
+        getSchoolInfo: useCallback(async (schoolId, refreshCache) => {
+            if (!schoolInfos[schoolId] || refreshCache) {
+                const response = await authenticatedAPIs.call<SchoolInfoResponse>('GET', 'school-info', undefined, { id: schoolId })
+                if (isSuccessfulAPIResponse(response)) {
+                    setSchoolInfos(schoolInfos => ({
+                        ...schoolInfos,
+                        [schoolId]: response.body.school
+                    }))
+                } else {
+                    addAPIError(response)
+                    return null
+                }
+            }
+            return schoolInfos[schoolId]
+        }, [authenticatedAPIs, schoolInfos])
     }}>
         {children}
     </DataContext.Provider>
