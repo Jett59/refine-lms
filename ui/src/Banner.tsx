@@ -35,10 +35,17 @@ function ErrorButton() {
     }
 }
 
+function SchoolSwitcher() {
+    const { schools, createSchool } = useData()
+
+    return <Stack direction="row">
+        {schools.map(school => <Button key={school.id}>{school.name}</Button>)}
+        <Button onClick={() => createSchool('New School')}>+</Button>
+    </Stack>
+}
+
 export default function Banner() {
     const { login, loggedIn, loggingIn, name, profile_picture_url } = useUser()
-
-    const { schools } = useData()
 
     return <AppBar position="static">
         <Box display="flex" justifyContent="space-between">
@@ -48,7 +55,7 @@ export default function Banner() {
             </Stack>
             {loggedIn ?
                 <Stack direction="row" spacing={2}>
-                    {schools.map(school => <Button key={school.id}>{school.name}</Button>)}
+                    <SchoolSwitcher />
                     <Box>
                         <img src={profile_picture_url} alt={name} />
                     </Box>

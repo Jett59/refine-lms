@@ -2,7 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { listVisibleSchools } from "./schools";
+import { createSchool, listVisibleSchools } from "./schools";
+import { CreateSchoolRequest } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -40,6 +41,10 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
         switch (path) {
             case "/visible-schools": {
                 return successResponse(await listVisibleSchools(db, user._id!))
+            }
+            case "/create-school": {
+                const typedBody: CreateSchoolRequest = body
+                return successResponse({ createdId: await createSchool(db, user._id!, typedBody.name) })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

@@ -26,3 +26,10 @@ export interface VisibleSchoolsResponse {
 export interface SchoolInfoResponse {
     school: SchoolInfo
 }
+
+export interface CreateSchoolRequest {
+    name: string
+}
+export interface CreateSchoolResponse {
+    createdId: string
+}

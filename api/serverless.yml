@@ -38,3 +38,8 @@ functions:
           method: get
           authorizer:
             name: google
+      - httpApi:
+          path: /api/create-school
+          method: post
+          authorizer:
+            name: google

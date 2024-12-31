@@ -11,11 +11,13 @@ export interface DataContextValue {
         id: string
     }[]
     getSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
+    createSchool: (name: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
     schools: [],
-    getSchoolInfo: async () => null
+    getSchoolInfo: async () => null,
+    createSchool: async () => { }
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -27,16 +29,18 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
     const [schools, setSchools] = useState<DataContextValue['schools']>([])
 
+    const updateVisibleSchoolList = async () => {
+        const response = await authenticatedAPIs.call<VisibleSchoolsResponse>('GET', 'visible-schools', undefined)
+        if (isSuccessfulAPIResponse(response)) {
+            setSchools(response.body.schools)
+        } else {
+            addAPIError(response)
+        }
+    }
+
     useEffect(() => {
         if (loggedIn) {
-            (async () => {
-                const response = await authenticatedAPIs.call<VisibleSchoolsResponse>('GET', 'visible-schools', undefined)
-                if (isSuccessfulAPIResponse(response)) {
-                    setSchools(response.body.schools)
-                } else {
-                    addAPIError(response)
-                }
-            })()
+            updateVisibleSchoolList()
         }
     }, [loggedIn])
 
@@ -58,7 +62,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 }
             }
             return schoolInfos[schoolId]
-        }, [authenticatedAPIs, schoolInfos])
+        }, [authenticatedAPIs, schoolInfos]),
+        createSchool: useCallback(async (name) => {
+            const response = await authenticatedAPIs.call('POST', 'create-school', { name })
+            if (!isSuccessfulAPIResponse(response)) {
+                addAPIError(response)
+            } else {
+                updateVisibleSchoolList()
+            }
+        }, [authenticatedAPIs])
     }}>
         {children}
     </DataContext.Provider>

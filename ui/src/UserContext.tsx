@@ -85,7 +85,7 @@ export function UserContextProvider({ children }: {
                 const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleRefreshRequest>("POST", 'google-refresh', {
                     refreshToken: googleTokens.refreshToken
                 })
-                if (isSuccessfulAPIResponse(response)) {
+                if (isSuccessfulAPIResponse(response) && response.body.accessToken) {
                     setGoogleTokens({...response.body, userInfo: googleTokens.userInfo})
                     return response.body.idToken
                 } else {

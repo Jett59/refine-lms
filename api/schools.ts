@@ -84,3 +84,15 @@ export async function listVisibleSchools(db: Db, userId: ObjectId): Promise<Visi
     }))
     }
 }
+
+export async function createSchool(db: Db, creatorId: ObjectId, name: string): Promise<ObjectId> {
+    const school = {
+        name,
+        yearGroups: [],
+        administratorIds: [creatorId],
+        teacherIds: [],
+        studentIds: []
+    }
+    const result = await db.collection(COLLECTION_NAME).insertOne(school)
+    return result.insertedId
+}
