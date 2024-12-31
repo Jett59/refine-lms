@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack } from "@mui/material";
+import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
@@ -38,10 +38,29 @@ function ErrorButton() {
 function SchoolSwitcher() {
     const { schools, createSchool } = useData()
 
-    return <Stack direction="row">
-        {schools.map(school => <Button key={school.id}>{school.name}</Button>)}
-        <Button onClick={() => createSchool('New School')}>+</Button>
-    </Stack>
+    const [nameSelectorOpen, setNameSelectorOpen] = useState(false)
+
+const [name, setName] = useState('')
+
+    return <>
+        <Stack direction="row">
+            {schools.map(school => <Button key={school.id}>{school.name}</Button>)}
+            <Button onClick={() => setNameSelectorOpen(true)}>+</Button>
+        </Stack>
+        <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
+            <DialogTitle>Create a new school</DialogTitle>
+            <DialogContent>
+                <TextField label="School name" value={name} onChange={e => setName(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setNameSelectorOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    createSchool(name)
+                    setNameSelectorOpen(false)
+                }}>Create</Button>
+            </DialogActions>
+        </Dialog>
+    </>
 }
 
 export default function Banner() {
