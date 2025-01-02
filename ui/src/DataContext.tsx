@@ -29,20 +29,20 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
     const [schools, setSchools] = useState<DataContextValue['schools']>([])
 
-    const updateVisibleSchoolList = async () => {
+    const updateVisibleSchoolList = useCallback(async () => {
         const response = await authenticatedAPIs.call<VisibleSchoolsResponse>('GET', 'visible-schools', undefined)
         if (isSuccessfulAPIResponse(response)) {
             setSchools(response.body.schools)
         } else {
             addAPIError(response)
         }
-    }
+    }, [authenticatedAPIs, addAPIError])
 
     useEffect(() => {
         if (loggedIn) {
             updateVisibleSchoolList()
         }
-    }, [loggedIn])
+    }, [loggedIn, updateVisibleSchoolList])
 
     const [schoolInfos, setSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
 
