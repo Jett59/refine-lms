@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { SchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -10,13 +10,13 @@ export interface DataContextValue {
         name: string
         id: string
     }[]
-    getSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
+    getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
     createSchool: (name: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
     schools: [],
-    getSchoolInfo: async () => null,
+    getRelevantSchoolInfo: async () => null,
     createSchool: async () => { }
 })
 
@@ -44,15 +44,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }
     }, [loggedIn, updateVisibleSchoolList])
 
-    const [schoolInfos, setSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
+    const [relevantSchoolInfos, setRelevantSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
 
     return <DataContext.Provider value={{
         schools,
-        getSchoolInfo: useCallback(async (schoolId, refreshCache) => {
-            if (!schoolInfos[schoolId] || refreshCache) {
-                const response = await authenticatedAPIs.call<SchoolInfoResponse>('GET', 'school-info', undefined, { id: schoolId })
-                if (isSuccessfulAPIResponse(response)) {
-                    setSchoolInfos(schoolInfos => ({
+        getRelevantSchoolInfo: useCallback(async (schoolId, refreshCache) => {
+            if (!relevantSchoolInfos[schoolId] || refreshCache) {
+                const response = await authenticatedAPIs.call<RelevantSchoolInfoResponse>('GET', 'relevant-school-info', undefined, { id: schoolId })
+                if (isSuccessfulAPIResponse(response) && response.body.school) {
+                    setRelevantSchoolInfos(schoolInfos => ({
                         ...schoolInfos,
                         [schoolId]: response.body.school
                     }))
@@ -61,8 +61,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                     return null
                 }
             }
-            return schoolInfos[schoolId]
-        }, [authenticatedAPIs, schoolInfos]),
+            return relevantSchoolInfos[schoolId]
+        }, [authenticatedAPIs, relevantSchoolInfos]),
         createSchool: useCallback(async (name) => {
             const response = await authenticatedAPIs.call('POST', 'create-school', { name })
             if (!isSuccessfulAPIResponse(response)) {
@@ -78,13 +78,13 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
 export const useData = () => useContext(DataContext)
 
-export function useSchool(schoolId: string) {
-    const { getSchoolInfo } = useData()
+export function useRelevantSchoolInfo(schoolId: string): SchoolInfo | null {
+    const { getRelevantSchoolInfo } = useData()
     const [school, setSchool] = useState<SchoolInfo | null>(null)
 
     useEffect(() => {
-        getSchoolInfo(schoolId).then(setSchool)
-    }, [getSchoolInfo, schoolId])
+        getRelevantSchoolInfo(schoolId).then(setSchool)
+    }, [getRelevantSchoolInfo, schoolId])
 
     return school
 }

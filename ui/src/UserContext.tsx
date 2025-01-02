@@ -26,7 +26,7 @@ const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
 export function UserContextProvider({ children }: {
     children: ReactNode
 }) {
-    const { addAPIError } = useError()
+    const { addAPIError, addError } = useError()
 
     const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
 
@@ -37,13 +37,22 @@ export function UserContextProvider({ children }: {
         if (tokens !== null) {
             try {
                 setGoogleTokens(JSON.parse(tokens))
-            } catch (e) { }
+            } catch (e) {
+                addError(`Invalid google token structure: ${tokens}`)
+            }
         }
     }, [])
 
     useEffect(() => {
-        localStorage.setItem(LOCAL_STORAGE_TOKENS_KEY, JSON.stringify(googleTokens))
+        if (googleTokens !== undefined) {
+            localStorage.setItem(LOCAL_STORAGE_TOKENS_KEY, JSON.stringify(googleTokens))
+        }
     }, [googleTokens])
+
+const removeTokens = useCallback(() => {
+        setGoogleTokens(undefined)
+        localStorage.removeItem(LOCAL_STORAGE_TOKENS_KEY)
+}, [])
 
     const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
 
@@ -86,7 +95,7 @@ export function UserContextProvider({ children }: {
                     refreshToken: googleTokens.refreshToken
                 })
                 if (isSuccessfulAPIResponse(response) && response.body.accessToken) {
-                    setGoogleTokens({...response.body, userInfo: googleTokens.userInfo})
+                    setGoogleTokens({ ...response.body, userInfo: googleTokens.userInfo })
                     return response.body.idToken
                 } else {
                     return await handleLoggedOut(response)
@@ -123,7 +132,7 @@ export function UserContextProvider({ children }: {
                 <Button variant="contained" color='primary' onClick={login}>Log in</Button>
                 <Button variant="outlined" color='secondary' onClick={() => {
                     setHandlingLogout(false)
-                    setGoogleTokens(undefined)
+                    removeTokens()
                 }}>Stay logged out</Button>
             </DialogActions>
         </Dialog>

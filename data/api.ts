@@ -23,7 +23,12 @@ export interface VisibleSchoolsResponse {
     }[]
 }
 
-export interface SchoolInfoResponse {
+/**
+ * A trimmed version of the full school info. Depending on the user's role, this includes:
+ * - Administrator/teacher: everything
+ * - Student: all administrator and teacher infos, all students from the same year group, all courses and classes which include the student
+ */
+export interface RelevantSchoolInfoResponse {
     school: SchoolInfo
 }
 
