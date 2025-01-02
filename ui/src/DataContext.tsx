@@ -77,3 +77,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 }
 
 export const useData = () => useContext(DataContext)
+
+export function useSchool(schoolId: string) {
+    const { getSchoolInfo } = useData()
+    const [school, setSchool] = useState<SchoolInfo | null>(null)
+
+    useEffect(() => {
+        getSchoolInfo(schoolId).then(setSchool)
+    }, [getSchoolInfo, schoolId])
+
+    return school
+}
