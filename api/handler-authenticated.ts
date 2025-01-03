@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { createSchool, createYearGroup, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
-import { CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse } from "../data/api";
+import { createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
+import { CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -78,6 +78,27 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(400, 'Invalid school ID')
                 }
                 return successResponse<CreateYearGroupResponse>({ createdId: (await createYearGroup(db, user._id!, schoolObjectId, typedBody.name)).toHexString() })
+            }
+            case "/create-course": {
+                const typedBody: CreateCourseRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group ID')
+                }
+                if (!typedBody.name) {
+                    return errorResponse(400, 'Missing course name')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school or year group ID')
+                }
+                return successResponse<CreateCourseResponse>({ createdId: (await createCourse(db, user._id!, schoolObjectId, yearGroupObjectId, typedBody.name)).toHexString() })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

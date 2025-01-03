@@ -173,3 +173,24 @@ export async function createYearGroup(db: Db, userId: ObjectId, schoolId: Object
     })
     return yearGroupId
 }
+
+export async function createCourse(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, name: string): Promise<ObjectId> {
+    const courseId = new ObjectId()
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId
+    }, {
+        $push: {
+            'yearGroups.$.courses': {
+                id: courseId,
+                name,
+                classes: []
+            }
+        }
+    })  
+    return courseId
+}

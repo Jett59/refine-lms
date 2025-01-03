@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import PageWrapper from "./PageWrapper"
 import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { CourseInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
 import { Expand } from "@mui/icons-material"
@@ -26,6 +26,12 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const [name, setName] = useState('')
+
+useEffect(() => {
+    if (dialogOpen) {
+        setName('')
+    }
+}, [dialogOpen])
 
     return <>
         <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{"aria-label": 'New course'}} />
