@@ -1,7 +1,7 @@
 import PageWrapper from "./PageWrapper";
 import { useData } from "./DataContext";
 import { useSwitchSchool } from "./App";
-import { Tile, TileContainer } from "./Tile";
+import { TileButton, TileContainer } from "./Tile";
 
 export default function NoSchool() {
     const switchSchool = useSwitchSchool()
@@ -9,7 +9,7 @@ export default function NoSchool() {
 
     return <PageWrapper title="Schools">
         <TileContainer>
-            {schools.map(school => <Tile key={school.id} text={school.name} onClick={() => switchSchool(school.id)} />)}
+            {schools.map(school => <TileButton key={school.id} text={school.name} onClick={() => switchSchool(school.id)} />)}
         </TileContainer>
     </PageWrapper>
 }

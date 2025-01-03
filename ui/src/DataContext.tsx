@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -13,13 +13,15 @@ export interface DataContextValue {
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
     createSchool: (name: string) => Promise<void>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
+    createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
     schools: [],
     getRelevantSchoolInfo: async () => null,
     createSchool: async () => { },
-    createYearGroup: async () => { }
+    createYearGroup: async () => { },
+    createCourse: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -83,7 +85,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             } else {
                 addAPIError(response)
             }
-        }, [authenticatedAPIs, getRelevantSchoolInfo])
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        createCourse: useCallback(async (schoolId, yearGroupId, name) => {
+            const response = await authenticatedAPIs.call<CreateCourseResponse, CreateCourseRequest>('POST', 'create-course', { schoolId, yearGroupId, name })
+            if (isSuccessfulAPIResponse(response)) {
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
     }}>
         {children}
     </DataContext.Provider>

@@ -1,12 +1,48 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import PageWrapper from "./PageWrapper"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
+import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useState } from "react"
 import { CourseInfo } from "../../data/school"
+import { TileButton, TileCard } from "./Tile"
+import { Expand } from "@mui/icons-material"
 
 function CourseView({ course }: { course: CourseInfo }) {
-    return <span>{course.name}</span>
+    const [expanded, setExpanded] = useState(false)
+
+    return <TileCard>
+        <CardContent>
+            <Typography variant="h6">{course.name}</Typography>
+        </CardContent>
+        <CardActions>
+            <IconButton aria-label={expanded ? 'Show classes' : 'Hide classes'} aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+                <Expand /> {/* TODO: Flip upside down when already expanded */}
+            </IconButton>
+        </CardActions>
+    </TileCard>
+}
+
+function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }) {
+    const [dialogOpen, setDialogOpen] = useState(false)
+
+    const [name, setName] = useState('')
+
+    return <>
+        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{"aria-label": 'New course'}} />
+        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            <DialogTitle>Create a new course</DialogTitle>
+            <DialogContent>
+                <TextField label="Course name" value={name} onChange={e => setName(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    onClick(name)
+                    setDialogOpen(false)
+                }}>Create</Button>
+            </DialogActions>
+        </Dialog>
+    </>
 }
 
 function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: string) => void, buttonText?: string }) {
@@ -15,7 +51,7 @@ function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: stri
     const [name, setName] = useState('')
 
     return <>
-        <Button onClick={() => setDialogOpen(true)}>{buttonText ?? '+'}</Button>
+        <Button aria-label={buttonText ?? 'New year group'} onClick={() => setDialogOpen(true)}>{buttonText ?? '+'}</Button>
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
@@ -36,7 +72,7 @@ export default function Classes() {
     const { schoolId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId ?? 'missing id')
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
-    const { createYearGroup } = useData()
+    const { createYearGroup, createCourse } = useData()
 
     const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
 
@@ -71,12 +107,10 @@ export default function Classes() {
         </Tabs>
         <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
             <Typography variant="h5">{currentYearGroup.name}</Typography>
-            {currentYearGroup.courses.length === 0
-                ? <Typography>No courses in this year group</Typography>
-                : <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-                    {currentYearGroup.courses.map(course => <CourseView key={course.id} course={course} />)}
-                </Stack>
-            }
+            <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+                {currentYearGroup.courses.map(course => <CourseView key={course.id} course={course} />)}
+                {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
+            </Stack>
         </div>
     </PageWrapper>
 }
