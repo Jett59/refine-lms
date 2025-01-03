@@ -46,3 +46,12 @@ export interface CreateYearGroupRequest {
 export interface CreateYearGroupResponse {
     createdId: string
 }
+
+export interface CreateCourseRequest {
+    schoolId: string
+    yearGroupId: string
+    name: string
+}
+export interface CreateCourseResponse {
+    createdId: string
+}
