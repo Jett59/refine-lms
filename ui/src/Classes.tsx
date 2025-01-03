@@ -1,8 +1,13 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import PageWrapper from "./PageWrapper"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useState } from "react"
+import { CourseInfo } from "../../data/school"
+
+function CourseView({ course }: { course: CourseInfo }) {
+    return <span>{course.name}</span>
+}
 
 function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: string) => void, buttonText?: string }) {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -33,6 +38,8 @@ export default function Classes() {
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
     const { createYearGroup } = useData()
 
+    const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
+
     if (!schoolId) {
         return <PageWrapper title="School">
             <Typography>No school chosen?</Typography>
@@ -54,7 +61,22 @@ export default function Classes() {
             <Typography>You are not currently a member of a class</Typography>
         </PageWrapper>
     }
+
+    const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
+
     return <PageWrapper title={schoolInfo?.name ?? 'School'}>
-        <span>Hi</span>
+        <Tabs value={selectedYearGroupIndex} onChange={(_e, newValue) => setSelectedYearGroupIndex(newValue)} aria-label="Year groups">
+            {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
+            {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
+        </Tabs>
+        <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
+            <Typography variant="h5">{currentYearGroup.name}</Typography>
+            {currentYearGroup.courses.length === 0
+                ? <Typography>No courses in this year group</Typography>
+                : <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+                    {currentYearGroup.courses.map(course => <CourseView key={course.id} course={course} />)}
+                </Stack>
+            }
+        </div>
     </PageWrapper>
 }
