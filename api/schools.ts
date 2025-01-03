@@ -122,7 +122,7 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
     if (!wholeSchool) {
         return null
     }
-    if (wholeSchool.administratorIds.includes(userId) || wholeSchool.teacherIds.includes(userId)) {
+    if (wholeSchool.administratorIds.some(id => id.equals(userId)) || wholeSchool.teacherIds.some(id => id.equals(userId))) {
         return convertSchoolForApi(db, wholeSchool)
     }
     let relevantSchool: School = {
@@ -134,7 +134,7 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
             courses: yearGroup.courses.map(course => ({
                 id: course.id,
                 name: course.name,
-                classes: course.classes.filter(cls => cls.studentIds.includes(userId))
+                classes: course.classes.filter(cls => cls.studentIds.some(id => id.equals(userId)))
             })).filter(course => course.classes.length > 0)
         })).filter(yearGroup => yearGroup.courses.length > 0),
         administratorIds: wholeSchool.administratorIds,
@@ -146,10 +146,30 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
         relevantSchool.yearGroups.some(yearGroup => (
             yearGroup.courses.some(course => (
                 course.classes.some(cls => (
-                    cls.studentIds.includes(id)
+                    cls.studentIds.some(otherId => otherId.equals(id))
                 ))
             ))
         ))
     ))
     return convertSchoolForApi(db, relevantSchool)
+}
+
+export async function createYearGroup(db: Db, userId: ObjectId, schoolId: ObjectId, name: string): Promise<ObjectId> {
+    const yearGroupId = new ObjectId()
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ]
+    }, {
+        $push: {
+            yearGroups: {
+                id: yearGroupId,
+                name,
+                courses: []
+            }
+        }
+    })
+    return yearGroupId
 }

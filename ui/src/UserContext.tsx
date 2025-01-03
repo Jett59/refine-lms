@@ -6,12 +6,13 @@ import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/
 import { useError } from "./ErrorContext";
 
 export interface UserContextValue {
-    login: () => void,
-    getIdToken: () => Promise<string | null>,
-    loggedIn: boolean,
-    loggingIn: boolean,
-    name?: string,
-    profile_picture_url?: string,
+    login: () => void
+    getIdToken: () => Promise<string | null>
+    loggedIn: boolean
+    loggingIn: boolean
+    name?: string
+    profile_picture_url?: string
+    userId?: string
 }
 
 const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
@@ -49,10 +50,10 @@ export function UserContextProvider({ children }: {
         }
     }, [googleTokens])
 
-const removeTokens = useCallback(() => {
+    const removeTokens = useCallback(() => {
         setGoogleTokens(undefined)
         localStorage.removeItem(LOCAL_STORAGE_TOKENS_KEY)
-}, [])
+    }, [])
 
     const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
 
@@ -120,9 +121,9 @@ const removeTokens = useCallback(() => {
         loggingIn,
         name: googleTokens?.userInfo?.name,
         profile_picture_url: googleTokens?.userInfo?.picture,
+        userId: googleTokens?.userInfo?.id
     }}>
         {children}
-        {/* TODO: Should this go somewhere else? */}
         <Dialog open={handlingLogout}>
             <DialogTitle>Logged out</DialogTitle>
             <DialogContent>

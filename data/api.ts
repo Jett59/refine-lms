@@ -38,3 +38,11 @@ export interface CreateSchoolRequest {
 export interface CreateSchoolResponse {
     createdId: string
 }
+
+export interface CreateYearGroupRequest {
+    schoolId: string
+    name: string
+}
+export interface CreateYearGroupResponse {
+    createdId: string
+}

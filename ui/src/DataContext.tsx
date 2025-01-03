@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -12,12 +12,14 @@ export interface DataContextValue {
     }[]
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
     createSchool: (name: string) => Promise<void>
+    createYearGroup: (schoolId: string, name: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
     schools: [],
     getRelevantSchoolInfo: async () => null,
-    createSchool: async () => { }
+    createSchool: async () => { },
+    createYearGroup: async () => { }
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -46,31 +48,42 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
     const [relevantSchoolInfos, setRelevantSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
 
+    const getRelevantSchoolInfo: (schoolId: string, refreshCache?: boolean) => Promise<SchoolInfo | null> = useCallback(async (schoolId, refreshCache) => {
+        if (!relevantSchoolInfos[schoolId] || refreshCache) {
+            const response = await authenticatedAPIs.call<RelevantSchoolInfoResponse>('GET', 'relevant-school-info', undefined, { id: schoolId })
+            if (isSuccessfulAPIResponse(response) && response.body.school) {
+                setRelevantSchoolInfos(schoolInfos => ({
+                    ...schoolInfos,
+                    [schoolId]: response.body.school
+                }))
+            } else {
+                addAPIError(response)
+                return null
+            }
+        }
+        return relevantSchoolInfos[schoolId]
+    }, [authenticatedAPIs, relevantSchoolInfos])
+
     return <DataContext.Provider value={{
         schools,
-        getRelevantSchoolInfo: useCallback(async (schoolId, refreshCache) => {
-            if (!relevantSchoolInfos[schoolId] || refreshCache) {
-                const response = await authenticatedAPIs.call<RelevantSchoolInfoResponse>('GET', 'relevant-school-info', undefined, { id: schoolId })
-                if (isSuccessfulAPIResponse(response) && response.body.school) {
-                    setRelevantSchoolInfos(schoolInfos => ({
-                        ...schoolInfos,
-                        [schoolId]: response.body.school
-                    }))
-                } else {
-                    addAPIError(response)
-                    return null
-                }
-            }
-            return relevantSchoolInfos[schoolId]
-        }, [authenticatedAPIs, relevantSchoolInfos]),
+        getRelevantSchoolInfo,
         createSchool: useCallback(async (name) => {
-            const response = await authenticatedAPIs.call('POST', 'create-school', { name })
-            if (!isSuccessfulAPIResponse(response)) {
-                addAPIError(response)
+            const response = await authenticatedAPIs.call<CreateSchoolResponse, CreateSchoolRequest>('POST', 'create-school', { name })
+            if (isSuccessfulAPIResponse(response)) {
+                await updateVisibleSchoolList()
             } else {
-                updateVisibleSchoolList()
+                addAPIError(response)
             }
-        }, [authenticatedAPIs])
+        }, [authenticatedAPIs]),
+        createYearGroup: useCallback(async (schoolId, name) => {
+            const response = await authenticatedAPIs.call<CreateYearGroupResponse, CreateYearGroupRequest>('POST', 'create-year-group', { schoolId, name })
+            if (isSuccessfulAPIResponse(response)) {
+                // Refresh the school info cache
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getRelevantSchoolInfo])
     }}>
         {children}
     </DataContext.Provider>
@@ -87,4 +100,29 @@ export function useRelevantSchoolInfo(schoolId: string): SchoolInfo | null {
     }, [getRelevantSchoolInfo, schoolId])
 
     return school
+}
+
+export function useRole(school: SchoolInfo | null): 'administrator' | 'teacher' | 'student' | null {
+    const { userId } = useUser()
+
+    if (!school || !userId) {
+        return null
+    }
+
+    if (school.administrators.some(admin => admin.id === userId)) {
+        return 'administrator'
+    }
+    if (school.teachers.some(teacher => teacher.id === userId)) {
+        return 'teacher'
+    }
+    if (school.students.some(student => student.id === userId)) {
+        return 'student'
+    }
+
+    console.error('User is not a member of school', school)
+    return null
+}
+
+export function useIsTeacherOrAdministrator(school: SchoolInfo | null): boolean {
+    return ['teacher', 'administrator'].includes(useRole(school) ?? '')
 }

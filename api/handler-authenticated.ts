@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { createSchool, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
-import { CreateSchoolRequest, RelevantSchoolInfoResponse } from "../data/api";
+import { createSchool, createYearGroup, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
+import { CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -61,7 +61,23 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
             }
             case "/create-school": {
                 const typedBody: CreateSchoolRequest = body
-                return successResponse({ createdId: await createSchool(db, user._id!, typedBody.name) })
+                return successResponse<CreateSchoolResponse>({ createdId: (await createSchool(db, user._id!, typedBody.name)).toHexString() })
+            }
+            case "/create-year-group": {
+                const typedBody: CreateYearGroupRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.name) {
+                    return errorResponse(400, 'Missing year group name')
+                }
+                let schoolObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school ID')
+                }
+                return successResponse<CreateYearGroupResponse>({ createdId: (await createYearGroup(db, user._id!, schoolObjectId, typedBody.name)).toHexString() })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

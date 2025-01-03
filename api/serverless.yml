@@ -48,3 +48,8 @@ functions:
           method: get
           authorizer:
             name: google
+      - httpApi:
+          path: /api/create-year-group
+          method: post
+          authorizer:
+            name: google
