@@ -200,7 +200,7 @@ export async function createCourse(db: Db, userId: ObjectId, schoolId: ObjectId,
                 classes: []
             }
         }
-    })  
+    })
     return courseId
 }
 
@@ -231,4 +231,16 @@ export async function createClass(db: Db, userId: ObjectId, schoolId: ObjectId, 
         ]
     })
     return classId
+}
+
+export async function invite(db: Db, userId: ObjectId, schoolId: ObjectId, role: 'administrator' | 'teacher' | 'student', email: string) {
+    const key = `invited${role.charAt(0).toUpperCase()}${role.slice(1)}Emails`
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        administratorIds: userId
+    }, {
+        $push: {
+            [key]: email
+        }
+    })
 }

@@ -2,7 +2,7 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { createClass, createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
+import { createClass, createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, invite, listVisibleSchools } from "./schools";
 import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -143,7 +143,8 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 } catch (e) {
                     return errorResponse(400, 'Invalid school ID')
                 }
-                return successResponse<InviteResponse>({ success: false })
+                await invite(db, user._id!, schoolObjectId, typedBody.role, typedBody.email)
+                return successResponse<InviteResponse>({ success: true })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
