@@ -98,7 +98,9 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }, [authenticatedAPIs]),
         createClass: useCallback(async (schoolId, yearGroupId, courseId, name) => {
             const response = await authenticatedAPIs.call<CreateClassResponse, CreateClassRequest>('POST', 'create-class', { schoolId, yearGroupId, courseId, name })
-            if (!isSuccessfulAPIResponse(response)) {
+            if (isSuccessfulAPIResponse(response)) {
+                await getRelevantSchoolInfo(schoolId, true)
+            }else {
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),

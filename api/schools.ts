@@ -194,3 +194,32 @@ export async function createCourse(db: Db, userId: ObjectId, schoolId: ObjectId,
     })  
     return courseId
 }
+
+export async function createClass(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, name: string): Promise<ObjectId> {
+    const classId = new ObjectId()
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId
+    }, {
+        // REF: https://stackoverflow.com/questions/24046470/mongodb-too-many-positional-i-e-elements-found-in-path
+        $push: {
+            'yearGroups.$[i].courses.$[j].classes': {
+                id: classId,
+                name,
+                teacherIds: [],
+                studentIds: []
+            }
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId }
+        ]
+    })
+    return classId
+}
