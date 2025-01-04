@@ -13,7 +13,7 @@ function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
     const [name, setName] = useState('')
 
     return <>
-        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{ "aria-label": 'New class' }} />
+        <Button onClick={() => setDialogOpen(true)} aria-label="New class">+</Button>
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new class</DialogTitle>
             <DialogContent>
