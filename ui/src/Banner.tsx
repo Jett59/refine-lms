@@ -1,8 +1,10 @@
-import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material";
+import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material";
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
 import { useState } from "react";
+import { useSwitchSchool } from "./App";
+import SimpleMenu from "./SimpleMenu";
 
 function ErrorButton() {
     const { errors } = useError()
@@ -37,16 +39,24 @@ function ErrorButton() {
 
 function SchoolSwitcher() {
     const { schools, createSchool } = useData()
+    const switchSchool = useSwitchSchool()
 
     const [nameSelectorOpen, setNameSelectorOpen] = useState(false)
 
-const [name, setName] = useState('')
+    const [name, setName] = useState('')
 
     return <>
-        <Stack direction="row">
-            {schools.map(school => <Button key={school.id}>{school.name}</Button>)}
-            <Button onClick={() => setNameSelectorOpen(true)}>+</Button>
-        </Stack>
+        <SimpleMenu buttonContents="Schools" childrenSupplier={close => <>
+            {schools.map(school => <MenuItem key={school.id} onClick={() => {
+                switchSchool(school.id)
+                close()
+            }}>{school.name}</MenuItem>)}
+            <MenuItem onClick={() => {
+                setNameSelectorOpen(true)
+                close()
+            }
+            }>New school</MenuItem>
+        </>} />
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>
             <DialogContent>
