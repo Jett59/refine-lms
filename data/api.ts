@@ -65,3 +65,12 @@ export interface CreateClassRequest {
 export interface CreateClassResponse {
     createdId: string
 }
+
+export interface InviteRequest {
+    schoolId: string
+    role: 'administrator' | 'teacher' | 'student'
+    email: string
+}
+export interface InviteResponse {
+    success: boolean
+}

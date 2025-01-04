@@ -3,7 +3,7 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse } fro
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { createClass, createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, listVisibleSchools } from "./schools";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse } from "../data/api";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -125,6 +125,25 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(400, 'Invalid school, year group, or course ID')
                 }
                 return successResponse<CreateClassResponse>({ createdId: (await createClass(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.name)).toHexString() })
+            }
+            case "/invite": {
+                const typedBody: InviteRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.role) {
+                    return errorResponse(400, 'Missing category')
+                }
+                if (!typedBody.email) {
+                    return errorResponse(400, 'Missing email')
+                }
+                let schoolObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school ID')
+                }
+                return successResponse<InviteResponse>({ success: false })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

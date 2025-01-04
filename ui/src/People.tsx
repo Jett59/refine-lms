@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import PageWrapper from "./PageWrapper";
 import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, TextField, Typography } from "@mui/material";
-import { useRelevantSchoolInfo, useRole } from "./DataContext";
+import { useData, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { InsertInvitation } from "@mui/icons-material";
 import { SchoolInfo } from "../../data/school";
@@ -20,17 +20,18 @@ function Person({ userInfo }: { userInfo: UserInfo }) {
     return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
 }
 
-function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo | null, category: 'administrator' | 'teacher' | 'student' }) {
+function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, category: 'administrator' | 'teacher' | 'student' }) {
     const role = useRole(schoolInfo)
+    const { invite } = useData()
 
-    const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
+    const headingContent = category === 'administrator' ? 'Administrators' : role === 'teacher' ? 'Teachers' : 'Students'
 
-const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
-const [email, setEmail] = useState('')
-const [emailHasError, setEmailHasError] = useState(false)
-const emailRef = useRef<HTMLElement>()
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+    const [email, setEmail] = useState('')
+    const [emailHasError, setEmailHasError] = useState(false)
+    const emailRef = useRef<HTMLElement>()
 
-const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
+    const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
 
     if (role === 'administrator') {
         return <Stack direction="row">
@@ -51,7 +52,7 @@ const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
                     <Button variant="contained" onClick={() => {
                         if (validateEmail(email)) {
                             setEmailHasError(false)
-                            console.log(`Invite ${category} with email ${email}`)
+                            invite(schoolInfo?.id, category, email)
                             setInviteDialogOpen(false)
                         } else {
                             setEmailHasError(true)

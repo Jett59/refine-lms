@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -15,6 +15,7 @@ export interface DataContextValue {
     createYearGroup: (schoolId: string, name: string) => Promise<void>
     createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
+    invite: (schoolId: string, role: 'administrator' | 'teacher' | 'student', email: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -24,6 +25,7 @@ const DataContext = createContext<DataContextValue>({
     createYearGroup: async () => { },
     createCourse: async () => { },
     createClass: async () => { },
+    invite: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -101,6 +103,13 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
+        invite: useCallback(async (schoolId, role, email) => {
+            const response = await authenticatedAPIs.call<InviteResponse, InviteRequest>('POST', 'invite', { schoolId, role, email })
+            // TODO: think about whether we should update the school to show the invitations on the people page
+            if (!(isSuccessfulAPIResponse(response) && response.body.success)) {
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),
