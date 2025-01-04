@@ -1,4 +1,4 @@
-import { AppBar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material";
+import { AppBar, Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
@@ -46,7 +46,7 @@ function SchoolSwitcher() {
     const [name, setName] = useState('')
 
     return <>
-        <SimpleMenu buttonContents="Schools" childrenSupplier={close => <>
+        <SimpleMenu buttonContents={<Typography color="textPrimary">Schools</Typography>} childrenSupplier={close => <>
             {schools.map(school => <MenuItem key={school.id} onClick={() => {
                 switchSchool(school.id)
                 close()
@@ -77,7 +77,7 @@ export default function Banner() {
     const { login, loggedIn, loggingIn, name, profile_picture_url } = useUser()
 
     return <AppBar position="static">
-        <Box display="flex" justifyContent="space-between">
+        <Box display="flex" justifyContent="space-between" alignItems="center">
             <Stack direction="row" spacing={2}>
                 <h1>Fancy logo goes here</h1>
                 <ErrorButton />
@@ -86,7 +86,9 @@ export default function Banner() {
                 <Stack direction="row" spacing={2}>
                     <SchoolSwitcher />
                     <Box>
-                        <img src={profile_picture_url} alt={name} />
+                        <Avatar sx={{ width: 50, height: 50 }}>
+                            <img src={profile_picture_url} alt={name} />
+                        </Avatar>
                     </Box>
                 </Stack>
                 :
