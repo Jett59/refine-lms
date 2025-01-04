@@ -55,3 +55,13 @@ export interface CreateCourseRequest {
 export interface CreateCourseResponse {
     createdId: string
 }
+
+export interface CreateClassRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    name: string
+}
+export interface CreateClassResponse {
+    createdId: string
+}

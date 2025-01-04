@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -14,6 +14,7 @@ export interface DataContextValue {
     createSchool: (name: string) => Promise<void>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
     createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
+    createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -22,6 +23,7 @@ const DataContext = createContext<DataContextValue>({
     createSchool: async () => { },
     createYearGroup: async () => { },
     createCourse: async () => { },
+    createClass: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -91,6 +93,12 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
+        createClass: useCallback(async (schoolId, yearGroupId, courseId, name) => {
+            const response = await authenticatedAPIs.call<CreateClassResponse, CreateClassRequest>('POST', 'create-class', { schoolId, yearGroupId, courseId, name })
+            if (!isSuccessfulAPIResponse(response)) {
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),

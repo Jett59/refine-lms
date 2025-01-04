@@ -5,21 +5,50 @@ import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent,
 import { useEffect, useState } from "react"
 import { CourseInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
-import { Expand } from "@mui/icons-material"
+import { ExpandMore } from "@mui/icons-material"
 
-function CourseView({ course }: { course: CourseInfo }) {
+function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
+    const [dialogOpen, setDialogOpen] = useState(false)
+
+    const [name, setName] = useState('')
+
+    return <>
+        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{ "aria-label": 'New class' }} />
+        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            <DialogTitle>Create a new class</DialogTitle>
+            <DialogContent>
+                <TextField label="Class name" value={name} onChange={e => setName(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    onClick(name)
+                    setDialogOpen(false)
+                }}>Create</Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
+
+function CourseView({ course, isAdministratorOrTeacher, newClass }: { course: CourseInfo, isAdministratorOrTeacher: boolean, newClass: (name: string) => void }) {
     const [expanded, setExpanded] = useState(false)
 
-    return <TileCard>
-        <CardContent>
-            <Typography variant="h6">{course.name}</Typography>
-        </CardContent>
-        <CardActions>
-            <IconButton aria-label={expanded ? 'Show classes' : 'Hide classes'} aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
-                <Expand /> {/* TODO: Flip upside down when already expanded */}
-            </IconButton>
-        </CardActions>
-    </TileCard>
+    return <>
+        <TileCard>
+            <CardContent>
+                <Typography variant="h6">{course.name}</Typography>
+            </CardContent>
+            <CardActions>
+                {isAdministratorOrTeacher && <AddClassButton onClick={newClass} />}
+                <IconButton aria-label={expanded ? 'Hide classes' : 'Show classes'} aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+                    <ExpandMore sx={expanded ? { transform: 'rotate(180deg)' } : {}} />
+                </IconButton>
+            </CardActions>
+        </TileCard>
+        {expanded && course.classes.map(cls => (
+            <TileButton key={cls.id} text={cls.name} onClick={() => console.log(cls.name)} />
+        ))}
+    </>
 }
 
 function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }) {
@@ -27,14 +56,14 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
 
     const [name, setName] = useState('')
 
-useEffect(() => {
-    if (dialogOpen) {
-        setName('')
-    }
-}, [dialogOpen])
+    useEffect(() => {
+        if (dialogOpen) {
+            setName('')
+        }
+    }, [dialogOpen])
 
     return <>
-        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{"aria-label": 'New course'}} />
+        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{ "aria-label": 'New course' }} />
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new course</DialogTitle>
             <DialogContent>
@@ -78,7 +107,7 @@ export default function Classes() {
     const { schoolId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId ?? 'missing id')
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
-    const { createYearGroup, createCourse } = useData()
+    const { createYearGroup, createCourse, createClass } = useData()
 
     const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
 
@@ -114,7 +143,9 @@ export default function Classes() {
         <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
             <Typography variant="h5">{currentYearGroup.name}</Typography>
             <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
-                {currentYearGroup.courses.map(course => <CourseView key={course.id} course={course} />)}
+                {currentYearGroup.courses.map(course =>
+                    <CourseView key={course.id} isAdministratorOrTeacher={isAdministratorOrTeacher} course={course} newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)} />
+                )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
             </Stack>
         </div>
