@@ -4,7 +4,7 @@ import { ReactNode } from "react"
 const paddingMargins = '10px';
 
 export default function PageWrapper({ title, children }: {
-    title: string
+    title: string | ReactNode
     children: ReactNode
 }) {
     const theme = useTheme()

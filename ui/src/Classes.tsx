@@ -5,7 +5,8 @@ import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent,
 import { useEffect, useState } from "react"
 import { CourseInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
-import { ExpandMore } from "@mui/icons-material"
+import { ExpandMore, People } from "@mui/icons-material"
+import { useSwitchPage } from "./App"
 
 function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -105,9 +106,10 @@ function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: stri
 
 export default function Classes() {
     const { schoolId } = useParams()
-    const schoolInfo = useRelevantSchoolInfo(schoolId ?? 'missing id')
+    const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
     const { createYearGroup, createCourse, createClass } = useData()
+    const switchPage = useSwitchPage(schoolId)
 
     const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
 
@@ -133,9 +135,21 @@ export default function Classes() {
         </PageWrapper>
     }
 
+    let title
+    if (isAdministratorOrTeacher) {
+        title = <Stack direction="row" spacing={2}>
+            <Typography>{schoolInfo.name}</Typography>
+            <IconButton aria-label="People" onClick={() => switchPage('people')}>
+                <People />
+            </IconButton>
+        </Stack>
+    } else {
+        title = schoolInfo.name
+    }
+
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
 
-    return <PageWrapper title={schoolInfo?.name ?? 'School'}>
+    return <PageWrapper title={title}>
         <Tabs value={selectedYearGroupIndex} onChange={(_e, newValue) => setSelectedYearGroupIndex(newValue)} aria-label="Year groups">
             {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
             {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}

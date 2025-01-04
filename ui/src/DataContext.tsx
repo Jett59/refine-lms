@@ -100,7 +100,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             const response = await authenticatedAPIs.call<CreateClassResponse, CreateClassRequest>('POST', 'create-class', { schoolId, yearGroupId, courseId, name })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
-            }else {
+            } else {
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),
@@ -111,12 +111,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
 export const useData = () => useContext(DataContext)
 
-export function useRelevantSchoolInfo(schoolId: string): SchoolInfo | null {
+export function useRelevantSchoolInfo(schoolId?: string): SchoolInfo | null {
     const { getRelevantSchoolInfo } = useData()
     const [school, setSchool] = useState<SchoolInfo | null>(null)
 
     useEffect(() => {
-        getRelevantSchoolInfo(schoolId).then(setSchool)
+        if (schoolId) {
+            getRelevantSchoolInfo(schoolId).then(setSchool)
+        }
     }, [getRelevantSchoolInfo, schoolId])
 
     return school

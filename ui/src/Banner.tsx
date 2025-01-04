@@ -54,8 +54,7 @@ function SchoolSwitcher() {
             <MenuItem onClick={() => {
                 setNameSelectorOpen(true)
                 close()
-            }
-            }>New school</MenuItem>
+            }}>New school</MenuItem>
         </>} />
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>

@@ -10,6 +10,9 @@ export interface School {
     administratorIds: ObjectId[]
     teacherIds: ObjectId[]
     studentIds: ObjectId[]
+    invitedAdministratorEmails: string[]
+    invitedTeacherEmails: string[]
+    invitedStudentEmails: string[]
 }
 
 export interface YearGroup {
@@ -97,7 +100,10 @@ export async function createSchool(db: Db, creatorId: ObjectId, name: string): P
         yearGroups: [],
         administratorIds: [creatorId],
         teacherIds: [],
-        studentIds: []
+        studentIds: [],
+        invitedAdministratorEmails: [],
+        invitedTeacherEmails: [],
+        invitedStudentEmails: []
     }
     const result = await getCollection(db).insertOne(school)
     return result.insertedId ?? id
@@ -139,7 +145,10 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
         })).filter(yearGroup => yearGroup.courses.length > 0),
         administratorIds: wholeSchool.administratorIds,
         teacherIds: wholeSchool.teacherIds,
-        studentIds: wholeSchool.studentIds
+        studentIds: wholeSchool.studentIds,
+        invitedAdministratorEmails: wholeSchool.invitedAdministratorEmails,
+        invitedTeacherEmails: wholeSchool.invitedTeacherEmails,
+        invitedStudentEmails: wholeSchool.invitedStudentEmails
     }
     // Remove irrelevant student IDs
     relevantSchool.studentIds = relevantSchool.studentIds.filter(id => (
