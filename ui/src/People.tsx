@@ -1,7 +1,72 @@
 import { useParams } from "react-router-dom";
 import PageWrapper from "./PageWrapper";
-import { Grid, List, Typography } from "@mui/material";
-import { useRelevantSchoolInfo } from "./DataContext";
+import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, TextField, Typography } from "@mui/material";
+import { useRelevantSchoolInfo, useRole } from "./DataContext";
+import { UserInfo } from "../../data/user";
+import { InsertInvitation } from "@mui/icons-material";
+import { SchoolInfo } from "../../data/school";
+import { useRef, useState } from "react";
+
+// REF: https://stackoverflow.com/a/46181
+const validateEmail = (email: string) => {
+    return email
+        .toLowerCase()
+        .match(
+            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+};
+
+function Person({ userInfo }: { userInfo: UserInfo }) {
+    return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
+}
+
+function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo | null, category: 'administrator' | 'teacher' | 'student' }) {
+    const role = useRole(schoolInfo)
+
+    const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
+
+const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+const [email, setEmail] = useState('')
+const [emailHasError, setEmailHasError] = useState(false)
+const emailRef = useRef<HTMLElement>()
+
+const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
+
+    if (role === 'administrator') {
+        return <Stack direction="row">
+            <Typography variant="h5">{headingContent}</Typography>
+            <IconButton
+                aria-label={`Invite ${category}`}
+                onClick={() => setInviteDialogOpen(true)}
+            >
+                <InsertInvitation />
+            </IconButton>
+            <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
+                <DialogContent>
+                    <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo?.name}</Typography>
+                    <TextField inputRef={emailRef} type="email" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="outlined" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={() => {
+                        if (validateEmail(email)) {
+                            setEmailHasError(false)
+                            console.log(`Invite ${category} with email ${email}`)
+                            setInviteDialogOpen(false)
+                        } else {
+                            setEmailHasError(true)
+                            emailRef.current?.focus?.()
+                        }
+                    }}>
+                        Invite
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Stack>
+    } else {
+        return <Typography variant="h5">{headingContent}</Typography>
+    }
+}
 
 export default function People() {
     const { schoolId } = useParams()
@@ -22,21 +87,21 @@ export default function People() {
     return <PageWrapper title={`People in ${schoolInfo.name}`}>
         <Grid container spacing={2}>
             <Grid item xs={12}>
-                <Typography variant="h5">Administrators</Typography>
+                <CategoryHeading category="administrator" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.administrators.map(admin => <Typography key={admin.id}>{admin.name}</Typography>)}
+                    {schoolInfo.administrators.map(admin => <Person key={admin.id} userInfo={admin} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
-                <Typography variant="h5">Teachers</Typography>
+                <CategoryHeading category="teacher" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.teachers.map(teacher => <Typography key={teacher.id}>{teacher.name}</Typography>)}
+                    {schoolInfo.teachers.map(teacher => <Person key={teacher.id} userInfo={teacher} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
-                <Typography variant="h5">Students</Typography>
+                <CategoryHeading category="student" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.students.map(student => <Typography key={student.id}>{student.name}</Typography>)}
+                    {schoolInfo.students.map(student => <Person key={student.id} userInfo={student} />)}
                 </List>
             </Grid>
         </Grid>
