@@ -19,16 +19,16 @@ const validateEmail = (email: string) => {
 };
 
 function Person({ userInfo, schoolInfo }: { userInfo: UserInfo, schoolInfo: SchoolInfo }) {
-    const { } = useData()
-    const {userId} = useUser()
+    const { removeUser } = useData()
+    const { userId: ourUserId } = useUser()
     const ourRole = useRole(schoolInfo)
 
-    if (ourRole === 'administrator' && userInfo.id !== userId) {
+    if (ourRole === 'administrator' && userInfo.id !== ourUserId) {
         return <Stack direction="row">
             <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
             <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={close => (
                 <MenuItem onClick={() => {
-                    // removeUser(schoolInfo.id, userInfo.id)
+                    removeUser(schoolInfo.id, userInfo.id)
                     close()
                 }}>Remove</MenuItem>
             )} />
