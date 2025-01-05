@@ -31,7 +31,12 @@ function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
     </>
 }
 
-function CourseView({ course, isAdministratorOrTeacher, newClass }: { course: CourseInfo, isAdministratorOrTeacher: boolean, newClass: (name: string) => void }) {
+function CourseView({ course, isAdministratorOrTeacher, newClass, goToClass }: {
+    course: CourseInfo
+    isAdministratorOrTeacher: boolean
+    newClass: (name: string) => void
+    goToClass: (classId: string) => void
+}) {
     const [expanded, setExpanded] = useState(false)
 
     return <>
@@ -47,7 +52,11 @@ function CourseView({ course, isAdministratorOrTeacher, newClass }: { course: Co
             </CardActions>
         </TileCard>
         {expanded && course.classes.map(cls => (
-            <TileButton key={cls.id} text={cls.name} onClick={() => console.log(cls.name)} />
+            <TileButton
+                key={cls.id}
+                text={cls.name}
+                onClick={() => goToClass(cls.id)}
+            />
         ))}
     </>
 }
@@ -104,12 +113,12 @@ function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: stri
     </>
 }
 
-export default function Classes() {
+export default function School() {
     const { schoolId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
     const { createYearGroup, createCourse, createClass } = useData()
-    const switchPage = useSwitchPage(schoolId)
+    const switchPage = useSwitchPage()
 
     const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
 
@@ -139,7 +148,7 @@ export default function Classes() {
     if (isAdministratorOrTeacher) {
         title = <Stack direction="row" spacing={2}>
             <Typography>{schoolInfo.name}</Typography>
-            <IconButton aria-label="People" onClick={() => switchPage('people')}>
+            <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
                 <People />
             </IconButton>
         </Stack>
@@ -158,7 +167,13 @@ export default function Classes() {
             <Typography variant="h5">{currentYearGroup.name}</Typography>
             <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
                 {currentYearGroup.courses.map(course =>
-                    <CourseView key={course.id} isAdministratorOrTeacher={isAdministratorOrTeacher} course={course} newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)} />
+                    <CourseView
+                        key={course.id}
+                        isAdministratorOrTeacher={isAdministratorOrTeacher}
+                        course={course}
+                        newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)}
+                        goToClass={classId => switchPage('', schoolId, currentYearGroup.id, course.id, classId)}
+                    />
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
             </Stack>
