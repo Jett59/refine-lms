@@ -6,7 +6,10 @@ export interface SchoolInfo {
     yearGroups: YearGroupInfo[]
     administrators: UserInfo[]
     teachers: UserInfo[]
-    students: UserInfo[]
+    students: UserInfo[],
+    invitedAdministratorEmails: string[],
+    invitedTeacherEmails: string[],
+    invitedStudentEmails: string[]
 }
 
 export interface YearGroupInfo {

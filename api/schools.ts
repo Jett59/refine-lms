@@ -68,7 +68,10 @@ async function convertSchoolForApi(db: Db, school: School): Promise<SchoolInfo> 
         yearGroups: school.yearGroups.map(convertYearGroupForApi),
         administrators: await findUserInfos(db, school.administratorIds),
         teachers: await findUserInfos(db, school.teacherIds),
-        students: await findUserInfos(db, school.studentIds)
+        students: await findUserInfos(db, school.studentIds),
+        invitedAdministratorEmails: school.invitedAdministratorEmails,
+        invitedTeacherEmails: school.invitedTeacherEmails,
+        invitedStudentEmails: school.invitedStudentEmails
     }
 }
 
@@ -146,9 +149,9 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
         administratorIds: wholeSchool.administratorIds,
         teacherIds: wholeSchool.teacherIds,
         studentIds: wholeSchool.studentIds,
-        invitedAdministratorEmails: wholeSchool.invitedAdministratorEmails,
-        invitedTeacherEmails: wholeSchool.invitedTeacherEmails,
-        invitedStudentEmails: wholeSchool.invitedStudentEmails
+        invitedAdministratorEmails: [],
+        invitedTeacherEmails: [],
+        invitedStudentEmails: []
     }
     // Remove irrelevant student IDs
     relevantSchool.studentIds = relevantSchool.studentIds.filter(id => (

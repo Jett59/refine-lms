@@ -20,6 +20,10 @@ function Person({ userInfo }: { userInfo: UserInfo }) {
     return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
 }
 
+function PendingPerson({ email }: { email: string }) {
+    return <Typography>{email} (pending)</Typography>
+}
+
 function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, category: 'administrator' | 'teacher' | 'student' }) {
     const role = useRole(schoolInfo)
     const { invite } = useData()
@@ -91,18 +95,21 @@ export default function People() {
                 <CategoryHeading category="administrator" schoolInfo={schoolInfo} />
                 <List>
                     {schoolInfo.administrators.map(admin => <Person key={admin.id} userInfo={admin} />)}
+                    {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
                 <CategoryHeading category="teacher" schoolInfo={schoolInfo} />
                 <List>
                     {schoolInfo.teachers.map(teacher => <Person key={teacher.id} userInfo={teacher} />)}
+                    {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
                 <CategoryHeading category="student" schoolInfo={schoolInfo} />
                 <List>
                     {schoolInfo.students.map(student => <Person key={student.id} userInfo={student} />)}
+                    {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
         </Grid>

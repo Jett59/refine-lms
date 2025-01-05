@@ -108,8 +108,9 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }, [authenticatedAPIs]),
         invite: useCallback(async (schoolId, role, email) => {
             const response = await authenticatedAPIs.call<InviteResponse, InviteRequest>('POST', 'invite', { schoolId, role, email })
-            // TODO: think about whether we should update the school to show the invitations on the people page
-            if (!(isSuccessfulAPIResponse(response) && response.body.success)) {
+            if (isSuccessfulAPIResponse(response) && response.body.success) {
+                await getRelevantSchoolInfo(schoolId, true)
+            }else {
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),
