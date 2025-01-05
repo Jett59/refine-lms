@@ -316,3 +316,18 @@ export async function declineInvitation(db: Db, email: string, schoolId: ObjectI
         }
     })
 }
+
+export async function removeUser(db: Db, ourUserId: ObjectId, schoolId: ObjectId, userIdToRemove: ObjectId) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        administratorIds: ourUserId
+    }, {
+        $pull: {
+            administratorIds: userIdToRemove,
+            teacherIds: userIdToRemove,
+            studentIds: userIdToRemove,
+            "yearGroups.$[].courses.$[].classes.$[].teacherIds": userIdToRemove,
+            "yearGroups.$[].courses.$[].classes.$[].studentIds": userIdToRemove
+        }
+    })
+}

@@ -78,3 +78,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/remove-user
+          method: post
+          authorizer:
+            name: google

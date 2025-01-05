@@ -92,3 +92,11 @@ export interface DeclineInvitationRequest {
 export interface DeclineInvitationResponse {
     success: boolean
 }
+
+export interface RemoveUserRequest {
+    schoolId: string
+    userId: string
+}
+export interface RemoveUserResponse {
+    success: boolean
+}
