@@ -68,3 +68,13 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/join-school
+          method: post
+          authorizer:
+            name: google
+      - httpApi:
+          path: /api/decline-invitation
+          method: post
+          authorizer:
+            name: google

@@ -6,18 +6,18 @@ import { Button, CardActions, CardContent, Typography } from "@mui/material";
 
 export default function Schools() {
     const switchSchool = useSwitchSchool()
-    const { joinedSchools, invitedSchools } = useData()
+    const { joinedSchools, invitedSchools, joinSchool, declineInvitation } = useData()
 
     return <PageWrapper title="Schools">
         <TileContainer>
             {invitedSchools.map(school => (
                 <TileCard key={school.id}>
                     <CardContent>
-                        <Typography>{school.name}</Typography>
+                        <Typography variant="h2">{school.name}</Typography>
                     </CardContent>
                     <CardActions>
-                        <Button>Join</Button>
-                        <Button>Decline invitation</Button>
+                        <Button onClick={() => joinSchool(school.id)}>Join</Button>
+                        <Button onClick={() => declineInvitation(school.id)}>Decline invitation</Button>
                     </CardActions>
                 </TileCard>
             ))}

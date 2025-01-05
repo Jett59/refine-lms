@@ -78,3 +78,17 @@ export interface InviteRequest {
 export interface InviteResponse {
     success: boolean
 }
+
+export interface JoinSchoolRequest {
+    schoolId: string
+}
+export interface JoinSchoolResponse {
+    success: boolean
+}
+
+export interface DeclineInvitationRequest {
+    schoolId: string
+}
+export interface DeclineInvitationResponse {
+    success: boolean
+}

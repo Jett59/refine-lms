@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -20,6 +20,8 @@ export interface DataContextValue {
     createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
     invite: (schoolId: string, role: 'administrator' | 'teacher' | 'student', email: string) => Promise<void>
+    joinSchool: (schoolId: string) => Promise<void>
+    declineInvitation: (schoolId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -31,6 +33,8 @@ const DataContext = createContext<DataContextValue>({
     createCourse: async () => { },
     createClass: async () => { },
     invite: async () => { },
+    joinSchool: async () => { },
+    declineInvitation: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -122,6 +126,22 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),
+        joinSchool: useCallback(async (schoolId) => {
+            const response = await authenticatedAPIs.call<JoinSchoolResponse, JoinSchoolRequest>('POST', 'join-school', { schoolId })
+            if (isSuccessfulAPIResponse(response)) {
+                await updateVisibleSchoolList()
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, updateVisibleSchoolList]),
+        declineInvitation: useCallback(async (schoolId) => {
+            const response = await authenticatedAPIs.call<DeclineInvitationResponse, DeclineInvitationRequest>('POST', 'decline-invitation', { schoolId })
+            if (isSuccessfulAPIResponse(response)) {
+                await updateVisibleSchoolList()
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, updateVisibleSchoolList]),
     }}>
         {children}
     </DataContext.Provider>

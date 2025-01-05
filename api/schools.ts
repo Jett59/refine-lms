@@ -258,3 +258,61 @@ export async function invite(db: Db, userId: ObjectId, schoolId: ObjectId, role:
         }
     })
 }
+
+export async function joinSchool(db: Db, userId: ObjectId, email: string, schoolId: ObjectId) {
+    // We have to do these one-at-a-time to ensure that the user is only added to the school once
+    const result1 = await getCollection(db).updateOne({
+        _id: schoolId,
+        invitedAdministratorEmails: email
+    }, {
+        $push: {
+            administratorIds: userId
+        },
+        $pull: {
+            invitedAdministratorEmails: email
+        }
+    })
+    if (result1.modifiedCount === 0) {
+        const result2 = await getCollection(db).updateOne({
+            _id: schoolId,
+            invitedTeacherEmails: email
+        }, {
+            $push: {
+                teacherIds: userId
+            },
+            $pull: {
+                invitedTeacherEmails: email
+            }
+        })
+        if (result2.modifiedCount === 0) {
+            await getCollection(db).updateOne({
+                _id: schoolId,
+                invitedStudentEmails: email
+            }, {
+                $push: {
+                    studentIds: userId
+                },
+                $pull: {
+                    invitedStudentEmails: email
+                }
+            })
+        }
+    }
+}
+
+export async function declineInvitation(db: Db, email: string, schoolId: ObjectId) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { invitedAdministratorEmails: email },
+            { invitedTeacherEmails: email },
+            { invitedStudentEmails: email }
+        ]
+    }, {
+        $pull: {
+            invitedAdministratorEmails: email,
+            invitedTeacherEmails: email,
+            invitedStudentEmails: email
+        }
+    })
+}

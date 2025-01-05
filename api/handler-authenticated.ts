@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { createClass, createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, invite, listVisibleSchools } from "./schools";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../data/api";
+import { createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, invite, joinSchool, listVisibleSchools } from "./schools";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -61,6 +61,9 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
             }
             case "/create-school": {
                 const typedBody: CreateSchoolRequest = body
+                if (!typedBody.name) {
+                    return errorResponse(400, 'Missing school name')
+                }
                 return successResponse<CreateSchoolResponse>({ createdId: (await createSchool(db, user._id!, typedBody.name)).toHexString() })
             }
             case "/create-year-group": {
@@ -145,6 +148,34 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 await invite(db, user._id!, schoolObjectId, typedBody.role, typedBody.email)
                 return successResponse<InviteResponse>({ success: true })
+            }
+            case "/join-school": {
+                const typedBody: JoinSchoolRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                let schoolObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school ID')
+                }
+                await joinSchool(db, user._id!, user.email, schoolObjectId)
+                return successResponse<JoinSchoolResponse>({ success: true })
+            }
+            case "/decline-invitation": {
+                const typedBody: DeclineInvitationRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                let schoolObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school ID')
+                }
+                await declineInvitation(db, user.email, schoolObjectId)
+                return successResponse<DeclineInvitationResponse>({ success: true })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
