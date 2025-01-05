@@ -17,7 +17,11 @@ export interface GoogleRefreshRequest {
 }
 
 export interface VisibleSchoolsResponse {
-    schools: {
+    joinedSchools: {
+        id: string
+        name: string
+    }[],
+    invitedSchools: {
         id: string
         name: string
     }[]

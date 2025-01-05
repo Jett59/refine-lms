@@ -3,7 +3,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom';
 import Banner from './Banner';
 import { useUser } from './UserContext';
 import Welcome from './Welcome';
-import NoSchool from './NoSchool';
+import Schools from './Schools';
 import Classes from './Classes';
 import { useCallback } from 'react';
 import People from './People';
@@ -18,7 +18,7 @@ function App() {
     <Banner />
     {loggedIn ?
       <Routes>
-        <Route index element={<NoSchool />} />
+        <Route index element={<Schools />} />
         <Route path="/:schoolId" element={<Classes />} ></Route>
         <Route path="/:schoolId/people" element={<People />} />
       </Routes>

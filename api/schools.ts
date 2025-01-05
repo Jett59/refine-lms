@@ -79,18 +79,29 @@ function getCollection(db: Db) {
     return db.collection<School>(COLLECTION_NAME)
 }
 
-export async function listVisibleSchools(db: Db, userId: ObjectId): Promise<VisibleSchoolsResponse> {
-    const schoolNamesAndIds = await getCollection(db).find({
+export async function listVisibleSchools(db: Db, userId: ObjectId, email: string): Promise<VisibleSchoolsResponse> {
+    const joinedSchools = await getCollection(db).find({
         $or: [
             { administratorIds: userId },
             { teacherIds: userId },
             { studentIds: userId }
         ]
     }, { projection: { _id: 1, name: 1 } }).toArray()
+    const invitedSchools = await getCollection(db).find({
+        $or: [
+            { invitedAdministratorEmails: email },
+            { invitedTeacherEmails: email },
+            { invitedStudentEmails: email }
+        ]
+    }, { projection: { _id: 1, name: 1 } }).toArray()
     return {
-        schools: schoolNamesAndIds.map(schoolNameAndId => ({
-            id: schoolNameAndId._id.toHexString(),
-            name: schoolNameAndId.name,
+        joinedSchools: joinedSchools.map(school => ({
+            id: school._id.toHexString(),
+            name: school.name,
+        })),
+        invitedSchools: invitedSchools.map(school => ({
+            id: school._id.toHexString(),
+            name: school.name,
         }))
     }
 }

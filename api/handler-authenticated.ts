@@ -3,7 +3,7 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse } fro
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { createClass, createCourse, createSchool, createYearGroup, getRelevantSchoolInfo, invite, listVisibleSchools } from "./schools";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse } from "../data/api";
+import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, InviteRequest, InviteResponse, RelevantSchoolInfoResponse, VisibleSchoolsResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -40,7 +40,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
 
         switch (path) {
             case "/visible-schools": {
-                return successResponse(await listVisibleSchools(db, user._id!))
+                return successResponse<VisibleSchoolsResponse>(await listVisibleSchools(db, user._id!, user.email))
             }
             case "/relevant-school-info": {
                 const schoolId = event.queryStringParameters?.id

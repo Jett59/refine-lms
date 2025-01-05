@@ -21,7 +21,7 @@ function Person({ userInfo }: { userInfo: UserInfo }) {
 }
 
 function PendingPerson({ email }: { email: string }) {
-    return <Typography>{email} (pending)</Typography>
+    return <Typography color="textDisabled">{email} (pending)</Typography>
 }
 
 function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, category: 'administrator' | 'teacher' | 'student' }) {
@@ -56,6 +56,7 @@ function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, cat
                     <Button variant="contained" onClick={() => {
                         if (validateEmail(email)) {
                             setEmailHasError(false)
+                            setEmail('')
                             invite(schoolInfo?.id, category, email)
                             setInviteDialogOpen(false)
                         } else {

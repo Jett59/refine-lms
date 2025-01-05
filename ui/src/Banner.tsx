@@ -38,7 +38,7 @@ function ErrorButton() {
 }
 
 function SchoolSwitcher() {
-    const { schools, createSchool } = useData()
+    const { joinedSchools: schools, createSchool } = useData()
     const switchSchool = useSwitchSchool()
 
     const [nameSelectorOpen, setNameSelectorOpen] = useState(false)
