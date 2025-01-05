@@ -1,11 +1,13 @@
 import { useParams } from "react-router-dom";
 import PageWrapper from "./PageWrapper";
-import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, TextField, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { InsertInvitation } from "@mui/icons-material";
+import { InsertInvitation, More } from "@mui/icons-material";
 import { SchoolInfo } from "../../data/school";
 import { useRef, useState } from "react";
+import SimpleMenu from "./SimpleMenu";
+import { useUser } from "./UserContext";
 
 // REF: https://stackoverflow.com/a/46181
 const validateEmail = (email: string) => {
@@ -16,8 +18,24 @@ const validateEmail = (email: string) => {
         );
 };
 
-function Person({ userInfo }: { userInfo: UserInfo }) {
-    return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
+function Person({ userInfo, schoolInfo }: { userInfo: UserInfo, schoolInfo: SchoolInfo }) {
+    const { } = useData()
+    const {userId} = useUser()
+    const ourRole = useRole(schoolInfo)
+
+    if (ourRole === 'administrator' && userInfo.id !== userId) {
+        return <Stack direction="row">
+            <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
+            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={close => (
+                <MenuItem onClick={() => {
+                    // removeUser(schoolInfo.id, userInfo.id)
+                    close()
+                }}>Remove</MenuItem>
+            )} />
+        </Stack>
+    } else {
+        return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
+    }
 }
 
 function PendingPerson({ email }: { email: string }) {
@@ -25,7 +43,7 @@ function PendingPerson({ email }: { email: string }) {
 }
 
 function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, category: 'administrator' | 'teacher' | 'student' }) {
-    const role = useRole(schoolInfo)
+    const ourRole = useRole(schoolInfo)
     const { invite } = useData()
 
     const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
@@ -37,7 +55,7 @@ function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, cat
 
     const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
 
-    if (role === 'administrator') {
+    if (ourRole === 'administrator') {
         return <Stack direction="row">
             <Typography variant="h5">{headingContent}</Typography>
             <IconButton
@@ -95,21 +113,21 @@ export default function People() {
             <Grid item xs={12}>
                 <CategoryHeading category="administrator" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.administrators.map(admin => <Person key={admin.id} userInfo={admin} />)}
+                    {schoolInfo.administrators.map(admin => <Person key={admin.id} userInfo={admin} schoolInfo={schoolInfo} />)}
                     {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
                 <CategoryHeading category="teacher" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.teachers.map(teacher => <Person key={teacher.id} userInfo={teacher} />)}
+                    {schoolInfo.teachers.map(teacher => <Person key={teacher.id} userInfo={teacher} schoolInfo={schoolInfo} />)}
                     {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
                 <CategoryHeading category="student" schoolInfo={schoolInfo} />
                 <List>
-                    {schoolInfo.students.map(student => <Person key={student.id} userInfo={student} />)}
+                    {schoolInfo.students.map(student => <Person key={student.id} userInfo={student} schoolInfo={schoolInfo} />)}
                     {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
