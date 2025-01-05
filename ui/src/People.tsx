@@ -28,7 +28,7 @@ function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, cat
     const role = useRole(schoolInfo)
     const { invite } = useData()
 
-    const headingContent = category === 'administrator' ? 'Administrators' : role === 'teacher' ? 'Teachers' : 'Students'
+    const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
 
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
     const [email, setEmail] = useState('')
