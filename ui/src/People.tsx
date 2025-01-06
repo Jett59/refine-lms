@@ -4,7 +4,7 @@ import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, M
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { Add, InsertInvitation, More } from "@mui/icons-material";
-import { Role, SchoolInfo } from "../../data/school";
+import { ClassInfo, Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
 import { useUser } from "./UserContext";
@@ -112,11 +112,12 @@ function InviteToSchoolButton({ category, schoolInfo }: {
     </>
 }
 
-function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, role }: {
+function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, classInfo, role }: {
     schoolInfo: SchoolInfo
     yearGroupId: string
     courseId: string
     classId: string
+    classInfo: ClassInfo
     role: 'teacher' | 'student'
 }) {
     const { addToClass } = useData()
@@ -124,6 +125,8 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, role }: 
     const [addDialogOpen, setAddDialogOpen] = useState(false)
 
     const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null)
+
+const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.studentIds
 
     return <>
         <IconButton
@@ -136,7 +139,7 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, role }: 
             <DialogContent>
                 <Typography variant="h4">Add to class</Typography>
                 <AccessibleAutocomplete
-                    options={role === 'teacher' ? schoolInfo.teachers : schoolInfo.students}
+                    options={(role === 'teacher' ? schoolInfo.teachers : schoolInfo.students).filter(user => !existingMembers.includes(user.id))} // Only show users who aren't already in the class
                     getOptionLabel={user => user.name}
                     onChange={newValue => setSelectedUser(newValue)}
                     value={selectedUser}
@@ -259,7 +262,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
     return <PageWrapper title={`People in ${cls.name}`}>
         <Grid container spacing={2}>
             <Grid item xs={12}>
-                <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />} />
+                <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
                 <List>
                     {cls.teacherIds.map(teacherId => {
                         const teacher = lookupUser(schoolInfo, teacherId)
@@ -274,7 +277,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                 </List>
             </Grid>
             <Grid item xs={12}>
-                <CategoryHeading category="student" button={showAddButton && <AddToClassButton role="student" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />} />
+                <CategoryHeading category="student" button={showAddButton && <AddToClassButton role="student" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
                 <List>
                     {cls.studentIds.map(studentId => {
                         const student = lookupUser(schoolInfo, studentId)
