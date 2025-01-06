@@ -100,3 +100,14 @@ export interface RemoveUserRequest {
 export interface RemoveUserResponse {
     success: boolean
 }
+
+export interface AddToClassRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    classId: string
+    userId: string
+}
+export interface AddToClassResponse {
+    success: boolean
+}
