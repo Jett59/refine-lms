@@ -19,6 +19,7 @@ export default function AccessibleAutocomplete<Value>({ options, getOptionLabel,
                 <TextField
                     inputProps={{
                         ...inputProps,
+                    // REF: https://github.com/mui/material-ui/issues/22956#issuecomment-2044638752
                         onBlur: undefined,
                     }}
                     {...extra}

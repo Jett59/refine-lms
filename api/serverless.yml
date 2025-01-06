@@ -83,3 +83,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/add-to-class
+          method: post
+          authorizer:
+            name: google

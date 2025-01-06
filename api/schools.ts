@@ -126,10 +126,10 @@ export async function createSchool(db: Db, creatorId: ObjectId, name: string): P
 export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: ObjectId): Promise<SchoolInfo | null> {
     // From the api documentation:
     /**
- * A trimmed version of the full school info. Depending on the user's role, this includes:
- * - Administrator/teacher: everything
- * - Student: all administrator and teacher infos, all students from the same year group, all courses and classes which include the student
- */
+     * A trimmed version of the full school info. Depending on the user's role, this includes:
+     * - Administrator/teacher: everything
+     * - Student: all administrator and teacher infos, all courses and classes which include the student, all students who share a class with the current student
+     */
     // TODO: Find a way of removing irrelevant data from the school info in this query
     const wholeSchool: School = await getCollection(db).findOne({
         _id: schoolId,
@@ -329,5 +329,29 @@ export async function removeUser(db: Db, ourUserId: ObjectId, schoolId: ObjectId
             "yearGroups.$[].courses.$[].classes.$[].teacherIds": userIdToRemove,
             "yearGroups.$[].courses.$[].classes.$[].studentIds": userIdToRemove
         }
+    })
+}
+
+export async function addToClass(db: Db, ourUserId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId, role: 'student' | 'teacher', userIdToAdd: ObjectId) {
+    const key = role === 'student' ? 'studentIds' : 'teacherIds'
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: ourUserId },
+            { teacherIds: ourUserId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId,
+        'yearGroups.courses.classes.id': classId
+    }, {
+        $push: {
+            [`yearGroups.$[i].courses.$[j].classes.$[k].${key}`]: userIdToAdd
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId },
+            { 'k.id': classId }
+        ]
     })
 }
