@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Role, SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -24,6 +24,7 @@ export interface DataContextValue {
     declineInvitation: (schoolId: string) => Promise<void>
     removeUser: (schoolId: string, userId: string) => Promise<void>
     addToClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, role: 'student' | 'teacher', userId: string) => Promise<void>
+    removeFromClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, userId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -39,6 +40,7 @@ const DataContext = createContext<DataContextValue>({
     declineInvitation: async () => { },
     removeUser: async () => { },
     addToClass: async () => { },
+    removeFromClass: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -156,6 +158,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         addToClass: useCallback(async (schoolId, yearGroupId, courseId, classId, role, userId) => {
             const response = await authenticatedAPIs.call<AddToClassResponse, AddToClassRequest>('POST', 'add-to-class', { schoolId, yearGroupId, courseId, classId, role, userId })
+            if (isSuccessfulAPIResponse(response) && response.body.success) {
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        removeFromClass: useCallback(async (schoolId, yearGroupId, courseId, classId, userId) => {
+            const response = await authenticatedAPIs.call<RemoveFromClassResponse, RemoveFromClassRequest>('POST', 'remove-from-class', { schoolId, yearGroupId, courseId, classId, userId })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {

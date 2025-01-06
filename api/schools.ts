@@ -355,3 +355,27 @@ export async function addToClass(db: Db, ourUserId: ObjectId, schoolId: ObjectId
         ]
     })
 }
+
+export async function removeFromClass(db: Db, ourUserId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId, userIdToRemove: ObjectId) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: ourUserId },
+            { teacherIds: ourUserId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId,
+        'yearGroups.courses.classes.id': classId
+    }, {
+        $pull: {
+            'yearGroups.$[i].courses.$[j].classes.$[k].teacherIds': userIdToRemove,
+            'yearGroups.$[i].courses.$[j].classes.$[k].studentIds': userIdToRemove
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId },
+            { 'k.id': classId }
+        ]
+    })
+}

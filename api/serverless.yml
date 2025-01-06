@@ -88,3 +88,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/remove-from-class
+          method: post
+          authorizer:
+            name: google

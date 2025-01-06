@@ -28,11 +28,18 @@ function RemoveUserMenuItem({ schoolInfo, userId, closeMenu }: { schoolInfo: Sch
     }}>Remove</MenuItem>
 }
 
-function RemoveUserFromClassMenuItem({ /*schoolInfo, userId,*/ closeMenu }: { schoolInfo: SchoolInfo, userId: string, closeMenu: () => void }) {
-    //const { removeUserFromClass } = useData()
+function RemoveUserFromClassMenuItem({ schoolInfo, yearGroupId, courseId, classId, userId, closeMenu }: { 
+    schoolInfo: SchoolInfo
+    yearGroupId: string
+    courseId: string
+    classId: string
+    userId: string
+    closeMenu: () => void
+}) {
+    const { removeFromClass } = useData()
 
     return <MenuItem onClick={() => {
-        //removeUserFromClass(schoolInfo.id, userId)
+        removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, userId)
         closeMenu()
     }}>Remove from class</MenuItem>
 }
@@ -259,7 +266,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                         if (teacher) {
                             // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
                             return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption && teacher.id !== ourId ? [
-                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
+                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={teacher.id} closeMenu={close} />
                             ] : []} />
                         }
                     }
@@ -273,7 +280,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                         const student = lookupUser(schoolInfo, studentId)
                         if (student) {
                             return <Person key={student.id} userInfo={student} options={close => showRemoveOption && student.id !== ourId ? [
-                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
+                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={student.id} closeMenu={close} />
                             ] : []} />
                         }
                     }

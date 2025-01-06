@@ -112,3 +112,14 @@ export interface AddToClassRequest {
 export interface AddToClassResponse {
     success: boolean
 }
+
+export interface RemoveFromClassRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    classId: string
+    userId: string
+}
+export interface RemoveFromClassResponse {
+    success: boolean
+}
