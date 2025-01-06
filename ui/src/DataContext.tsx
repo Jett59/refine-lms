@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Role, SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -23,6 +23,7 @@ export interface DataContextValue {
     joinSchool: (schoolId: string) => Promise<void>
     declineInvitation: (schoolId: string) => Promise<void>
     removeUser: (schoolId: string, userId: string) => Promise<void>
+    addToClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, userId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -37,6 +38,7 @@ const DataContext = createContext<DataContextValue>({
     joinSchool: async () => { },
     declineInvitation: async () => { },
     removeUser: async () => { },
+    addToClass: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -146,6 +148,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }, [authenticatedAPIs, updateVisibleSchoolList]),
         removeUser: useCallback(async (schoolId, userId) => {
             const response = await authenticatedAPIs.call<RemoveUserResponse, RemoveUserRequest>('POST', 'remove-user', { schoolId, userId })
+            if (isSuccessfulAPIResponse(response) && response.body.success) {
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        addToClass: useCallback(async (schoolId, yearGroupId, courseId, classId, userId) => {
+            const response = await authenticatedAPIs.call<AddToClassResponse, AddToClassRequest>('POST', 'add-to-class', { schoolId, yearGroupId, courseId, classId, userId })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {

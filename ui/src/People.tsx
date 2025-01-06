@@ -8,6 +8,7 @@ import { Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
 import { useUser } from "./UserContext";
+import AccessibleAutocomplete from "./Autocomplete";
 
 // REF: https://stackoverflow.com/a/46181
 const validateEmail = (email: string) => {
@@ -104,16 +105,18 @@ function InviteToSchoolButton({ category, schoolInfo }: {
     </>
 }
 
-function AddToClassButton({/* schoolInfo, yearGroupId, courseId, classId,*/ role }: {
+function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, role }: {
     schoolInfo: SchoolInfo
     yearGroupId: string
     courseId: string
     classId: string
     role: 'teacher' | 'student'
 }) {
-    //const { addToClass } = useData()
+    const { addToClass } = useData()
 
     const [addDialogOpen, setAddDialogOpen] = useState(false)
+
+    const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null)
 
     return <>
         <IconButton
@@ -125,6 +128,13 @@ function AddToClassButton({/* schoolInfo, yearGroupId, courseId, classId,*/ role
         <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Add to class</Typography>
+                <AccessibleAutocomplete
+                    options={role === 'teacher' ? schoolInfo.teachers : schoolInfo.students}
+                    getOptionLabel={user => user.name}
+                    onChange={newValue => setSelectedUser(newValue)}
+                    value={selectedUser}
+                    isOptionEqualToValue={(a, b) => a.id === b.id}
+                />
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setAddDialogOpen(false)}>Cancel</Button>

@@ -40,9 +40,9 @@ export function useSwitchSchool() {
   return useCallback((schoolId: string) => navigate(`/${schoolId}`), [navigate])
 }
 
-export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string) => void {
+export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, replace?: boolean) => void {
   const navigate = useNavigate()
-  return useCallback((page, schoolId, yearGroupId, courseId, classId) => {
+  return useCallback((page, schoolId, yearGroupId, courseId, classId, replace) => {
     let prefix = '/'
     if (schoolId) {
       prefix += `${schoolId}/`
@@ -56,6 +56,6 @@ export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?:
     if (classId) {
       prefix += `classes/${classId}/`
     }
-    navigate(`${prefix}${page}`)
+    navigate(`${prefix}${page}`, { replace })
   }, [navigate])
 }

@@ -17,19 +17,23 @@ export default function Class({ defaultTab }: {
     const defaultTabIndex = (!defaultTab || defaultTab === 'feed') ? 0 : defaultTab === 'work' ? 1 : 2
     const [tabIndex, setTabIndex] = useState(defaultTabIndex)
 
-useEffect(() => {
-    switch (tabIndex) {
-        case 0:
-            switchPage('feed', schoolId, yearGroupId, courseId, classId)
-            break
-        case 1:
-            switchPage('work', schoolId, yearGroupId, courseId, classId)
-            break
-        case 2:
-            switchPage('people', schoolId, yearGroupId, courseId, classId)
-            break
-    }
-}, [tabIndex, schoolId, yearGroupId, courseId, classId, switchPage])
+    useEffect(() => {
+        setTabIndex(defaultTabIndex)
+    }, [defaultTabIndex])
+
+    useEffect(() => {
+        switch (tabIndex) {
+            case 0:
+                switchPage('feed', schoolId, yearGroupId, courseId, classId, true)
+                break
+            case 1:
+                switchPage('work', schoolId, yearGroupId, courseId, classId, true)
+                break
+            case 2:
+                switchPage('people', schoolId, yearGroupId, courseId, classId, true)
+                break
+        }
+    }, [tabIndex, schoolId, yearGroupId, courseId, classId, switchPage])
 
     if (!schoolId || !yearGroupId || !courseId || !classId) {
         return <PageWrapper title="Class">Missing some ids?</PageWrapper>
