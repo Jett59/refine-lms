@@ -28,7 +28,7 @@ function RemoveUserMenuItem({ schoolInfo, userId, closeMenu }: { schoolInfo: Sch
     }}>Remove</MenuItem>
 }
 
-function RemoveUserFromClassMenuItem({ schoolInfo, yearGroupId, courseId, classId, userId, closeMenu }: { 
+function RemoveUserFromClassMenuItem({ schoolInfo, yearGroupId, courseId, classId, userId, closeMenu }: {
     schoolInfo: SchoolInfo
     yearGroupId: string
     courseId: string
@@ -51,11 +51,7 @@ function Person({ userInfo, options }: {
     if (options(() => { }).length !== 0) {
         return <Stack direction="row">
             <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
-            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={close => (
-                <>
-                    {options(close)}
-                </>
-            )} />
+            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={options} />
         </Stack>
     } else {
         return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
@@ -91,6 +87,7 @@ function InviteToSchoolButton({ category, schoolInfo }: {
             <DialogContent>
                 <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
                 <TextField inputRef={emailRef} type="email" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                {emailHasError && <Typography color="error">Please enter a valid email</Typography>}
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
@@ -126,7 +123,10 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, classInf
 
     const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null)
 
-const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.studentIds
+    const userSelectorRef = useRef<HTMLElement>(null)
+    const [userSelectorHasError, setUserSelectorHasError] = useState(false)
+
+    const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.studentIds
 
     return <>
         <IconButton
@@ -144,7 +144,10 @@ const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.st
                     onChange={newValue => setSelectedUser(newValue)}
                     value={selectedUser}
                     isOptionEqualToValue={(a, b) => a.id === b.id}
+                    inputRef={userSelectorRef}
+                    error={userSelectorHasError}
                 />
+                {userSelectorHasError && <Typography color="error">Please select a user</Typography>}
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
@@ -152,6 +155,9 @@ const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.st
                     if (selectedUser) {
                         addToClass(schoolInfo.id, yearGroupId, courseId, classId, role, selectedUser.id)
                         setAddDialogOpen(false)
+                    } else {
+                        setUserSelectorHasError(true)
+                        userSelectorRef.current?.focus?.()
                     }
                 }}>
                     Add
