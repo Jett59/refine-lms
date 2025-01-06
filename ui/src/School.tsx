@@ -7,24 +7,43 @@ import { CourseInfo, SchoolInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
 import { ExpandMore, People } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
+import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 
-function JoinClassButton({schoolInfo, /*onSelect*/ }: {
+function JoinClassButton({ schoolInfo, /*onSelect*/ }: {
     schoolInfo: SchoolInfo
     onSelect: (yearGroupId: string, courseId: string, classId: string) => void
 }) {
-const schoolStructure = useSchoolStructure(schoolInfo.id)
+    const schoolStructure = useSchoolStructure(schoolInfo.id)
 
     const [selectDialogOpen, setSelectDialogOpen] = useState(false)
+    const [selectedItem, setSelectedItem] = useState<string | null>(null)
+    const selectedClass = schoolStructure?.yearGroups.flatMap(yg => yg.courses.flatMap(c => c.classes)).find(cls => cls.id === selectedItem)
 
     return <>
         <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
         <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
             <DialogTitle>Join a class</DialogTitle>
             <DialogContent>
-                {schoolStructure?.name}
+                <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
+                    {schoolStructure?.yearGroups.map(yearGroup => (
+                        <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
+                            {yearGroup.courses.map(course => (
+                                <TreeItem key={course.id} itemId={course.id} label={course.name}>
+                                    {course.classes.map(cls => (
+                                        <TreeItem key={cls.id} itemId={cls.id} label={cls.name} onClick={() => {
+                                            //onSelect(yearGroup.id, course.id, cls.id)
+                                            setSelectDialogOpen(false)
+                                        }} />
+                                    ))}
+                                </TreeItem>
+                            ))}
+                        </TreeItem>
+                    ))}
+                </SimpleTreeView>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
+                <Button variant="outlined" onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" disabled={!selectedClass} onClick={() => {}}>Join</Button>
             </DialogActions>
         </Dialog>
     </>
