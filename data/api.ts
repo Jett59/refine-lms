@@ -1,4 +1,4 @@
-import { SchoolInfo } from "./school"
+import { SchoolInfo, SchoolStructure } from "./school"
 import { UserInfo } from "./user"
 
 export interface GoogleTokenResponse {
@@ -122,4 +122,8 @@ export interface RemoveFromClassRequest {
 }
 export interface RemoveFromClassResponse {
     success: boolean
+}
+
+export interface SchoolStructureResponse {
+    school: SchoolStructure
 }

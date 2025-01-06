@@ -1,5 +1,5 @@
 import { Db, ObjectId } from "mongodb"
-import { ClassInfo, CourseInfo, SchoolInfo, YearGroupInfo } from "../data/school"
+import { ClassInfo, CourseInfo, SchoolInfo, SchoolStructure, YearGroupInfo } from "../data/school"
 import { findUserInfos } from "./user"
 import { VisibleSchoolsResponse } from "../data/api"
 
@@ -380,4 +380,44 @@ export async function removeFromClass(db: Db, ourUserId: ObjectId, schoolId: Obj
             { 'k.id': classId }
         ]
     })
+}
+
+export async function getSchoolStructure(db: Db, userId: ObjectId, schoolId: ObjectId): Promise<SchoolStructure | null> {
+    const schoolStructureFromDatabase = await getCollection(db).findOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId },
+            { studentIds: userId }
+        ]
+    }, {
+        projection: {
+            name: 1,
+            'yearGroups.id': 1,
+            'yearGroups.name': 1,
+            'yearGroups.courses.id': 1,
+            'yearGroups.courses.name': 1,
+            'yearGroups.courses.classes.id': 1,
+            'yearGroups.courses.classes.name': 1
+        }
+    })
+    if (!schoolStructureFromDatabase) {
+        return null
+    }
+    return {
+        id: schoolId.toHexString(),
+        name: schoolStructureFromDatabase.name,
+        yearGroups: schoolStructureFromDatabase.yearGroups.map((yearGroup: { id: ObjectId, name: string, courses: { id: ObjectId, name: string, classes: { id: ObjectId, name: string }[] }[] }) => ({
+            id: yearGroup.id.toHexString(),
+            name: yearGroup.name,
+            courses: yearGroup.courses.map(course => ({
+                id: course.id.toHexString(),
+                name: course.name,
+                classes: course.classes.map(cls => ({
+                    id: cls.id.toHexString(),
+                    name: cls.name
+                }))
+            }))
+        }))
+    }
 }

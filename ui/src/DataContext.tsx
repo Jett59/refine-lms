@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { Role, SchoolInfo } from "../../data/school";
+import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -25,6 +25,7 @@ export interface DataContextValue {
     removeUser: (schoolId: string, userId: string) => Promise<void>
     addToClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, role: 'student' | 'teacher', userId: string) => Promise<void>
     removeFromClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, userId: string) => Promise<void>
+    getSchoolStructure: (schoolId: string) => Promise<SchoolStructure | null>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -41,6 +42,7 @@ const DataContext = createContext<DataContextValue>({
     removeUser: async () => { },
     addToClass: async () => { },
     removeFromClass: async () => { },
+    getSchoolStructure: async () => null,
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -172,6 +174,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        getSchoolStructure: useCallback(async (schoolId) => {
+            const response = await authenticatedAPIs.call<SchoolStructureResponse>('GET', 'school-structure', undefined, { id: schoolId })
+            if (isSuccessfulAPIResponse(response)) {
+                return response.body.school
+            } else {
+                addAPIError(response)
+                return null
+            }
+        }, [authenticatedAPIs]),
     }}>
         {children}
     </DataContext.Provider>
@@ -221,4 +232,15 @@ export function lookupUser(schoolInfo: SchoolInfo, userId: string) {
     return schoolInfo.administrators.find(admin => admin.id === userId)
         ?? schoolInfo.teachers.find(teacher => teacher.id === userId)
         ?? schoolInfo.students.find(student => student.id === userId)
+}
+
+export function useSchoolStructure(schoolId: string): SchoolStructure | null {
+    const { getSchoolStructure } = useData()
+    const [structure, setStructure] = useState<SchoolStructure | null>(null)
+
+    useEffect(() => {
+        getSchoolStructure(schoolId).then(setStructure)
+    }, [getSchoolStructure, schoolId])
+
+    return structure
 }

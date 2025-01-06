@@ -1,12 +1,34 @@
 import { useParams } from "react-router-dom"
-import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
+import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
 import PageWrapper from "./PageWrapper"
 import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
-import { CourseInfo } from "../../data/school"
+import { CourseInfo, SchoolInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
 import { ExpandMore, People } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
+
+function JoinClassButton({schoolInfo, /*onSelect*/ }: {
+    schoolInfo: SchoolInfo
+    onSelect: (yearGroupId: string, courseId: string, classId: string) => void
+}) {
+const schoolStructure = useSchoolStructure(schoolInfo.id)
+
+    const [selectDialogOpen, setSelectDialogOpen] = useState(false)
+
+    return <>
+        <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
+        <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
+            <DialogTitle>Join a class</DialogTitle>
+            <DialogContent>
+                {schoolStructure?.name}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
 
 function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -146,14 +168,17 @@ export default function School() {
 
     let title
     if (isAdministratorOrTeacher) {
-        title = <Stack direction="row" spacing={2}>
+        title = <Stack direction="row">
             <Typography>{schoolInfo.name}</Typography>
             <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
                 <People />
             </IconButton>
         </Stack>
     } else {
-        title = schoolInfo.name
+        title = <Stack direction="row">
+            <Typography>{schoolInfo.name}</Typography>
+            <JoinClassButton schoolInfo={schoolInfo} onSelect={(/*yearGroupId, courseId, classId*/) => { }} />
+        </Stack>
     }
 
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]

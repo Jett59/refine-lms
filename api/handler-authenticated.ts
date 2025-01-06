@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser } from "./schools";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, VisibleSchoolsResponse } from "../data/api";
+import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser } from "./schools";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -272,6 +272,23 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 await removeFromClass(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectId, userObjectId)
                 return successResponse<RemoveFromClassResponse>({ success: true })
+            }
+            case "/school-structure": {
+                const schoolId = event.queryStringParameters?.id
+                if (!schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                let schoolObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(schoolId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school ID')
+                }
+                const schoolStructure = await getSchoolStructure(db, user._id!, schoolObjectId)
+                if (!schoolStructure) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                return successResponse<SchoolStructureResponse>({ school: schoolStructure })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

@@ -93,3 +93,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/school-structure
+          method: get
+          authorizer:
+            name: google
