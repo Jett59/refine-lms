@@ -30,3 +30,5 @@ export interface ClassInfo {
     teacherIds: string[]
     studentIds: string[]
 }
+
+export type Role = 'administrator' | 'teacher' | 'student'
