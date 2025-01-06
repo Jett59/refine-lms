@@ -127,3 +127,13 @@ export interface RemoveFromClassResponse {
 export interface SchoolStructureResponse {
     school: SchoolStructure
 }
+
+export interface RequestToJoinClassRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    classId: string
+}
+export interface RequestToJoinClassResponse {
+    success: boolean
+}

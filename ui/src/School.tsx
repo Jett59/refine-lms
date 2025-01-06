@@ -13,40 +13,51 @@ function JoinClassButton({ schoolInfo, /*onSelect*/ }: {
     schoolInfo: SchoolInfo
     onSelect: (yearGroupId: string, courseId: string, classId: string) => void
 }) {
+    const { requestToJoinClass } = useData()
     const schoolStructure = useSchoolStructure(schoolInfo.id)
 
     const [selectDialogOpen, setSelectDialogOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<string | null>(null)
-    const selectedClass = schoolStructure?.yearGroups.flatMap(yg => yg.courses.flatMap(c => c.classes)).find(cls => cls.id === selectedItem)
+    const selectedClass: { yearGroupId: string, courseId: string, classId: string, name: string } | undefined = schoolStructure?.yearGroups.flatMap(yg =>
+        yg.courses.flatMap(course =>
+            course.classes.flatMap(cls => ({ yearGroupId: yg.id, courseId: course.id, classId: cls.id, name: cls.name })
+        )
+    )
+    ).find(cls => cls.classId === selectedItem)
 
-    return <>
-        <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
-        <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
-            <DialogTitle>Join a class</DialogTitle>
-            <DialogContent>
-                <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
-                    {schoolStructure?.yearGroups.map(yearGroup => (
-                        <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
-                            {yearGroup.courses.map(course => (
-                                <TreeItem key={course.id} itemId={course.id} label={course.name}>
-                                    {course.classes.map(cls => (
-                                        <TreeItem key={cls.id} itemId={cls.id} label={cls.name} onClick={() => {
-                                            //onSelect(yearGroup.id, course.id, cls.id)
-                                            setSelectDialogOpen(false)
-                                        }} />
-                                    ))}
-                                </TreeItem>
-                            ))}
-                        </TreeItem>
-                    ))}
-                </SimpleTreeView>
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
-                <Button variant="contained" disabled={!selectedClass} onClick={() => {}}>Join</Button>
-            </DialogActions>
-        </Dialog>
-    </>
+return <>
+    <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
+    <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
+        <DialogTitle>Request to Join a Class</DialogTitle>
+        <DialogContent>
+            <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
+                {schoolStructure?.yearGroups.map(yearGroup => (
+                    <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
+                        {yearGroup.courses.map(course => (
+                            <TreeItem key={course.id} itemId={course.id} label={course.name}>
+                                {course.classes.map(cls => (
+                                    <TreeItem key={cls.id} itemId={cls.id} label={cls.name} onClick={() => {
+                                        //onSelect(yearGroup.id, course.id, cls.id)
+                                        setSelectDialogOpen(false)
+                                    }} />
+                                ))}
+                            </TreeItem>
+                        ))}
+                    </TreeItem>
+                ))}
+            </SimpleTreeView>
+        </DialogContent>
+        <DialogActions>
+            <Button variant="outlined" onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
+            <Button variant="contained" disabled={!selectedClass} onClick={() => {
+                if (selectedClass) {
+                    requestToJoinClass(schoolInfo.id, selectedClass.yearGroupId, selectedClass.courseId, selectedClass.classId)
+                    setSelectDialogOpen(false)
+                }
+            }}>Request to join {selectedClass?.name ?? ''}</Button>
+        </DialogActions>
+    </Dialog>
+</>
 }
 
 function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
