@@ -3,6 +3,7 @@ import { useRelevantSchoolInfo } from "./DataContext"
 import PageWrapper from "./PageWrapper"
 import { useState } from "react"
 import { Tab, Tabs } from "@mui/material"
+import { ClassPeopleView } from "./People"
 
 export default function Class() {
     const { schoolId, yearGroupId, courseId, classId } = useParams()
@@ -11,6 +12,9 @@ export default function Class() {
 
     const [tabIndex, setTabIndex] = useState(0)
 
+    if (!schoolId || !yearGroupId || !courseId || !classId) {
+        return <PageWrapper title="Class">Missing some ids?</PageWrapper>
+    }
     if (!schoolInfo) {
         return <PageWrapper title="Class">Loading...</PageWrapper>
     }
@@ -25,7 +29,9 @@ export default function Class() {
             <Tab label="People" id="tab-2" />
         </Tabs>
         <div role="tabpanel" aria-labelledby={`tab-${tabIndex}`}>
-            yes
+            {tabIndex === 0 && "Hello"}
+            {tabIndex === 1 && "World"}
+            {tabIndex === 2 && <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />}
         </div>
     </PageWrapper>
 }

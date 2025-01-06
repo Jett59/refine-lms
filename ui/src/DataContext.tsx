@@ -196,3 +196,9 @@ export function useRole(school: SchoolInfo | null): Role | null {
 export function useIsTeacherOrAdministrator(school: SchoolInfo | null): boolean {
     return ['teacher', 'administrator'].includes(useRole(school) ?? '')
 }
+
+export function lookupUser(schoolInfo: SchoolInfo, userId: string) {
+    return schoolInfo.administrators.find(admin => admin.id === userId)
+        ?? schoolInfo.teachers.find(teacher => teacher.id === userId)
+        ?? schoolInfo.students.find(student => student.id === userId)
+}

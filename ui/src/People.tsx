@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import PageWrapper from "./PageWrapper";
 import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import { useData, useRelevantSchoolInfo, useRole } from "./DataContext";
+import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { InsertInvitation, More } from "@mui/icons-material";
+import { Add, InsertInvitation, More } from "@mui/icons-material";
 import { Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
@@ -25,6 +25,15 @@ function RemoveUserMenuItem({ schoolInfo, userId, closeMenu }: { schoolInfo: Sch
         removeUser(schoolInfo.id, userId)
         closeMenu()
     }}>Remove</MenuItem>
+}
+
+function RemoveUserFromClassMenuItem({ /*schoolInfo, userId,*/ closeMenu }: { schoolInfo: SchoolInfo, userId: string, closeMenu: () => void }) {
+    //const { removeUserFromClass } = useData()
+
+    return <MenuItem onClick={() => {
+        //removeUserFromClass(schoolInfo.id, userId)
+        closeMenu()
+    }}>Remove from class</MenuItem>
 }
 
 function Person({ userInfo, options }: {
@@ -89,6 +98,40 @@ function InviteToSchoolButton({ category, schoolInfo }: {
                     }
                 }}>
                     Invite
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
+
+function AddToClassButton({/* schoolInfo, yearGroupId, courseId, classId,*/ role }: {
+    schoolInfo: SchoolInfo
+    yearGroupId: string
+    courseId: string
+    classId: string
+    role: 'teacher' | 'student'
+}) {
+    //const { addToClass } = useData()
+
+    const [addDialogOpen, setAddDialogOpen] = useState(false)
+
+    return <>
+        <IconButton
+            aria-label={`Add ${role}`}
+            onClick={() => setAddDialogOpen(true)}
+        >
+            <Add />
+        </IconButton>
+        <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
+            <DialogContent>
+                <Typography variant="h4">Add to class</Typography>
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    // TODO
+                }}>
+                    Add
                 </Button>
             </DialogActions>
         </Dialog>
@@ -167,6 +210,61 @@ export function SchoolPeoplePage() {
                         ] : []} />
                     )}
                     {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
+                </List>
+            </Grid>
+        </Grid>
+    </PageWrapper>
+}
+
+export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: {
+    schoolInfo: SchoolInfo
+    yearGroupId: string
+    courseId: string
+    classId: string
+}) {
+    const { userId: ourId } = useUser()
+    const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
+
+    const showAddButton = isAdministratorOrTeacher
+    const showRemoveOption = isAdministratorOrTeacher
+
+    const cls = schoolInfo.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)?.classes.find(cls => cls.id === classId)
+
+    if (!cls) {
+        return <PageWrapper title="People">
+            <Typography>Class not found</Typography>
+        </PageWrapper>
+    }
+
+    return <PageWrapper title={`People in ${cls.name}`}>
+        <Grid container spacing={2}>
+            <Grid item xs={12}>
+                <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />} />
+                <List>
+                    {cls.teacherIds.map(teacherId => {
+                        const teacher = lookupUser(schoolInfo, teacherId)
+                        if (teacher) {
+                            // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
+                            return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption && teacher.id !== ourId ? [
+                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
+                            ] : []} />
+                        }
+                    }
+                    )}
+                </List>
+            </Grid>
+            <Grid item xs={12}>
+                <CategoryHeading category="student" button={showAddButton && <AddToClassButton role="student" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />} />
+                <List>
+                    {cls.studentIds.map(studentId => {
+                        const student = lookupUser(schoolInfo, studentId)
+                        if (student) {
+                            return <Person key={student.id} userInfo={student} options={close => showRemoveOption && student.id !== ourId ? [
+                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
+                            ] : []} />
+                        }
+                    }
+                    )}
                 </List>
             </Grid>
         </Grid>
