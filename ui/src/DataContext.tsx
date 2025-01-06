@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { SchoolInfo } from "../../data/school";
+import { Role, SchoolInfo } from "../../data/school";
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
 import { CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveUserRequest, RemoveUserResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
@@ -19,7 +19,7 @@ export interface DataContextValue {
     createYearGroup: (schoolId: string, name: string) => Promise<void>
     createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
-    invite: (schoolId: string, role: 'administrator' | 'teacher' | 'student', email: string) => Promise<void>
+    invite: (schoolId: string, role: Role, email: string) => Promise<void>
     joinSchool: (schoolId: string) => Promise<void>
     declineInvitation: (schoolId: string) => Promise<void>
     removeUser: (schoolId: string, userId: string) => Promise<void>
@@ -172,7 +172,7 @@ export function useRelevantSchoolInfo(schoolId?: string): SchoolInfo | null {
     return school
 }
 
-export function useRole(school: SchoolInfo | null): 'administrator' | 'teacher' | 'student' | null {
+export function useRole(school: SchoolInfo | null): Role | null {
     const { userId } = useUser()
 
     if (!school || !userId) {

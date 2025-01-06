@@ -6,7 +6,7 @@ import Welcome from './Welcome';
 import Schools from './Schools';
 import School from './School';
 import { useCallback } from 'react';
-import People from './People';
+import { SchoolPeoplePage } from './People';
 import Class from './Class';
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
       <Routes>
         <Route index element={<Schools />} />
         <Route path="/:schoolId" element={<School />} ></Route>
-        <Route path="/:schoolId/people" element={<People />} />
+        <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
         <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
       </Routes>
       :

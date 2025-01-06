@@ -4,8 +4,8 @@ import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, M
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { InsertInvitation, More } from "@mui/icons-material";
-import { SchoolInfo } from "../../data/school";
-import { useRef, useState } from "react";
+import { Role, SchoolInfo } from "../../data/school";
+import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
 import { useUser } from "./UserContext";
 
@@ -18,19 +18,26 @@ const validateEmail = (email: string) => {
         );
 };
 
-function Person({ userInfo, schoolInfo }: { userInfo: UserInfo, schoolInfo: SchoolInfo }) {
+function RemoveUserMenuItem({ schoolInfo, userId, closeMenu }: { schoolInfo: SchoolInfo, userId: string, closeMenu: () => void }) {
     const { removeUser } = useData()
-    const { userId: ourUserId } = useUser()
-    const ourRole = useRole(schoolInfo)
 
-    if (ourRole === 'administrator' && userInfo.id !== ourUserId) {
+    return <MenuItem onClick={() => {
+        removeUser(schoolInfo.id, userId)
+        closeMenu()
+    }}>Remove</MenuItem>
+}
+
+function Person({ userInfo, options }: {
+    userInfo: UserInfo
+    options: (close: () => void) => ReactNode[]
+}) {
+    if (options(() => { }).length !== 0) {
         return <Stack direction="row">
             <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
             <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={close => (
-                <MenuItem onClick={() => {
-                    removeUser(schoolInfo.id, userInfo.id)
-                    close()
-                }}>Remove</MenuItem>
+                <>
+                    {options(close)}
+                </>
             )} />
         </Stack>
     } else {
@@ -42,60 +49,78 @@ function PendingPerson({ email }: { email: string }) {
     return <Typography color="textDisabled">{email} (pending)</Typography>
 }
 
-function CategoryHeading({ schoolInfo, category }: { schoolInfo: SchoolInfo, category: 'administrator' | 'teacher' | 'student' }) {
-    const ourRole = useRole(schoolInfo)
+function InviteToSchoolButton({ category, schoolInfo }: {
+    category: Role
+    schoolInfo: SchoolInfo
+}) {
     const { invite } = useData()
-
-    const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
 
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
     const [email, setEmail] = useState('')
     const [emailHasError, setEmailHasError] = useState(false)
-    const emailRef = useRef<HTMLElement>()
 
     const relevantIndefiniteArticle = category === 'administrator' ? 'an' : 'a'
 
-    if (ourRole === 'administrator') {
+    const emailRef = useRef<HTMLElement>()
+
+    return <>
+        <IconButton
+            aria-label={`Invite ${category}`}
+            onClick={() => setInviteDialogOpen(true)}
+        >
+            <InsertInvitation />
+        </IconButton>
+        <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
+            <DialogContent>
+                <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
+                <TextField inputRef={emailRef} type="email" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    if (validateEmail(email)) {
+                        setEmailHasError(false)
+                        setEmail('')
+                        invite(schoolInfo?.id, category, email)
+                        setInviteDialogOpen(false)
+                    } else {
+                        setEmailHasError(true)
+                        emailRef.current?.focus?.()
+                    }
+                }}>
+                    Invite
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
+
+function CategoryHeading({ category, button }: {
+    category: Role
+    button?: ReactNode
+}) {
+    const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
+
+    if (button) {
         return <Stack direction="row">
             <Typography variant="h5">{headingContent}</Typography>
-            <IconButton
-                aria-label={`Invite ${category}`}
-                onClick={() => setInviteDialogOpen(true)}
-            >
-                <InsertInvitation />
-            </IconButton>
-            <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
-                <DialogContent>
-                    <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo?.name}</Typography>
-                    <TextField inputRef={emailRef} type="email" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
-                </DialogContent>
-                <DialogActions>
-                    <Button variant="outlined" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={() => {
-                        if (validateEmail(email)) {
-                            setEmailHasError(false)
-                            setEmail('')
-                            invite(schoolInfo?.id, category, email)
-                            setInviteDialogOpen(false)
-                        } else {
-                            setEmailHasError(true)
-                            emailRef.current?.focus?.()
-                        }
-                    }}>
-                        Invite
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            {button}
         </Stack>
     } else {
         return <Typography variant="h5">{headingContent}</Typography>
     }
 }
 
-export default function People() {
+export function SchoolPeoplePage() {
     const { schoolId } = useParams()
 
     const schoolInfo = useRelevantSchoolInfo(schoolId)
+
+    const { userId: ourId } = useUser()
+    const ourRole = useRole(schoolInfo)
+
+    const showInviteButton = ourRole === 'administrator'
+    const showRemoveOptionInGeneral = ourRole === 'administrator' // You also can't remove yourself, but that's handled below
 
     if (!schoolId) {
         return <PageWrapper title="People">
@@ -111,23 +136,36 @@ export default function People() {
     return <PageWrapper title={`People in ${schoolInfo.name}`}>
         <Grid container spacing={2}>
             <Grid item xs={12}>
-                <CategoryHeading category="administrator" schoolInfo={schoolInfo} />
+                <CategoryHeading category="administrator" button={showInviteButton && <InviteToSchoolButton category="administrator" schoolInfo={schoolInfo} />} />
                 <List>
-                    {schoolInfo.administrators.map(admin => <Person key={admin.id} userInfo={admin} schoolInfo={schoolInfo} />)}
+                    {schoolInfo.administrators.map(admin =>
+                        <Person key={admin.id} userInfo={admin} options={close => showRemoveOptionInGeneral && admin.id !== ourId ? [
+                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={admin.id} closeMenu={close} />
+                        ] : []} />
+                    )}
                     {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
-                <CategoryHeading category="teacher" schoolInfo={schoolInfo} />
+                <CategoryHeading category="teacher" button={showInviteButton && <InviteToSchoolButton category="teacher" schoolInfo={schoolInfo} />} />
                 <List>
-                    {schoolInfo.teachers.map(teacher => <Person key={teacher.id} userInfo={teacher} schoolInfo={schoolInfo} />)}
+                    {schoolInfo.teachers.map(teacher =>
+                        // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
+                        <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOptionInGeneral && teacher.id !== ourId ? [
+                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
+                        ] : []} />
+                    )}
                     {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
             <Grid item xs={12}>
-                <CategoryHeading category="student" schoolInfo={schoolInfo} />
+                <CategoryHeading category="student" button={showInviteButton && <InviteToSchoolButton category="student" schoolInfo={schoolInfo} />} />
                 <List>
-                    {schoolInfo.students.map(student => <Person key={student.id} userInfo={student} schoolInfo={schoolInfo} />)}
+                    {schoolInfo.students.map(student =>
+                        <Person key={student.id} userInfo={student} options={close => showRemoveOptionInGeneral && student.id !== ourId ? [
+                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
+                        ] : []} />
+                    )}
                     {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
                 </List>
             </Grid>
