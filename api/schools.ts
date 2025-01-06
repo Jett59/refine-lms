@@ -32,6 +32,7 @@ export interface Class {
     name: string
     teacherIds: ObjectId[]
     studentIds: ObjectId[]
+    requestingStudentIds: ObjectId[]
 }
 
 const COLLECTION_NAME = 'schools'
@@ -41,7 +42,8 @@ function convertClassForApi(cls: Class): ClassInfo {
         id: cls.id.toHexString(),
         name: cls.name,
         teacherIds: cls.teacherIds.map(id => id.toHexString()),
-        studentIds: cls.studentIds.map(id => id.toHexString())
+        studentIds: cls.studentIds.map(id => id.toHexString()),
+        requestingStudentIds: cls.requestingStudentIds.map(id => id.toHexString())
     }
 }
 

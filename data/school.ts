@@ -1,4 +1,4 @@
-import {UserInfo} from "./user"
+import { UserInfo } from "./user"
 
 export interface SchoolInfo {
     id: string
@@ -29,6 +29,7 @@ export interface ClassInfo {
     name: string
     teacherIds: string[]
     studentIds: string[]
+    requestingStudentIds: string[]
 }
 
 export type Role = 'administrator' | 'teacher' | 'student'
