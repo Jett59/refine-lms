@@ -106,6 +106,7 @@ export interface AddToClassRequest {
     yearGroupId: string
     courseId: string
     classId: string
+    role: 'teacher' | 'student'
     userId: string
 }
 export interface AddToClassResponse {

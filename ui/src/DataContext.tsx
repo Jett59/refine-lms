@@ -23,7 +23,7 @@ export interface DataContextValue {
     joinSchool: (schoolId: string) => Promise<void>
     declineInvitation: (schoolId: string) => Promise<void>
     removeUser: (schoolId: string, userId: string) => Promise<void>
-    addToClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, userId: string) => Promise<void>
+    addToClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, role: 'student' | 'teacher', userId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -154,8 +154,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        addToClass: useCallback(async (schoolId, yearGroupId, courseId, classId, userId) => {
-            const response = await authenticatedAPIs.call<AddToClassResponse, AddToClassRequest>('POST', 'add-to-class', { schoolId, yearGroupId, courseId, classId, userId })
+        addToClass: useCallback(async (schoolId, yearGroupId, courseId, classId, role, userId) => {
+            const response = await authenticatedAPIs.call<AddToClassResponse, AddToClassRequest>('POST', 'add-to-class', { schoolId, yearGroupId, courseId, classId, role, userId })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {

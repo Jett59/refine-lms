@@ -139,7 +139,10 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, role }: 
             <DialogActions>
                 <Button variant="outlined" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
                 <Button variant="contained" onClick={() => {
-                    // TODO
+                    if (selectedUser) {
+                        addToClass(schoolInfo.id, yearGroupId, courseId, classId, role, selectedUser.id)
+                        setAddDialogOpen(false)
+                    }
                 }}>
                     Add
                 </Button>
