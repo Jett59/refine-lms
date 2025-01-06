@@ -23,6 +23,9 @@ function App() {
         <Route path="/:schoolId" element={<School />} ></Route>
         <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
         <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
+        <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId/feed" element={<Class defaultTab='feed' />} />
+        <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId/work" element={<Class defaultTab='work' />} />
+        <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId/people" element={<Class defaultTab='people' />} />
       </Routes>
       :
       <Welcome />
