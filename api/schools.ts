@@ -243,7 +243,8 @@ export async function createClass(db: Db, userId: ObjectId, schoolId: ObjectId, 
                 id: classId,
                 name,
                 teacherIds: [],
-                studentIds: []
+                studentIds: [],
+                requestingStudentIds: []
             }
         }
     }, {

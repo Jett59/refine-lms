@@ -5,7 +5,7 @@
   "main": "handler.js",
   "scripts": {
     "dev": "sls offline --disableCookieValidation --ignoreJWTSignature",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "typescript-compile": "tsc",
     "deploy": "sls deploy"
   },
@@ -13,9 +13,12 @@
   "license": "ISC",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.146",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.1",
+    "jest": "^29.7.0",
     "serverless": "^4.4.15",
     "serverless-offline": "^14.4.0",
+    "ts-jest": "^29.2.5",
     "typescript": "^5.7.2"
   },
   "dependencies": {
