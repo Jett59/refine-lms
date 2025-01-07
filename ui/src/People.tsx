@@ -3,7 +3,7 @@ import PageWrapper from "./PageWrapper";
 import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { Add, InsertInvitation, More } from "@mui/icons-material";
+import { Add, InsertInvitation, More, Remove } from "@mui/icons-material";
 import { ClassInfo, Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
@@ -251,6 +251,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
     courseId: string
     classId: string
 }) {
+    const { addToClass, removeFromClass } = useData()
     const { userId: ourId } = useUser()
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
 
@@ -267,6 +268,28 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
 
     return <PageWrapper title={`People in ${cls.name}`}>
         <Grid container spacing={2}>
+            {isAdministratorOrTeacher && cls.requestingStudentIds.length > 0 &&
+                <Grid item xs={12}>
+                    <Typography variant="h5">Join requests</Typography>
+                    <List>
+                        {cls.requestingStudentIds.map(studentId => {
+                            const student = lookupUser(schoolInfo, studentId)
+                            if (student) {
+                                return <Stack direction="row">
+                                    <Person key={student.id} userInfo={student} options={() => []} />
+                                    <IconButton aria-label={`Add ${student.name}`} onClick={() => {
+                                        addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
+                                    }}><Add /></IconButton>
+                                    <IconButton aria-label={`Remove ${student.name}`} onClick={() => {
+                                        removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, student.id)
+                                    }}><Remove /></IconButton>
+                                </Stack>
+                            }
+                        }
+                        )}
+                    </List>
+                </Grid>
+            }
             <Grid item xs={12}>
                 <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
                 <List>

@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import { useRelevantSchoolInfo } from "./DataContext"
 import PageWrapper from "./PageWrapper"
 import { useEffect, useState } from "react"
-import { Tab, Tabs } from "@mui/material"
+import { Badge, Tab, Tabs } from "@mui/material"
 import { ClassPeopleView } from "./People"
 import { useSwitchPage } from "./App"
 
@@ -45,11 +45,22 @@ export default function Class({ defaultTab }: {
         return <PageWrapper title="Class">Class not found</PageWrapper>
     }
 
+    let peopleTab
+    if (cls.requestingStudentIds.length > 0) {
+        peopleTab = <Tab
+        aria-label={`PEOPLE (${cls.requestingStudentIds.length} join request${cls.requestingStudentIds.length !== 1 ? 's' : ''})`}
+        label={<Badge badgeContent={cls.requestingStudentIds.length}>People</Badge>}
+        id="tab-2"
+        />
+} else {
+        peopleTab = <Tab label="People" id="tab-2" />
+    }
+
     return <PageWrapper title={cls?.name}>
         <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
             <Tab label="Feed" id="tab-0" />
             <Tab label="Work" id="tab-1" />
-            <Tab label="People" id="tab-2" />
+            {peopleTab}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`tab-${tabIndex}`}>
             {tabIndex === 0 && "Hello"}

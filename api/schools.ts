@@ -156,7 +156,13 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
             courses: yearGroup.courses.map(course => ({
                 id: course.id,
                 name: course.name,
-                classes: course.classes.filter(cls => cls.studentIds.some(id => id.equals(userId)))
+                classes: course.classes.map(cls => ({
+                    id: cls.id,
+                    name: cls.name,
+                    teacherIds: cls.teacherIds,
+                    studentIds: cls.studentIds,
+                    requestingStudentIds: []
+                })).filter(cls => cls.studentIds.some(id => id.equals(userId)))
             })).filter(course => course.classes.length > 0)
         })).filter(yearGroup => yearGroup.courses.length > 0),
         administratorIds: wholeSchool.administratorIds,
@@ -348,6 +354,9 @@ export async function addToClass(db: Db, ourUserId: ObjectId, schoolId: ObjectId
     }, {
         $push: {
             [`yearGroups.$[i].courses.$[j].classes.$[k].${key}`]: userIdToAdd
+        },
+        $pull: {
+            'yearGroups.$[i].courses.$[j].classes.$[k].requestingStudentIds': userIdToAdd
         }
     }, {
         arrayFilters: [
@@ -371,7 +380,8 @@ export async function removeFromClass(db: Db, ourUserId: ObjectId, schoolId: Obj
     }, {
         $pull: {
             'yearGroups.$[i].courses.$[j].classes.$[k].teacherIds': userIdToRemove,
-            'yearGroups.$[i].courses.$[j].classes.$[k].studentIds': userIdToRemove
+            'yearGroups.$[i].courses.$[j].classes.$[k].studentIds': userIdToRemove,
+            'yearGroups.$[i].courses.$[j].classes.$[k].requestingStudentIds': userIdToRemove
         }
     }, {
         arrayFilters: [
@@ -420,4 +430,24 @@ export async function getSchoolStructure(db: Db, userId: ObjectId, schoolId: Obj
             }))
         }))
     }
+}
+
+export async function requestToJoinClass(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        studentIds: userId,
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId,
+        'yearGroups.courses.classes.id': classId
+    }, {
+        $push: {
+            'yearGroups.$[i].courses.$[j].classes.$[k].requestingStudentIds': userId
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId },
+            { 'k.id': classId }
+        ]
+    })
 }

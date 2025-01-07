@@ -98,3 +98,8 @@ functions:
           method: get
           authorizer:
             name: google
+      - httpApi:
+          path: /api/request-to-join-class
+          method: post
+          authorizer:
+            name: google
