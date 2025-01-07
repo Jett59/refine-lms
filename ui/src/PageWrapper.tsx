@@ -17,6 +17,10 @@ export default function PageWrapper({ children }: {
     const [title, setTitle] = useState('')
     const [titleButtons, setTitleButtons] = useState<ReactNode | null>(null)
 
+useEffect(() => {
+    document.title = title
+}, [title])
+
     return <Box position="static">
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} bgcolor={theme.palette.primary.light} paddingTop={'32px'} paddingBottom={'48px'}>
             <Stack direction="row">
