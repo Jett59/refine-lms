@@ -24,7 +24,7 @@ useEffect(() => {
     return <Box position="static">
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} bgcolor={theme.palette.primary.light} paddingTop={'32px'} paddingBottom={'48px'}>
             <Stack direction="row">
-                <Typography variant="h4" align="center">{title}</Typography>
+                <Typography aria-live="polite" variant="h4" align="center">{title}</Typography>
                 {titleButtons}
             </Stack>
         </Box>
