@@ -5,7 +5,8 @@
   "main": "handler.js",
   "scripts": {
     "dev": "sls offline --disableCookieValidation --ignoreJWTSignature",
-    "test": "jest",
+    "test": "jest --ci --reporters=default --detectOpenHandles --forceExit",
+    "test-local": "jest",
     "typescript-compile": "tsc",
     "deploy": "sls deploy"
   },

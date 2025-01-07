@@ -38,14 +38,14 @@ jobs:
       - name: Node Install Dependencies
         run: npm ci
 
-#      - name: Start MongoDB
-#        uses: supercharge/mongodb-github-action@1.7.0
-#        with:
-#          mongodb-version: ?
-#          mongodb-replica-set: test-rs
-#
-#      - name: Node Run Tests
-#        run: npm test
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 8.0
+          mongodb-replica-set: test-rs
+
+      - name: Node Run Tests
+        run: npm test
 
       - name: Node Compile TypeScript
         run: npm run typescript-compile

@@ -295,7 +295,7 @@ describe('Schools API', () => {
             }]
         })
     })
-    it("Should let students request to join classes", async() => {
+    it("Should let students request to join classes", async () => {
         const school = await createSchool(db, user1, 'School 1')
         const yearGroup1 = await createYearGroup(db, user1, school, 'Year 1')
         const course1 = await createCourse(db, user1, school, yearGroup1, 'Maths')
@@ -306,7 +306,7 @@ describe('Schools API', () => {
         const schoolInfo = await getRelevantSchoolInfo(db, user1, school)
         expect(schoolInfo?.yearGroups[0].courses[0].classes[0].requestingStudentIds).toEqual([user2.toHexString()])
     })
-    it("Should remove users from schools", async() => {
+    it("Should remove users from schools", async () => {
         const school = await createSchool(db, user1, 'School 1')
         await invite(db, user1, school, "administrator", 'user2')
         await invite(db, user1, school, "teacher", 'user3')
@@ -322,7 +322,7 @@ describe('Schools API', () => {
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData2?.studentIds).toEqual([])
     })
-    it("Should remove teachers and students from classes", async() => {
+    it("Should remove teachers and students from classes", async () => {
         const school = await createSchool(db, user1, 'School 1')
         const yearGroup1 = await createYearGroup(db, user1, school, 'Year 1')
         const course1 = await createCourse(db, user1, school, yearGroup1, 'Maths')
