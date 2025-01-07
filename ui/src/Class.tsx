@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom"
 import { useRelevantSchoolInfo } from "./DataContext"
-import PageWrapper from "./PageWrapper"
+import { useSetPageTitle } from "./PageWrapper"
 import { useEffect, useState } from "react"
-import { Badge, Tab, Tabs } from "@mui/material"
+import { Badge, Stack, Tab, Tabs, Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
 import { useSwitchPage } from "./App"
 
@@ -35,14 +35,16 @@ export default function Class({ defaultTab }: {
         }
     }, [tabIndex, schoolId, yearGroupId, courseId, classId, switchPage])
 
+useSetPageTitle(cls?.name ?? 'Class')
+
     if (!schoolId || !yearGroupId || !courseId || !classId) {
-        return <PageWrapper title="Class">Missing some ids?</PageWrapper>
+        return <Typography>Missing some ids?</Typography>
     }
     if (!schoolInfo) {
-        return <PageWrapper title="Class">Loading...</PageWrapper>
+        return <Typography>Loading...</Typography>
     }
     if (!cls) {
-        return <PageWrapper title="Class">Class not found</PageWrapper>
+        return <Typography>Class not found</Typography>
     }
 
     let peopleTab
@@ -56,7 +58,7 @@ export default function Class({ defaultTab }: {
         peopleTab = <Tab label="People" id="tab-2" />
     }
 
-    return <PageWrapper title={cls?.name}>
+    return <Stack direction="column">
         <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
             <Tab label="Feed" id="tab-0" />
             <Tab label="Work" id="tab-1" />
@@ -67,5 +69,5 @@ export default function Class({ defaultTab }: {
             {tabIndex === 1 && "World"}
             {tabIndex === 2 && <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />}
         </div>
-    </PageWrapper>
+    </Stack>
 }

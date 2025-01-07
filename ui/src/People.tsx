@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import PageWrapper from "./PageWrapper";
 import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
@@ -9,6 +8,7 @@ import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
 import { useUser } from "./UserContext";
 import AccessibleAutocomplete from "./Autocomplete";
+import { useSetPageTitle } from "./PageWrapper";
 
 // REF: https://stackoverflow.com/a/46181
 const validateEmail = (email: string) => {
@@ -194,55 +194,51 @@ export function SchoolPeoplePage() {
     const showInviteButton = ourRole === 'administrator'
     const showRemoveOptionInGeneral = ourRole === 'administrator' // You also can't remove yourself, but that's handled below
 
+    useSetPageTitle(schoolInfo?.name ? `People in ${schoolInfo.name}` : 'People')
+
     if (!schoolId) {
-        return <PageWrapper title="People">
-            <Typography>No school chosen?</Typography>
-        </PageWrapper>
+        return <Typography>No school chosen?</Typography>
     }
     if (!schoolInfo) {
-        return <PageWrapper title="People">
-            <Typography>Loading...</Typography>
-        </PageWrapper>
+        return <Typography>Loading...</Typography>
     }
 
-    return <PageWrapper title={`People in ${schoolInfo.name}`}>
-        <Grid container spacing={2}>
-            <Grid item xs={12}>
-                <CategoryHeading category="administrator" button={showInviteButton && <InviteToSchoolButton category="administrator" schoolInfo={schoolInfo} />} />
-                <List>
-                    {schoolInfo.administrators.map(admin =>
-                        <Person key={admin.id} userInfo={admin} options={close => showRemoveOptionInGeneral && admin.id !== ourId ? [
-                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={admin.id} closeMenu={close} />
-                        ] : []} />
-                    )}
-                    {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
-                </List>
-            </Grid>
-            <Grid item xs={12}>
-                <CategoryHeading category="teacher" button={showInviteButton && <InviteToSchoolButton category="teacher" schoolInfo={schoolInfo} />} />
-                <List>
-                    {schoolInfo.teachers.map(teacher =>
-                        // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
-                        <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOptionInGeneral && teacher.id !== ourId ? [
-                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
-                        ] : []} />
-                    )}
-                    {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
-                </List>
-            </Grid>
-            <Grid item xs={12}>
-                <CategoryHeading category="student" button={showInviteButton && <InviteToSchoolButton category="student" schoolInfo={schoolInfo} />} />
-                <List>
-                    {schoolInfo.students.map(student =>
-                        <Person key={student.id} userInfo={student} options={close => showRemoveOptionInGeneral && student.id !== ourId ? [
-                            <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
-                        ] : []} />
-                    )}
-                    {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
-                </List>
-            </Grid>
+    return <Grid container spacing={2}>
+        <Grid item xs={12}>
+            <CategoryHeading category="administrator" button={showInviteButton && <InviteToSchoolButton category="administrator" schoolInfo={schoolInfo} />} />
+            <List>
+                {schoolInfo.administrators.map(admin =>
+                    <Person key={admin.id} userInfo={admin} options={close => showRemoveOptionInGeneral && admin.id !== ourId ? [
+                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={admin.id} closeMenu={close} />
+                    ] : []} />
+                )}
+                {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
+            </List>
         </Grid>
-    </PageWrapper>
+        <Grid item xs={12}>
+            <CategoryHeading category="teacher" button={showInviteButton && <InviteToSchoolButton category="teacher" schoolInfo={schoolInfo} />} />
+            <List>
+                {schoolInfo.teachers.map(teacher =>
+                    // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
+                    <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOptionInGeneral && teacher.id !== ourId ? [
+                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
+                    ] : []} />
+                )}
+                {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
+            </List>
+        </Grid>
+        <Grid item xs={12}>
+            <CategoryHeading category="student" button={showInviteButton && <InviteToSchoolButton category="student" schoolInfo={schoolInfo} />} />
+            <List>
+                {schoolInfo.students.map(student =>
+                    <Person key={student.id} userInfo={student} options={close => showRemoveOptionInGeneral && student.id !== ourId ? [
+                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
+                    ] : []} />
+                )}
+                {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
+            </List>
+        </Grid>
+    </Grid>
 }
 
 export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: {
@@ -261,64 +257,63 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
     const cls = schoolInfo.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)?.classes.find(cls => cls.id === classId)
 
     if (!cls) {
-        return <PageWrapper title="People">
-            <Typography>Class not found</Typography>
-        </PageWrapper>
+        return <Typography>Class not found</Typography>
     }
 
-    return <PageWrapper title={`People in ${cls.name}`}>
-        <Grid container spacing={2}>
-            {isAdministratorOrTeacher && cls.requestingStudentIds.length > 0 &&
-                <Grid item xs={12}>
-                    <Typography variant="h5">Join requests</Typography>
-                    <List>
-                        {cls.requestingStudentIds.map(studentId => {
-                            const student = lookupUser(schoolInfo, studentId)
-                            if (student) {
-                                return <Stack direction="row">
-                                    <Person key={student.id} userInfo={student} options={() => []} />
-                                    <IconButton aria-label={`Add ${student.name}`} onClick={() => {
-                                        addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
-                                    }}><Add /></IconButton>
-                                    <IconButton aria-label={`Remove ${student.name}`} onClick={() => {
-                                        removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, student.id)
-                                    }}><Remove /></IconButton>
-                                </Stack>
-                            }
-                        }
-                        )}
-                    </List>
-                </Grid>
-            }
+    return <Grid container spacing={2}>
+        <Grid item xs={12}>
+            <Typography variant="h4">People in {cls.name}</Typography>
+        </Grid>
+        {isAdministratorOrTeacher && cls.requestingStudentIds.length > 0 &&
             <Grid item xs={12}>
-                <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
+                <Typography variant="h5">Join requests</Typography>
                 <List>
-                    {cls.teacherIds.map(teacherId => {
-                        const teacher = lookupUser(schoolInfo, teacherId)
-                        if (teacher) {
-                            // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
-                            return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption && teacher.id !== ourId ? [
-                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={teacher.id} closeMenu={close} />
-                            ] : []} />
-                        }
-                    }
-                    )}
-                </List>
-            </Grid>
-            <Grid item xs={12}>
-                <CategoryHeading category="student" button={showAddButton && <AddToClassButton role="student" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
-                <List>
-                    {cls.studentIds.map(studentId => {
+                    {cls.requestingStudentIds.map(studentId => {
                         const student = lookupUser(schoolInfo, studentId)
                         if (student) {
-                            return <Person key={student.id} userInfo={student} options={close => showRemoveOption && student.id !== ourId ? [
-                                <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={student.id} closeMenu={close} />
-                            ] : []} />
+                            return <Stack direction="row">
+                                <Person key={student.id} userInfo={student} options={() => []} />
+                                <IconButton aria-label={`Add ${student.name}`} onClick={() => {
+                                    addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
+                                }}><Add /></IconButton>
+                                <IconButton aria-label={`Remove ${student.name}`} onClick={() => {
+                                    removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, student.id)
+                                }}><Remove /></IconButton>
+                            </Stack>
                         }
                     }
                     )}
                 </List>
             </Grid>
+        }
+        <Grid item xs={12}>
+            <CategoryHeading category="teacher" button={showAddButton && <AddToClassButton role="teacher" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
+            <List>
+                {cls.teacherIds.map(teacherId => {
+                    const teacher = lookupUser(schoolInfo, teacherId)
+                    if (teacher) {
+                        // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
+                        return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption && teacher.id !== ourId ? [
+                            <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={teacher.id} closeMenu={close} />
+                        ] : []} />
+                    }
+                }
+                )}
+            </List>
         </Grid>
-    </PageWrapper>
+        <Grid item xs={12}>
+            <CategoryHeading category="student" button={showAddButton && <AddToClassButton role="student" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} classInfo={cls} />} />
+            <List>
+                {cls.studentIds.map(studentId => {
+                    const student = lookupUser(schoolInfo, studentId)
+                    if (student) {
+                        return <Person key={student.id} userInfo={student} options={close => showRemoveOption && student.id !== ourId ? [
+                            <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={student.id} closeMenu={close} />
+                        ] : []} />
+                    }
+                }
+                )}
+            </List>
+        </Grid>
+    </Grid>
 }

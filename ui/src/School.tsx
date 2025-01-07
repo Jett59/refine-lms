@@ -1,22 +1,22 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import PageWrapper from "./PageWrapper"
 import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
 import { ExpandMore, People } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
+import { useHideSidebar } from "./WithSidebar"
+import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 
-function JoinClassButton({ schoolInfo, /*onSelect*/ }: {
+function JoinClassButton({ schoolInfo, }: {
     schoolInfo: SchoolInfo
-    onSelect: (yearGroupId: string, courseId: string, classId: string) => void
 }) {
     const { requestToJoinClass } = useData()
     const schoolStructure = useSchoolStructure(schoolInfo.id)
-    const {userId} = useUser()
+    const { userId } = useUser()
 
     const [selectDialogOpen, setSelectDialogOpen] = useState(false)
     const [selectedItem, setSelectedItem] = useState<string | null>(null)
@@ -39,10 +39,10 @@ function JoinClassButton({ schoolInfo, /*onSelect*/ }: {
                                 <TreeItem key={course.id} itemId={course.id} label={course.name}>
                                     {course.classes.map(cls => (
                                         <TreeItem
-                                        key={cls.id}
-                                        itemId={cls.id}
-                                        label={cls.name}
-                                        disabled={Boolean(schoolInfo.yearGroups.find(yg => yg.id === yearGroup.id)?.courses.find(c => c.id === course.id)?.classes.find(c => c.id === cls.id)?.studentIds.find(studentId => studentId === userId))}
+                                            key={cls.id}
+                                            itemId={cls.id}
+                                            label={cls.name}
+                                            disabled={Boolean(schoolInfo.yearGroups.find(yg => yg.id === yearGroup.id)?.courses.find(c => c.id === course.id)?.classes.find(c => c.id === cls.id)?.studentIds.find(studentId => studentId === userId))}
                                         />
                                     ))}
                                 </TreeItem>
@@ -170,6 +170,7 @@ function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: stri
 }
 
 export default function School() {
+    useHideSidebar()
     const { schoolId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
@@ -178,46 +179,40 @@ export default function School() {
 
     const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
 
+    useSetPageTitle(schoolInfo?.name ?? 'School')
+
+    const titleButtons = useMemo(() => {
+        if (schoolInfo) {
+            if (isAdministratorOrTeacher) {
+                return <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
+                    <People />
+                </IconButton>
+            } else {
+                return <JoinClassButton schoolInfo={schoolInfo} />
+            }
+        } else {
+            return null
+        }
+    }, [isAdministratorOrTeacher, schoolInfo, switchPage, schoolId])
+    useSetPageTitleButtons(titleButtons)
+
     if (!schoolId) {
-        return <PageWrapper title="School">
-            <Typography>No school chosen?</Typography>
-        </PageWrapper>
+        return <Typography>No school chosen?</Typography>
     }
     if (!schoolInfo) {
-        return <PageWrapper title="School">
-            <Typography>Loading...</Typography>
-        </PageWrapper>
+        return <Typography>Loading...</Typography>
     }
 
     if (schoolInfo?.yearGroups.length === 0) {
         if (isAdministratorOrTeacher) {
-            return <PageWrapper title={schoolInfo?.name ?? 'School'}>
-                <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" />
-            </PageWrapper>
+            return <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" />
         }
-        return <PageWrapper title={schoolInfo?.name ?? 'School'}>
-            <Typography>You are not currently a member of a class</Typography>
-        </PageWrapper>
-    }
-
-    let title
-    if (isAdministratorOrTeacher) {
-        title = <Stack direction="row">
-            <Typography>{schoolInfo.name}</Typography>
-            <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
-                <People />
-            </IconButton>
-        </Stack>
-    } else {
-        title = <Stack direction="row">
-            <Typography>{schoolInfo.name}</Typography>
-            <JoinClassButton schoolInfo={schoolInfo} onSelect={(/*yearGroupId, courseId, classId*/) => { }} />
-        </Stack>
+        return <Typography>You are not currently a member of a class</Typography>
     }
 
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
 
-    return <PageWrapper title={title}>
+    return <Stack direction="column">
         <Tabs value={selectedYearGroupIndex} onChange={(_e, newValue) => setSelectedYearGroupIndex(newValue)} aria-label="Year groups">
             {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
             {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
@@ -237,5 +232,5 @@ export default function School() {
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
             </Stack>
         </div>
-    </PageWrapper>
+    </Stack>
 }
