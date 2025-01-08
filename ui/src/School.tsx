@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
 import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
-import { CourseInfo, SchoolInfo } from "../../data/school"
+import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
 import { ExpandMore, People } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
@@ -27,13 +27,24 @@ function JoinClassButton({ schoolInfo, }: {
         )
     ).find(cls => cls.classId === selectedItem)
 
+    if (schoolStructure) {
+        const filteredSchoolStructure: SchoolStructure = {
+            id: schoolStructure.id,
+            name: schoolStructure.name,
+            yearGroups: schoolStructure.yearGroups.map(yg => ({
+                id: yg.id,
+                name: yg.name,
+                courses: yg.courses.filter(course => course.classes.length > 0)
+        })).filter(yg => yg.courses.length > 0)
+    }
+
     return <>
         <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
         <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
             <DialogTitle>Request to Join a Class</DialogTitle>
             <DialogContent>
                 <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
-                    {schoolStructure?.yearGroups.map(yearGroup => (
+                    {filteredSchoolStructure.yearGroups.map(yearGroup => (
                         <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
                             {yearGroup.courses.map(course => (
                                 <TreeItem key={course.id} itemId={course.id} label={course.name}>
@@ -62,6 +73,9 @@ function JoinClassButton({ schoolInfo, }: {
             </DialogActions>
         </Dialog>
     </>
+}else {
+    return null
+}
 }
 
 function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
