@@ -261,9 +261,6 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
     }
 
     return <Grid container spacing={2}>
-        <Grid item xs={12}>
-            <Typography variant="h4">People in {cls.name}</Typography>
-        </Grid>
         {isAdministratorOrTeacher && cls.requestingStudentIds.length > 0 &&
             <Grid item xs={12}>
                 <Typography variant="h5">Join requests</Typography>

@@ -1,9 +1,10 @@
-import { Stack, Tab, Tabs } from "@mui/material"
+import { Stack, Tab, Tabs, Typography } from "@mui/material"
 import { ReactNode, useMemo } from "react"
 
 export interface TabPanelOption {
     label: ReactNode
     ariaLabel?: string
+    heading: string
     onSelect: () => void
     value: ReactNode
 }
@@ -21,6 +22,7 @@ export default function TabPanel({ index, tabs }: {
             ))}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`tab-${uniqueId}-${index}`}>
+            <Typography variant="h4">{tabs[index].heading}</Typography>
             {tabs[index].value}
         </div>
     </Stack>

@@ -40,17 +40,20 @@ export default function Class({ defaultTab }: {
     return <TabPanel index={tabIndex} tabs={[
         {
             label: 'Feed',
+            heading: `Posts to ${cls.name}`,
             onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, classId, true),
             value: "Hello"
         },
         {
             label: 'Work',
+            heading: `Work for ${cls.name}`,
             onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, classId, true),
             value: "World"
         },
         {
             label: peopleTabLabel,
             ariaLabel: peopleTabAriaLabel,
+            heading: `People in ${cls.name}`,
             onSelect: () => switchPage('people', schoolId, yearGroupId, courseId, classId, true),
             value: <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />
         }
