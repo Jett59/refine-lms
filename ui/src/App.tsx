@@ -27,6 +27,7 @@ function App() {
             <Route index element={<Schools />} />
             <Route path="/:schoolId" element={<School />} ></Route>
             <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
+            <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
             <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tabIndex={0} />} />
             <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tabIndex={0} />} />
             <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tabIndex={1} />} />

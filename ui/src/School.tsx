@@ -185,13 +185,13 @@ function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: stri
 
 export default function School() {
     useHideSidebar()
-    const { schoolId } = useParams()
+    const { schoolId, yearGroupId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
     const { createYearGroup, createCourse, createClass } = useData()
     const switchPage = useSwitchPage()
 
-    const [selectedYearGroupIndex, setSelectedYearGroupIndex] = useState<number>(0)
+    const selectedYearGroupIndex = useMemo(() => yearGroupId ? schoolInfo?.yearGroups.findIndex(yg => yg.id === yearGroupId) ?? 0 : 0, [schoolInfo, yearGroupId])
 
     useSetPageTitle(schoolInfo?.name ?? 'School')
 
@@ -227,7 +227,9 @@ export default function School() {
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
 
     return <Stack direction="column">
-        <Tabs value={selectedYearGroupIndex} onChange={(_e, newValue) => setSelectedYearGroupIndex(newValue)} aria-label="Year groups">
+        <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
+            switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
+        }} aria-label="Year groups">
             {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
             {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
         </Tabs>
