@@ -81,6 +81,21 @@ function getCollection(db: Db) {
     return db.collection<School>(COLLECTION_NAME)
 }
 
+export async function getSchool(db: Db, userId: ObjectId, schoolId: ObjectId): Promise<School | null> {
+    const school = await getCollection(db).findOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId },
+            { studentIds: userId }
+        ]
+    })
+    if (!school) {
+        return null
+    }
+    return school
+}
+
 export async function listVisibleSchools(db: Db, userId: ObjectId, email: string): Promise<VisibleSchoolsResponse> {
     const joinedSchools = await getCollection(db).find({
         $or: [

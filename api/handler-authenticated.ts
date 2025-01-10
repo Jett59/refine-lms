@@ -2,8 +2,9 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { createPost, preparePostFromTemplate } from "./posts";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -318,6 +319,58 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 await requestToJoinClass(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectId)
                 return successResponse<RequestToJoinClassResponse>({ success: true })
+            }
+            case "/create-post": {
+                const typedBody: CreatePostRequest = body
+                const postTemplate = typedBody.post
+                if (!postTemplate) {
+                    return errorResponse(400, 'Missing post')
+                }
+                if (!postTemplate.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!postTemplate.yearGroupId) {
+                    return errorResponse(400, 'Missing year group ID')
+                }
+                if (!postTemplate.courseId) {
+                    return errorResponse(400, 'Missing course ID')
+                }
+                if (!postTemplate.classIds) {
+                    return errorResponse(400, 'Missing class IDs')
+                }
+                if (!postTemplate.type) {
+                    return errorResponse(400, 'Missing type')
+                }
+                if (postTemplate.private === undefined) {
+                    return errorResponse(400, 'Missing private')
+                }
+                if (!postTemplate.title) {
+                    return errorResponse(400, 'Missing title')
+                }
+                if (!postTemplate.content) {
+                    return errorResponse(400, 'Missing content')
+                }
+                if (!postTemplate.attachments) {
+                    return errorResponse(400, 'Missing attachments')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId
+                let classObjectIds: ObjectId[]
+                try {
+                    schoolObjectId = new ObjectId(postTemplate.schoolId)
+                    yearGroupObjectId = new ObjectId(postTemplate.yearGroupId)
+                    courseObjectId = new ObjectId(postTemplate.courseId)
+                    classObjectIds = postTemplate.classIds.map((id: string) => new ObjectId(id))
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school, year group, course, or class ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const postId = await createPost(db, school, preparePostFromTemplate(postTemplate, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds))
+                return successResponse<CreatePostResponse>({ postId: postId.toHexString() })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

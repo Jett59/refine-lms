@@ -1,5 +1,6 @@
 import { SchoolInfo, SchoolStructure } from "./school"
 import { UserInfo } from "./user"
+import { PostTemplate } from "./post"
 
 export interface GoogleTokenResponse {
     accessToken: string
@@ -136,4 +137,11 @@ export interface RequestToJoinClassRequest {
 }
 export interface RequestToJoinClassResponse {
     success: boolean
+}
+
+export interface CreatePostRequest {
+    post: PostTemplate
+}
+export interface CreatePostResponse {
+    postId: string
 }

@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
+import { PostTemplate } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -27,6 +28,8 @@ export interface DataContextValue {
     removeFromClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string, userId: string) => Promise<void>
     getSchoolStructure: (schoolId: string) => Promise<SchoolStructure | null>
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
+
+    createPost: (post: PostTemplate) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -45,6 +48,7 @@ const DataContext = createContext<DataContextValue>({
     removeFromClass: async () => { },
     getSchoolStructure: async () => null,
     requestToJoinClass: async () => { },
+    createPost: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -189,10 +193,16 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             const response = await authenticatedAPIs.call<RequestToJoinClassResponse, RequestToJoinClassRequest>('POST', 'request-to-join-class', { schoolId, yearGroupId, courseId, classId })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
-            }else {
+            } else {
                 addAPIError(response)
             }
-        }, [authenticatedAPIs, getRelevantSchoolInfo])
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        createPost: useCallback(async (post) => {
+            const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post })
+            if (!isSuccessfulAPIResponse(response)) {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
     }}>
         {children}
     </DataContext.Provider>
@@ -207,7 +217,7 @@ export function useRelevantSchoolInfo(schoolId?: string): SchoolInfo | null {
     useEffect(() => {
         if (schoolId) {
             getRelevantSchoolInfo(schoolId).then(setSchool)
-        }else {
+        } else {
             setSchool(null)
         }
     }, [getRelevantSchoolInfo, schoolId])
