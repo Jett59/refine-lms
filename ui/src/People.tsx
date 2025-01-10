@@ -248,7 +248,6 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
     classId: string
 }) {
     const { addToClass, removeFromClass } = useData()
-    const { userId: ourId } = useUser()
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
 
     const showAddButton = isAdministratorOrTeacher
@@ -289,8 +288,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                 {cls.teacherIds.map(teacherId => {
                     const teacher = lookupUser(schoolInfo, teacherId)
                     if (teacher) {
-                        // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
-                        return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption && teacher.id !== ourId ? [
+                        return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption ? [
                             <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={teacher.id} closeMenu={close} />
                         ] : []} />
                     }
@@ -304,7 +302,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                 {cls.studentIds.map(studentId => {
                     const student = lookupUser(schoolInfo, studentId)
                     if (student) {
-                        return <Person key={student.id} userInfo={student} options={close => showRemoveOption && student.id !== ourId ? [
+                        return <Person key={student.id} userInfo={student} options={close => showRemoveOption ? [
                             <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={student.id} closeMenu={close} />
                         ] : []} />
                     }
