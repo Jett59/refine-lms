@@ -4,7 +4,7 @@ import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent,
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
-import { DynamicFeed, ExpandMore, People } from "@mui/icons-material"
+import { Class, DynamicFeed, People, PersonAdd } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
@@ -35,103 +35,70 @@ function JoinClassButton({ schoolInfo, }: {
                 id: yg.id,
                 name: yg.name,
                 courses: yg.courses.filter(course => course.classes.length > 0)
-        })).filter(yg => yg.courses.length > 0)
+            })).filter(yg => yg.courses.length > 0)
+        }
+
+        return <>
+            <IconButton aria-label="Join class" onClick={() => setSelectDialogOpen(true)}><PersonAdd /></IconButton>
+            <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
+                <DialogTitle>Request to Join a Class</DialogTitle>
+                <DialogContent>
+                    <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
+                        {filteredSchoolStructure.yearGroups.map(yearGroup => (
+                            <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
+                                {yearGroup.courses.map(course => (
+                                    <TreeItem key={course.id} itemId={course.id} label={course.name}>
+                                        {course.classes.map(cls => (
+                                            <TreeItem
+                                                key={cls.id}
+                                                itemId={cls.id}
+                                                label={cls.name}
+                                                disabled={Boolean(schoolInfo.yearGroups.find(yg => yg.id === yearGroup.id)?.courses.find(c => c.id === course.id)?.classes.find(c => c.id === cls.id)?.studentIds.find(studentId => studentId === userId))}
+                                            />
+                                        ))}
+                                    </TreeItem>
+                                ))}
+                            </TreeItem>
+                        ))}
+                    </SimpleTreeView>
+                </DialogContent>
+                <DialogActions>
+                    <Button variant="outlined" onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
+                    <Button variant="contained" disabled={!selectedClass} onClick={() => {
+                        if (selectedClass) {
+                            requestToJoinClass(schoolInfo.id, selectedClass.yearGroupId, selectedClass.courseId, selectedClass.classId)
+                            setSelectDialogOpen(false)
+                        }
+                    }}>Request to join {selectedClass?.name ?? ''}</Button>
+                </DialogActions>
+            </Dialog>
+        </>
+    } else {
+        return null
     }
-
-    return <>
-        <Button onClick={() => setSelectDialogOpen(true)}>Join class</Button>
-        <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
-            <DialogTitle>Request to Join a Class</DialogTitle>
-            <DialogContent>
-                <SimpleTreeView selectedItems={selectedItem} onSelectedItemsChange={(_, item) => setSelectedItem(item)} >
-                    {filteredSchoolStructure.yearGroups.map(yearGroup => (
-                        <TreeItem key={yearGroup.id} itemId={yearGroup.id} label={yearGroup.name}>
-                            {yearGroup.courses.map(course => (
-                                <TreeItem key={course.id} itemId={course.id} label={course.name}>
-                                    {course.classes.map(cls => (
-                                        <TreeItem
-                                            key={cls.id}
-                                            itemId={cls.id}
-                                            label={cls.name}
-                                            disabled={Boolean(schoolInfo.yearGroups.find(yg => yg.id === yearGroup.id)?.courses.find(c => c.id === course.id)?.classes.find(c => c.id === cls.id)?.studentIds.find(studentId => studentId === userId))}
-                                        />
-                                    ))}
-                                </TreeItem>
-                            ))}
-                        </TreeItem>
-                    ))}
-                </SimpleTreeView>
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={() => setSelectDialogOpen(false)}>Cancel</Button>
-                <Button variant="contained" disabled={!selectedClass} onClick={() => {
-                    if (selectedClass) {
-                        requestToJoinClass(schoolInfo.id, selectedClass.yearGroupId, selectedClass.courseId, selectedClass.classId)
-                        setSelectDialogOpen(false)
-                    }
-                }}>Request to join {selectedClass?.name ?? ''}</Button>
-            </DialogActions>
-        </Dialog>
-    </>
-}else {
-    return null
-}
 }
 
-function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
-    const [dialogOpen, setDialogOpen] = useState(false)
-
-    const [name, setName] = useState('')
-
-    return <>
-        <Button onClick={() => setDialogOpen(true)} aria-label="New class">+</Button>
-        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-            <DialogTitle>Create a new class</DialogTitle>
-            <DialogContent>
-                <TextField label="Class name" value={name} onChange={e => setName(e.target.value)} />
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button variant="contained" onClick={() => {
-                    onClick(name)
-                    setDialogOpen(false)
-                }}>Create</Button>
-            </DialogActions>
-        </Dialog>
-    </>
-}
-
-function CourseView({ course, isAdministratorOrTeacher, newClass, goToClass, goToCourseFeed }: {
+function CourseView({ course, isAdministratorOrTeacher, newClass, goToCourseFeed, goToClasses }: {
     course: CourseInfo
     isAdministratorOrTeacher: boolean
     newClass: (name: string) => void
-    goToClass: (classId: string) => void
     goToCourseFeed: () => void
+    goToClasses: () => void
 }) {
-    const [expanded, setExpanded] = useState(false)
-
     return <>
         <TileCard>
             <CardContent>
                 <Typography variant="h6">{course.name}</Typography>
             </CardContent>
             <CardActions>
-                {isAdministratorOrTeacher && <AddClassButton onClick={newClass} />}
                 <IconButton aria-label="Feed" onClick={() => goToCourseFeed()}>
                     <DynamicFeed />
                 </IconButton>
-                <IconButton aria-label={expanded ? 'Hide classes' : 'Show classes'} aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
-                    <ExpandMore sx={expanded ? { transform: 'rotate(180deg)' } : {}} />
+                <IconButton aria-label="Classes" onClick={() => goToClasses()}>
+                    <Class />
                 </IconButton>
             </CardActions>
         </TileCard>
-        {expanded && course.classes.map(cls => (
-            <TileButton
-                key={cls.id}
-                text={cls.name}
-                onClick={() => goToClass(cls.id)}
-            />
-        ))}
     </>
 }
 
@@ -246,8 +213,8 @@ export default function School() {
                         isAdministratorOrTeacher={isAdministratorOrTeacher}
                         course={course}
                         newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)}
-                        goToClass={classId => switchPage('', schoolId, currentYearGroup.id, course.id, classId)}
                         goToCourseFeed={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
+                        goToClasses={() => switchPage('classes', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}

@@ -1,11 +1,35 @@
 import { useParams } from "react-router-dom"
-import { useRelevantSchoolInfo } from "./DataContext"
+import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { TileButton, TileContainer } from "./Tile"
-import { Typography } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
 import Feed from "./Feed"
+import { useState } from "react"
+
+function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
+    const [dialogOpen, setDialogOpen] = useState(false)
+
+    const [name, setName] = useState('')
+
+    return <>
+        <TileButton onClick={() => setDialogOpen(true)} buttonProps={{ 'aria-label': "New class" }} text="+" />
+        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
+            <DialogTitle>Create a new class</DialogTitle>
+            <DialogContent>
+                <TextField label="Class name" value={name} onChange={e => setName(e.target.value)} />
+            </DialogContent>
+            <DialogActions>
+                <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                <Button variant="contained" onClick={() => {
+                    onClick(name)
+                    setDialogOpen(false)
+                }}>Create</Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
 
 export default function Course({ tabIndex }: {
     tabIndex: number
@@ -14,6 +38,10 @@ export default function Course({ tabIndex }: {
     const switchPage = useSwitchPage()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const courseInfo = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
+
+    const { createClass } = useData()
+
+    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
 
     useSetPageTitle(courseInfo?.name ?? 'Course')
 
@@ -39,13 +67,15 @@ export default function Course({ tabIndex }: {
                 label: 'Classes',
                 heading: `Classes in ${courseInfo.name}`,
                 onSelect: () => switchPage('classes', schoolId, yearGroupId, courseId, undefined, true),
-                value: courseInfo?.classes.length > 0
-                    ? <TileContainer>
+                value: <TileContainer>
                         {courseInfo?.classes.map(cls => (
                             <TileButton key={cls.id} text={cls.name} onClick={() => switchPage('', schoolId, yearGroupId, courseId, cls.id)} />
                         ))}
+                        {isTeacherOrAdministrator && <AddClassTileButton onClick={name => {
+                            createClass(schoolId, yearGroupId, courseId, name)
+                        }} />
+                        }
                     </TileContainer>
-                    : <Typography>No classes</Typography>
             }
         ]} />
     }
