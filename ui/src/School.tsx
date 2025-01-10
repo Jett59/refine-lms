@@ -78,10 +78,8 @@ function JoinClassButton({ schoolInfo, }: {
     }
 }
 
-function CourseView({ course, isAdministratorOrTeacher, newClass, goToCourseFeed, goToClasses }: {
+function CourseView({ course, goToCourseFeed, goToClasses }: {
     course: CourseInfo
-    isAdministratorOrTeacher: boolean
-    newClass: (name: string) => void
     goToCourseFeed: () => void
     goToClasses: () => void
 }) {
@@ -159,7 +157,7 @@ export default function School() {
     const { schoolId, yearGroupId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
-    const { createYearGroup, createCourse, createClass } = useData()
+    const { createYearGroup, createCourse } = useData()
     const switchPage = useSwitchPage()
 
     const selectedYearGroupIndex = useMemo(() => yearGroupId ? schoolInfo?.yearGroups.findIndex(yg => yg.id === yearGroupId) ?? 0 : 0, [schoolInfo, yearGroupId])
@@ -210,9 +208,7 @@ export default function School() {
                 {currentYearGroup.courses.map(course =>
                     <CourseView
                         key={course.id}
-                        isAdministratorOrTeacher={isAdministratorOrTeacher}
                         course={course}
-                        newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)}
                         goToCourseFeed={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
                         goToClasses={() => switchPage('classes', schoolId, currentYearGroup.id, course.id)}
                     />
