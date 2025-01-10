@@ -4,7 +4,7 @@ import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent,
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
-import { ExpandMore, People } from "@mui/icons-material"
+import { DynamicFeed, ExpandMore, People } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
@@ -101,11 +101,12 @@ function AddClassButton({ onClick }: { onClick: (name: string) => void }) {
     </>
 }
 
-function CourseView({ course, isAdministratorOrTeacher, newClass, goToClass }: {
+function CourseView({ course, isAdministratorOrTeacher, newClass, goToClass, goToCourseFeed }: {
     course: CourseInfo
     isAdministratorOrTeacher: boolean
     newClass: (name: string) => void
     goToClass: (classId: string) => void
+    goToCourseFeed: () => void
 }) {
     const [expanded, setExpanded] = useState(false)
 
@@ -116,6 +117,9 @@ function CourseView({ course, isAdministratorOrTeacher, newClass, goToClass }: {
             </CardContent>
             <CardActions>
                 {isAdministratorOrTeacher && <AddClassButton onClick={newClass} />}
+                <IconButton aria-label="Feed" onClick={() => goToCourseFeed()}>
+                    <DynamicFeed />
+                </IconButton>
                 <IconButton aria-label={expanded ? 'Hide classes' : 'Show classes'} aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
                     <ExpandMore sx={expanded ? { transform: 'rotate(180deg)' } : {}} />
                 </IconButton>
@@ -243,6 +247,7 @@ export default function School() {
                         course={course}
                         newClass={name => createClass(schoolId, currentYearGroup.id, course.id, name)}
                         goToClass={classId => switchPage('', schoolId, currentYearGroup.id, course.id, classId)}
+                        goToCourseFeed={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}

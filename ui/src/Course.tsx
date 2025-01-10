@@ -5,6 +5,7 @@ import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { TileButton, TileContainer } from "./Tile"
 import { Typography } from "@mui/material"
+import Feed from "./Feed"
 
 export default function Course({ tabIndex }: {
     tabIndex: number
@@ -16,13 +17,17 @@ export default function Course({ tabIndex }: {
 
     useSetPageTitle(courseInfo?.name ?? 'Course')
 
+    if (!schoolId || !yearGroupId || !courseId) {
+        return <Typography>Missing some ids?</Typography>
+    }
+
     if (courseInfo) {
         return <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',
                 heading: `Posts to ${courseInfo.name}`,
                 onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, true),
-                value: 'Hello'
+                value: <Feed schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
             },
             {
                 label: 'Work',

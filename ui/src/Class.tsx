@@ -5,6 +5,7 @@ import { Badge, Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
 import { useSwitchPage } from "./App"
 import TabPanel from "./TabPanel"
+import Feed from "./Feed"
 
 export default function Class({ defaultTab }: {
     defaultTab?: 'feed' | 'work' | 'people'
@@ -42,7 +43,7 @@ export default function Class({ defaultTab }: {
             label: 'Feed',
             heading: `Posts to ${cls.name}`,
             onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, classId, true),
-            value: "Hello"
+            value: <Feed schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />
         },
         {
             label: 'Work',
