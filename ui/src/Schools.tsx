@@ -15,7 +15,7 @@ export default function Schools() {
         {invitedSchools.map(school => (
             <TileCard key={school.id}>
                 <CardContent>
-                    <Typography variant="h2">{school.name}</Typography>
+                    <Typography variant="h4">{school.name}</Typography>
                 </CardContent>
                 <CardActions>
                     <Button onClick={() => joinSchool(school.id)}>Join</Button>
