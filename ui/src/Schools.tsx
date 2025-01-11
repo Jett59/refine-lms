@@ -14,7 +14,7 @@ export default function Schools() {
     return <TileContainer>
         {invitedSchools.map(school => (
             <TileCard key={school.id}>
-                <CardHeader title={school.name} titleTypographyProps={{ variant: 'h3' }} />
+                <CardHeader title={school.name.toUpperCase()} titleTypographyProps={{ variant: 'h6' }} />
                 <CardActions>
                     <Button onClick={() => joinSchool(school.id)}>Join</Button>
                     <Button onClick={() => declineInvitation(school.id)}>Decline invitation</Button>

@@ -52,6 +52,7 @@ function SchoolSwitcher() {
                 close()
             }}>{school.name}</MenuItem>)}
             <MenuItem onClick={() => {
+                setName('')
                 setNameSelectorOpen(true)
                 close()
             }}>New school</MenuItem>
@@ -91,7 +92,7 @@ export default function Banner() {
                     </Box>
                 </Stack>
                 :
-                <Button disabled={loggingIn} onClick={() => login()}>Login</Button>
+                <Button disabled={loggingIn} onClick={() => login()}><Typography color="textPrimary">Login</Typography></Button>
             }
         </Box>
     </AppBar>
