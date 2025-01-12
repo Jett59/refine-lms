@@ -29,7 +29,7 @@ export default function PageWrapper({ children }: {
             </Stack>
         </Box>
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} position={'relative'} style={{ top: '-20px' }}>
-            <Paper elevation={2}>
+            <Paper elevation={2} sx={{ minHeight: '500px', padding: paddingMargins }}>
                 <PageWrapperContext.Provider value={{
                     changeTitle: useMemo(() => setTitle, []),
                     changeTitleButtons: useMemo(() => setTitleButtons, [])

@@ -11,7 +11,7 @@ export default function Schools() {
     const { joinedSchools, invitedSchools, joinSchool, declineInvitation } = useData()
     useSetPageTitle('Schools')
 
-    return <TileContainer>
+    return <TileContainer centre>
         {invitedSchools.map(school => (
             <TileCard key={school.id}>
                 <CardHeader title={school.name.toUpperCase()} titleTypographyProps={{ variant: 'h6' }} />

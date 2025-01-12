@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import { Button, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileCard } from "./Tile"
@@ -129,13 +129,17 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
     </>
 }
 
-function CreateYearGroupButton({ onCreate, buttonText }: { onCreate: (name: string) => void, buttonText?: string }) {
+function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
+    onCreate: (name: string) => void
+    buttonText?: string
+    buttonProps?: ButtonProps
+}) {
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const [name, setName] = useState('')
 
     return <>
-        <Button aria-label={buttonText ?? 'New year group'} onClick={() => setDialogOpen(true)}>{buttonText ?? '+'}</Button>
+        <Button aria-label={buttonText ?? 'New year group'} onClick={() => setDialogOpen(true)} {...buttonProps}>{buttonText ?? '+'}</Button>
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
@@ -188,7 +192,9 @@ export default function School() {
 
     if (schoolInfo?.yearGroups.length === 0) {
         if (isAdministratorOrTeacher) {
-            return <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" />
+            return <Box display="flex" sx={{ height: '500px' }} justifyContent="center" alignItems="center">
+                <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" buttonProps={{ variant: "contained" }} />
+            </Box>
         }
         return <Typography>You are not currently a member of a class</Typography>
     }
