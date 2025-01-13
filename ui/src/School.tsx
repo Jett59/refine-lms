@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, CardActions, CardContent, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
-import { TileButton, TileCard } from "./Tile"
-import { Class, DynamicFeed, People, PersonAdd } from "@mui/icons-material"
+import { TileButton, TileContainer } from "./Tile"
+import { People, PersonAdd } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
@@ -78,26 +78,11 @@ function JoinClassButton({ schoolInfo, }: {
     }
 }
 
-function CourseView({ course, goToCourseFeed, goToClasses }: {
+function CourseView({ course, goToCourse }: {
     course: CourseInfo
-    goToCourseFeed: () => void
-    goToClasses: () => void
+    goToCourse: () => void
 }) {
-    return <>
-        <TileCard>
-            <CardContent>
-                <Typography variant="h6">{course.name}</Typography>
-            </CardContent>
-            <CardActions>
-                <IconButton aria-label="Feed" onClick={() => goToCourseFeed()}>
-                    <DynamicFeed />
-                </IconButton>
-                <IconButton aria-label="Classes" onClick={() => goToClasses()}>
-                    <Class />
-                </IconButton>
-            </CardActions>
-        </TileCard>
-    </>
+    return <TileButton onClick={goToCourse} text={course.name} />
 }
 
 function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }) {
@@ -209,18 +194,17 @@ export default function School() {
             {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
-            <Typography variant="h5">{currentYearGroup.name}</Typography>
-            <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            <Typography variant="h5">Courses in {currentYearGroup.name}</Typography>
+            <TileContainer>
                 {currentYearGroup.courses.map(course =>
                     <CourseView
                         key={course.id}
                         course={course}
-                        goToCourseFeed={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
-                        goToClasses={() => switchPage('classes', schoolId, currentYearGroup.id, course.id)}
+                        goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
-            </Stack>
+            </TileContainer>
         </div>
     </Stack>
 }
