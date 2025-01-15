@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useData } from "./DataContext"
-import { Button, Dialog, DialogActions, DialogContent, FormControlLabel, IconButton, Radio, RadioGroup, TextField } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Radio, RadioGroup, TextField } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
 
 function PostButton({ schoolId, yearGroupId, courseId, classId }: {
@@ -21,12 +21,20 @@ function PostButton({ schoolId, yearGroupId, courseId, classId }: {
         <IconButton aria-label="Post" onClick={() => setDialogOpen(true)}><PostAdd /></IconButton>
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogContent>
-                <TextField label="Title" value={title} onChange={e => setTitle(e.target.value)} />
-                <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
-                    <RadioGroup value={isPrivate} onChange={e => setIsPrivate(e.target.value === "true")}>
-                        <FormControlLabel value={true} control={<Radio />} label="Private" />
-                        <FormControlLabel value={false} control={<Radio />} label="Public" />
-                    </RadioGroup>
+                <Grid container padding={2} spacing={2}>
+                    <Grid item xs={12} md={6}>
+                        <TextField label="Title" value={title} onChange={e => setTitle(e.target.value)} />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <RadioGroup value={isPrivate} onChange={e => setIsPrivate(e.target.value === "true")} row>
+                            <FormControlLabel value={true} control={<Radio />} label="Private" />
+                            <FormControlLabel value={false} control={<Radio />} label="Public" />
+                        </RadioGroup>
+                    </Grid>
+                    <Grid xs={12}>
+                        <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
+                    </Grid>
+                </Grid>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

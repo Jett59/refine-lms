@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { Add, InsertInvitation, More, Remove } from "@mui/icons-material";
+import { Add, InsertInvitation, Menu, Remove } from "@mui/icons-material";
 import { ClassInfo, Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
@@ -51,7 +51,7 @@ function Person({ userInfo, options }: {
     if (options(() => { }).length !== 0) {
         return <Stack direction="row">
             <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
-            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<More />} childrenSupplier={options} />
+            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<Menu />} childrenSupplier={options} />
         </Stack>
     } else {
         return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>

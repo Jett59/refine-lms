@@ -4,6 +4,7 @@ import { PostTemplate } from "../data/post"
 
 export interface Post {
     _id?: ObjectId
+    postDate: Date
     posterId: ObjectId
     schoolId: ObjectId
     yearGroupId: ObjectId
@@ -33,13 +34,14 @@ function filterClassList(posterId: ObjectId, school: School, course: Course, cla
     // Non-students can see everything
     if (school.studentIds.some(student => student.equals(posterId))) {
         return classIds.filter(classId => course.classes.find(cls => cls.id.equals(classId))?.studentIds.some(studentId => studentId.equals(posterId)))
-    }else {
+    } else {
         return classIds
     }
 }
 
 export function preparePostFromTemplate(postTemplate: PostTemplate, posterId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, classIds: ObjectId[]): Post {
     return {
+        postDate: new Date(),
         posterId,
         schoolId,
         yearGroupId,
@@ -49,7 +51,7 @@ export function preparePostFromTemplate(postTemplate: PostTemplate, posterId: Ob
         type: postTemplate.type,
         title: postTemplate.title,
         content: postTemplate.content,
-        attachments: postTemplate.attachments.map(attachment => ({id: new ObjectId(), ...attachment}))
+        attachments: postTemplate.attachments.map(attachment => ({ id: new ObjectId(), ...attachment }))
     }
 }
 

@@ -1,19 +1,20 @@
 import { UserInfo } from "./user"
 
-export interface Post {
+export interface PostInfo {
     id: string
+    postDate: string
     poster: UserInfo
     schoolId: string
     yearGroupId: string
     courseId?: string
-    classIds?: string[]
+    classIds?: string[] // Leave out to post to all classes
     private: boolean
     type: 'post' | 'material' | 'assignment'
     title: string
     content: string
-    attachments: Attachment[]
+    attachments: AttachmentInfo[]
 }
-export interface Attachment {
+export interface AttachmentInfo {
     id: string
     title: string
     link: string

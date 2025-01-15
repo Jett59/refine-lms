@@ -65,6 +65,7 @@ describe("Posts", () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
 
         const post: Post = {
+            postDate: new Date(),
             posterId: user1,
             schoolId: schoolId,
             yearGroupId: yearGroupId,
@@ -85,6 +86,7 @@ describe("Posts", () => {
     it("Should filter the class list for students", async () => {
         const school: School = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
         const post: Post = {
+            postDate: new Date(),
             posterId: user1,
             schoolId: schoolId,
             yearGroupId: yearGroupId,
