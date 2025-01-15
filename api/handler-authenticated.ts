@@ -332,12 +332,6 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!postTemplate.yearGroupId) {
                     return errorResponse(400, 'Missing year group ID')
                 }
-                if (!postTemplate.courseId) {
-                    return errorResponse(400, 'Missing course ID')
-                }
-                if (!postTemplate.classIds) {
-                    return errorResponse(400, 'Missing class IDs')
-                }
                 if (!postTemplate.type) {
                     return errorResponse(400, 'Missing type')
                 }
@@ -355,13 +349,13 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
-                let courseObjectId: ObjectId
-                let classObjectIds: ObjectId[]
+                let courseObjectId: ObjectId | undefined
+                let classObjectIds: ObjectId[] | undefined
                 try {
                     schoolObjectId = new ObjectId(postTemplate.schoolId)
                     yearGroupObjectId = new ObjectId(postTemplate.yearGroupId)
-                    courseObjectId = new ObjectId(postTemplate.courseId)
-                    classObjectIds = postTemplate.classIds.map((id: string) => new ObjectId(id))
+                    courseObjectId = postTemplate.courseId ? new ObjectId(postTemplate.courseId) : undefined
+                    classObjectIds = postTemplate.classIds?.map((id: string) => new ObjectId(id))
                 } catch (e) {
                     return errorResponse(400, 'Invalid school, year group, course, or class ID')
                 }

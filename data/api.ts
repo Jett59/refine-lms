@@ -1,6 +1,6 @@
 import { SchoolInfo, SchoolStructure } from "./school"
 import { UserInfo } from "./user"
-import { PostTemplate } from "./post"
+import { PostInfo, PostTemplate } from "./post"
 
 export interface GoogleTokenResponse {
     accessToken: string
@@ -144,4 +144,25 @@ export interface CreatePostRequest {
 }
 export interface CreatePostResponse {
     postId: string
+}
+
+/**
+ * Lists the posts after the given date, up to the limit. If afterDate is not provided, it lists the most recent posts.
+ * 
+ * If courseId is not provided, lists posts to the year group. Otherwise lists posts to the specified course. classIds is only considered for course requests.
+ * If classIds is not provided, lists only posts with no classIds.
+ * Otherwise lists all posts to any of the values in classIds.
+ */
+export interface ListPostsRequest {
+    beforeDate?: string
+    limit: number
+
+    schoolId: string
+    yearGroupId: string
+    courseId?: string
+    classIds?: string[] // Leave out to post to all classes
+}
+export interface ListPostsResponse {
+    posts: PostInfo[]
+    isEnd: boolean
 }

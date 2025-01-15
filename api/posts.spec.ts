@@ -1,7 +1,8 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, Post } from "./posts"
+import { createPost, listPosts, Post } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
+import { PostInfo } from "../data/post"
 
 function createSchoolStructure(schoolId: ObjectId, schoolStudentIds: ObjectId[], yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId, classStudentIds: ObjectId[]): School {
     return {
@@ -40,14 +41,14 @@ describe("Posts", () => {
     let user2: ObjectId
     let user3: ObjectId
 
-    const schoolId = new ObjectId()
-    const yearGroupId = new ObjectId()
-    const courseId = new ObjectId()
-    const classId = new ObjectId()
+    let schoolId: ObjectId
+    let yearGroupId: ObjectId
+    let courseId: ObjectId
+    let classId: ObjectId
 
     beforeAll(async () => {
         await mongoClient.connect()
-        db = mongoClient.db('test')
+        db = mongoClient.db('refine-test')
         postsCollection = db.collection('posts')
         await postsCollection.drop()
     })
@@ -59,6 +60,11 @@ describe("Posts", () => {
         user1 = await createUser(db, { name: 'User 1', jwtUserId: 'abc123', email: 'user1', picture: '' })
         user2 = await createUser(db, { name: 'User 2', jwtUserId: 'bcd234', email: 'user2', picture: '' })
         user3 = await createUser(db, { name: 'User 3', jwtUserId: 'cde345', email: 'user3', picture: '' })
+
+        schoolId = new ObjectId()
+        yearGroupId = new ObjectId()
+        courseId = new ObjectId()
+        classId = new ObjectId()
     })
 
     it("Should create a post", async () => {
@@ -102,5 +108,330 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         const postFromDatabase = await postsCollection.findOne({ _id: postId })
         expect(postFromDatabase).toEqual({ _id: postId, ...post, classIds: [classId] })
+    })
+    it("Should list posts to a year group", async () => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date1 = new Date('2025-01-14T23:22:43.157Z')
+        const date2 = new Date('2025-01-15T23:22:43.157Z')
+
+        const post1: Post = {
+            postDate: date1,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: null,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const post2: Post = {
+            postDate: date2,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: null,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        }
+        const post1Id = await createPost(db, school, post1)
+        const post2Id = await createPost(db, school, post2)
+
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined)
+        expect(posts1.posts).toEqual([{
+            id: post2Id.toHexString(),
+            postDate: post2.postDate.toISOString(),
+            poster: {
+                id: user2.toHexString(),
+                name: 'User 2',
+                email: 'user2',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: undefined,
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        } as PostInfo])
+        expect(posts1.isEnd).toBe(false)
+
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, undefined, undefined)
+        expect(posts2.posts).toEqual([{
+            id: post1Id.toHexString(),
+            postDate: post1.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: undefined,
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo])
+        expect(posts2.isEnd).toBe(true)
+
+        const posts3 = await listPosts(db, school, user1, date1, 1, yearGroupId, undefined, undefined)
+        expect(posts3.posts).toEqual([])
+        expect(posts3.isEnd).toBe(true)
+    })
+    it("Should list posts to course pages", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date1 = new Date('2025-01-14T23:22:43.157Z')
+        const date2 = new Date('2025-01-15T23:22:43.157Z')
+
+        const post1: Post = {
+            postDate: date1,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const post2: Post = {
+            postDate: date2,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        }
+        const post1Id = await createPost(db, school, post1)
+        const post2Id = await createPost(db, school, post2)
+
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        expect(posts1.posts).toEqual([{
+            id: post2Id.toHexString(),
+            postDate: post2.postDate.toISOString(),
+            poster: {
+                id: user2.toHexString(),
+                name: 'User 2',
+                email: 'user2',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        } as PostInfo])
+        expect(posts1.isEnd).toBe(false)
+
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, undefined)
+        expect(posts2.posts).toEqual([{
+            id: post1Id.toHexString(),
+            postDate: post1.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo])
+        expect(posts2.isEnd).toBe(true)
+    })
+    it("Should not show year group posts on the course page", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: null,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        expect(posts.posts).toEqual([])
+        expect(posts.isEnd).toBe(true)
+    })
+    it("Should list posts to classes", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const date1 = new Date('2025-01-14T23:22:43.157Z')
+        const date2 = new Date('2025-01-15T23:22:43.157Z')
+
+        const post1: Post = {
+            postDate: date1,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: [classId],
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const post2: Post = {
+            postDate: date2,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: [classId],
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        }
+        const post1Id = await createPost(db, school, post1)
+        const post2Id = await createPost(db, school, post2)
+
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        expect(posts1.posts).toEqual([{
+            id: post2Id.toHexString(),
+            postDate: post2.postDate.toISOString(),
+            poster: {
+                id: user2.toHexString(),
+                name: 'User 2',
+                email: 'user2',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: [classId.toHexString()],
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        } as PostInfo])
+        expect(posts1.isEnd).toBe(false)
+
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, [classId])
+        expect(posts2.posts).toEqual([{
+            id: post1Id.toHexString(),
+            postDate: post1.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: [classId.toHexString()],
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo])
+        expect(posts2.isEnd).toBe(true)
+    })
+    it("Should show course posts on class lists", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        expect(posts.posts).toEqual([{
+            id: postId.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo])
+        expect(posts.isEnd).toBe(true)
+    })
+    it("Should not show class posts on the course page", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId,
+            classIds: [classId],
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        expect(posts.posts).toEqual([])
+        expect(posts.isEnd).toBe(true)
     })
 })

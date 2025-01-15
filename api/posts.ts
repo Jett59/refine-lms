@@ -1,6 +1,8 @@
 import { Db, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
-import { PostTemplate } from "../data/post"
+import { PostInfo, PostTemplate } from "../data/post"
+import { ListPostsResponse } from "../data/api"
+import { findUserInfos } from "./user"
 
 export interface Post {
     _id?: ObjectId
@@ -8,8 +10,8 @@ export interface Post {
     posterId: ObjectId
     schoolId: ObjectId
     yearGroupId: ObjectId
-    courseId?: ObjectId
-    classIds?: ObjectId[]
+    courseId: ObjectId | null
+    classIds: ObjectId[] | null
     private: boolean
     type: 'post' | 'material' | 'assignment'
     title: string
@@ -39,20 +41,53 @@ function filterClassList(posterId: ObjectId, school: School, course: Course, cla
     }
 }
 
-export function preparePostFromTemplate(postTemplate: PostTemplate, posterId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, classIds: ObjectId[]): Post {
+export function preparePostFromTemplate(postTemplate: PostTemplate, posterId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Post {
     return {
         postDate: new Date(),
         posterId,
         schoolId,
         yearGroupId,
-        courseId,
-        classIds,
+        courseId: courseId ?? null,
+        classIds: classIds ?? null,
         private: postTemplate.private,
         type: postTemplate.type,
         title: postTemplate.title,
         content: postTemplate.content,
         attachments: postTemplate.attachments.map(attachment => ({ id: new ObjectId(), ...attachment }))
     }
+}
+
+export async function convertPostsForApi(db: Db, posts: Post[]): Promise<PostInfo[]> {
+    const posterIds = posts.map(post => post.posterId).filter(id => id !== undefined)
+    const userInfos = await findUserInfos(db, posterIds)
+
+    return posts.map(post => {
+        if (!post._id) {
+            return null
+        }
+        const userInfo = userInfos.find(userInfo => userInfo.id === post.posterId.toHexString())
+        if (!userInfo) {
+            return null
+        }
+        return {
+            id: post._id.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: userInfo,
+            schoolId: post.schoolId.toHexString(),
+            yearGroupId: post.yearGroupId.toHexString(),
+            courseId: post.courseId?.toHexString() ?? undefined,
+            classIds: post.classIds?.map(id => id.toHexString()) ?? undefined,
+            private: post.private,
+            type: post.type,
+            title: post.title,
+            content: post.content,
+            attachments: post.attachments.map(attachment => ({
+                id: attachment.id.toHexString(),
+                title: attachment.title,
+                link: attachment.link
+            })),
+        }
+    }).filter(post => post !== null)
 }
 
 export async function createPost(db: Db, school: School, post: Post) {
@@ -65,4 +100,32 @@ export async function createPost(db: Db, school: School, post: Post) {
     }
     const response = await getCollection(db).insertOne(postCopy)
     return response.insertedId
+}
+
+export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined): Promise<ListPostsResponse> {
+    if (courseId && classIds) {
+        const course = school.yearGroups.find(yg => yg.id.equals(yearGroupId))?.courses.find(c => c.id.equals(courseId))
+        if (course) {
+            classIds = filterClassList(userId, school, course, classIds)
+        }
+    }
+    const collection = getCollection(db)
+    const filter = {
+        postDate: { $lt: beforeDate ?? new Date() },
+        schoolId: school._id,
+        yearGroupId,
+        ...courseId ? { courseId } : {},
+        $or: [
+            { classIds: null },
+            { classIds: { $size: 0 } },
+            ...classIds ? [{ classIds: { $in: classIds } }] : [],
+        ]
+    }
+    const cursor = await collection.find(filter).sort({ postDate: -1 })
+    const count = await collection.countDocuments(filter)
+    const posts = await cursor.limit(limit).toArray()
+    return {
+        posts: await convertPostsForApi(db, posts),
+        isEnd: count <= limit
+    }
 }
