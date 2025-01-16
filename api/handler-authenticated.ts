@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse } fro
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
-import { createPost, preparePostFromTemplate } from "./posts";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { createPost, listPosts, preparePostFromTemplate } from "./posts";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -365,6 +365,41 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 const postId = await createPost(db, school, preparePostFromTemplate(postTemplate, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds))
                 return successResponse<CreatePostResponse>({ postId: postId.toHexString() })
+            }
+            case "/list-posts": {
+                const typedBody: ListPostsRequest = body
+                if (!typedBody.beforeDate) {
+                    return errorResponse(400, 'Missing before date')
+                }
+                if (!typedBody.limit) {
+                    return errorResponse(400, 'Missing limit')
+                }
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group ID')
+                }
+                let beforeDate: Date
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId | undefined
+                let classObjectIds: ObjectId[] | undefined
+                try {
+                    beforeDate = new Date(typedBody.beforeDate)
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                    courseObjectId = typedBody.courseId ? new ObjectId(typedBody.courseId) : undefined
+                    classObjectIds = typedBody.classIds?.map((id: string) => new ObjectId(id))
+                } catch (e) {
+                    return errorResponse(400, 'Invalid before date, school, year group, course, or class ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const posts = await listPosts(db, school, user._id!, beforeDate, typedBody.limit, yearGroupObjectId, courseObjectId, classObjectIds)
+                return successResponse<ListPostsResponse>(posts)
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

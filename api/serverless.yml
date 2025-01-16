@@ -108,3 +108,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/list-posts
+          method: post
+          authorizer:
+            name: google
