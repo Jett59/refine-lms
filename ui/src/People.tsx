@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { Add, InsertInvitation, Menu, Remove } from "@mui/icons-material";
@@ -48,14 +48,11 @@ function Person({ userInfo, options }: {
     userInfo: UserInfo
     options: (close: () => void) => ReactNode[]
 }) {
-    if (options(() => { }).length !== 0) {
-        return <Stack direction="row">
-            <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
-            <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<Menu />} childrenSupplier={options} />
-        </Stack>
-    } else {
-        return <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
-    }
+    return <Stack direction="row">
+        <Avatar aria-hidden src={userInfo.picture} />
+        <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
+        {options(() => { }).length !== 0 && <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<Menu />} childrenSupplier={options} />}
+    </Stack>
 }
 
 function PendingPerson({ email }: { email: string }) {
