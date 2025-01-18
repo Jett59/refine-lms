@@ -1,16 +1,17 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useData } from "./DataContext"
-import { Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Radio, RadioGroup, TextField } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
+import { PostInfo, PostTemplate } from "../../data/post"
+import InfiniteScroll from "react-infinite-scroll-component"
 
-function PostButton({ schoolId, yearGroupId, courseId, classId }: {
+function PostButton({ schoolId, yearGroupId, courseId, classId, onClick }: {
     schoolId: string
     yearGroupId: string
     courseId?: string
     classId?: string
+    onClick: (post: PostTemplate) => void
 }) {
-    const { createPost } = useData()
-
     const [dialogOpen, setDialogOpen] = useState(false)
 
     const [title, setTitle] = useState("")
@@ -39,7 +40,7 @@ function PostButton({ schoolId, yearGroupId, courseId, classId }: {
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
                 <Button variant="contained" onClick={() => {
-                    createPost({
+                    onClick({
                         schoolId,
                         yearGroupId,
                         courseId,
@@ -59,11 +60,80 @@ function PostButton({ schoolId, yearGroupId, courseId, classId }: {
     </>
 }
 
+function PostView({ post }: { post: PostInfo }) {
+    return <Typography>{post.title}</Typography>
+}
+
 export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
     schoolId: string
     yearGroupId: string
     courseId?: string
     classId?: string
 }) {
-    return <PostButton schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />
+    const { createPost, listPosts } = useData()
+
+    const [posts, setPosts] = useState<PostInfo[]>([])
+    const [isEnd, setIsEnd] = useState(false)
+    const [loading, setLoading] = useState(false)
+
+    const BATCH_SIZE = 10
+
+    const refreshPostsList = async () => {
+        if (!loading) {
+            setPosts([])
+            setLoading(true)
+            const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classId ? [classId] : [])
+            if (result) {
+                setPosts(result.posts)
+                setIsEnd(result.isEnd)
+            } else {
+                setIsEnd(true)
+            }
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        if (posts.length < BATCH_SIZE && !isEnd) {
+            refreshPostsList()
+        }
+    }, [schoolId, yearGroupId, courseId, classId, posts])
+
+    const fetchMore = async () => {
+        if (!isEnd && !loading) {
+            if (posts.length === 0) {
+                await refreshPostsList()
+            } else {
+                setLoading(true)
+                const result = await listPosts(posts[posts.length - 1].postDate, BATCH_SIZE, schoolId, yearGroupId, courseId, classId ? [classId] : [])
+                if (result) {
+                    setPosts([...posts, ...result.posts])
+                    setIsEnd(result.isEnd)
+                } else {
+                    setIsEnd(true)
+                }
+                setLoading(false)
+            }
+        }
+    }
+
+    return <Stack direction="column">
+        <PostButton
+            schoolId={schoolId}
+            yearGroupId={yearGroupId}
+            courseId={courseId}
+            classId={classId}
+            onClick={post => {
+                createPost(post).then(refreshPostsList)
+            }}
+        />
+        <InfiniteScroll
+        dataLength={posts.length}
+        next={fetchMore}
+        hasMore={!isEnd}
+        loader={<h4>Loading...</h4>}
+        >
+            {posts.map(post => <PostView key={post.id} post={post} />)}
+        </InfiniteScroll>
+    </Stack>
 }

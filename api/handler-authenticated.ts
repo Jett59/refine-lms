@@ -338,10 +338,10 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (postTemplate.private === undefined) {
                     return errorResponse(400, 'Missing private')
                 }
-                if (!postTemplate.title) {
+                if (!('title' in postTemplate)) {
                     return errorResponse(400, 'Missing title')
                 }
-                if (!postTemplate.content) {
+                if (!('content' in postTemplate)) {
                     return errorResponse(400, 'Missing content')
                 }
                 if (!postTemplate.attachments) {
@@ -368,9 +368,6 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
             }
             case "/list-posts": {
                 const typedBody: ListPostsRequest = body
-                if (!typedBody.beforeDate) {
-                    return errorResponse(400, 'Missing before date')
-                }
                 if (!typedBody.limit) {
                     return errorResponse(400, 'Missing limit')
                 }
@@ -380,13 +377,15 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.yearGroupId) {
                     return errorResponse(400, 'Missing year group ID')
                 }
-                let beforeDate: Date
+                let beforeDate: Date | null = null
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
                 let courseObjectId: ObjectId | undefined
                 let classObjectIds: ObjectId[] | undefined
                 try {
-                    beforeDate = new Date(typedBody.beforeDate)
+                    if (typedBody.beforeDate) {
+                        beforeDate = new Date(typedBody.beforeDate)
+                    }
                     schoolObjectId = new ObjectId(typedBody.schoolId)
                     yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
                     courseObjectId = typedBody.courseId ? new ObjectId(typedBody.courseId) : undefined

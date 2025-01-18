@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
-import { PostTemplate } from "../../data/post"
+import { PostInfo, PostTemplate } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -30,6 +30,10 @@ export interface DataContextValue {
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
 
     createPost: (post: PostTemplate) => Promise<void>
+    listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<{
+        posts: PostInfo[]
+        isEnd: boolean
+    } | null>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -49,6 +53,7 @@ const DataContext = createContext<DataContextValue>({
     getSchoolStructure: async () => null,
     requestToJoinClass: async () => { },
     createPost: async () => { },
+    listPosts: async () => null,
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -201,6 +206,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post })
             if (!isSuccessfulAPIResponse(response)) {
                 addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
+        listPosts: useCallback(async (beforeDate, limit, schoolId, yearGroupId, courseId, classIds) => {
+            const response = await authenticatedAPIs.call<ListPostsResponse, ListPostsRequest>('POST', 'list-posts', { beforeDate: beforeDate ?? undefined, limit, schoolId, yearGroupId, courseId, classIds })
+            if (isSuccessfulAPIResponse(response)) {
+                return response.body
+            } else {
+                addAPIError(response)
+                return null
             }
         }, [authenticatedAPIs]),
     }}>
