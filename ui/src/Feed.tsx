@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { useData } from "./DataContext"
-import { Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
+import { Avatar, Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
+import { formatDate } from "./date"
 
 function PostButton({ schoolId, yearGroupId, courseId, classId, onClick }: {
     schoolId: string
@@ -61,7 +62,17 @@ function PostButton({ schoolId, yearGroupId, courseId, classId, onClick }: {
 }
 
 function PostView({ post }: { post: PostInfo }) {
-    return <Typography>{post.title}</Typography>
+    return <Paper elevation={4}>
+        <Stack direction="column" padding={2} spacing={2}>
+            <Typography variant="h6">{post.title}</Typography>
+            <Stack direction="row">
+                <Avatar aria-hidden src={post.poster.picture} ></Avatar>
+                <Typography>{post.poster.name}</Typography>
+            </Stack>
+            <Typography>Posted {formatDate(new Date(post.postDate))}</Typography>
+            <Typography variant="body1">{post.content}</Typography>
+        </Stack>
+    </Paper>
 }
 
 export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
@@ -128,10 +139,10 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
             }}
         />
         <InfiniteScroll
-        dataLength={posts.length}
-        next={fetchMore}
-        hasMore={!isEnd}
-        loader={<h4>Loading...</h4>}
+            dataLength={posts.length}
+            next={fetchMore}
+            hasMore={!isEnd}
+            loader={<h4>Loading...</h4>}
         >
             {posts.map(post => <PostView key={post.id} post={post} />)}
         </InfiniteScroll>
