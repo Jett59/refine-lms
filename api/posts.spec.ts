@@ -434,4 +434,51 @@ describe("Posts", () => {
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
+    it("Should not show studens private posts from others", async() => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: [classId],
+            private: true,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        expect(posts1.posts.length).toBe(1)
+
+        const posts2 = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
+        expect(posts2.posts.length).toBe(0)
+    })
+    it("Should let non-students view private posts", async() => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: [classId],
+            private: true,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
+        expect(posts.posts.length).toBe(1)
+    })
 })

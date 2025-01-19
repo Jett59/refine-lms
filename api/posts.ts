@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb"
+import { Db, Filter, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
 import { PostInfo, PostTemplate } from "../data/post"
 import { ListPostsResponse } from "../data/api"
@@ -109,18 +109,33 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
             classIds = filterClassList(userId, school, course, classIds)
         }
     }
+    const isStudent = school.studentIds.some(studentId => studentId.equals(userId))
+
+    const studentFilter: Filter<Post> = isStudent ? {
+        $or: [
+            { private: false },
+            { posterId: userId }
+        ]
+    } : {}
+
+    const classFilter: Filter<Post> = {$or: [
+        { classIds: null },
+        { classIds: { $size: 0 } },
+        ...classIds ?[{ classIds: { $in: classIds } }] : [],
+    ]}
+
     const collection = getCollection(db)
     const filter = {
         postDate: { $lt: beforeDate ?? new Date() },
         schoolId: school._id,
         yearGroupId,
+        $and: [
+        studentFilter,
+        classFilter,
+        ],
         ...courseId ? { courseId } : {},
-        $or: [
-            { classIds: null },
-            { classIds: { $size: 0 } },
-            ...classIds ? [{ classIds: { $in: classIds } }] : [],
-        ]
     }
+
     const cursor = await collection.find(filter).sort({ postDate: -1 })
     const count = await collection.countDocuments(filter)
     const posts = await cursor.limit(limit).toArray()

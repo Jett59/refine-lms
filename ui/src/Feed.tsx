@@ -33,7 +33,7 @@ function PostButton({ schoolId, yearGroupId, courseId, classId, onClick }: {
                             <FormControlLabel value={false} control={<Radio />} label="Public" />
                         </RadioGroup>
                     </Grid>
-                    <Grid xs={12}>
+                    <Grid item xs={12}>
                         <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
                     </Grid>
                 </Grid>
@@ -91,6 +91,7 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
 
     const refreshPostsList = async () => {
         if (!loading) {
+            console.log('Here', JSON.stringify(posts))
             setPosts([])
             setLoading(true)
             const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classId ? [classId] : [])
@@ -142,7 +143,7 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
             dataLength={posts.length}
             next={fetchMore}
             hasMore={!isEnd}
-            loader={<h4>Loading...</h4>}
+            loader={<Typography>Loading...</Typography>}
         >
             {posts.map(post => <PostView key={post.id} post={post} />)}
         </InfiniteScroll>
