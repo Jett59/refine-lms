@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
@@ -10,6 +10,7 @@ import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
 import { useHideSidebar } from "./WithSidebar"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
+import Feed from "./Feed"
 
 function JoinClassButton({ schoolInfo, }: {
     schoolInfo: SchoolInfo
@@ -205,6 +206,9 @@ export default function School() {
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
             </TileContainer>
+            <Divider />
+            <Typography variant="h5">Posts to {currentYearGroup.name}</Typography>
+            <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
         </div>
     </Stack>
 }

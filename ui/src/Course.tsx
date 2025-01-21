@@ -4,7 +4,7 @@ import { useSetPageTitle } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { TileButton, TileContainer } from "./Tile"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, TextField, Typography } from "@mui/material"
 import Feed from "./Feed"
 import { useState } from "react"
 import { CourseInfo, SchoolInfo } from "../../data/school"
@@ -78,6 +78,7 @@ export default function Course({ tab }: {
     return <Stack direction="column">
         <Typography variant="h4">Classes in {courseInfo.name}</Typography>
         <ClassesPanelValue onCreate={name => createClass(schoolId, yearGroupId, courseId, name)} schoolInfo={schoolInfo} courseInfo={courseInfo} schoolId={schoolId} yearGroupId={yearGroupId} />
+            <Divider />
         <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',
