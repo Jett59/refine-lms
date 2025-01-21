@@ -4,9 +4,10 @@ import { useSetPageTitle } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { TileButton, TileContainer } from "./Tile"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material"
 import Feed from "./Feed"
 import { useState } from "react"
+import { CourseInfo, SchoolInfo } from "../../data/school"
 
 function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -31,9 +32,30 @@ function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
     </>
 }
 
-export default function Course({ tabIndex }: {
-    tabIndex: number
+function ClassesPanelValue({ onCreate, schoolInfo, courseInfo, schoolId, yearGroupId }: {
+    onCreate: (name: string) => void
+    schoolInfo: SchoolInfo
+    courseInfo: CourseInfo
+    schoolId: string
+    yearGroupId: string
 }) {
+    const switchPage = useSwitchPage()
+    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
+
+    return <TileContainer>
+        {courseInfo.classes.map(cls => (
+            <TileButton key={cls.id} text={cls.name} onClick={() => switchPage('', schoolId, yearGroupId, courseInfo.id, cls.id)} />
+        ))}
+        {isTeacherOrAdministrator && <AddClassTileButton onClick={onCreate} />
+        }
+    </TileContainer>
+}
+
+export default function Course({ tab }: {
+    tab: 'feed' | 'work',
+}) {
+    const tabIndex = tab === 'feed' ? 0 : 1
+
     const { schoolId, yearGroupId, courseId } = useParams()
     const switchPage = useSwitchPage()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
@@ -41,16 +63,22 @@ export default function Course({ tabIndex }: {
 
     const { createClass } = useData()
 
-    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
-
     useSetPageTitle(courseInfo?.name ?? 'Course')
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Missing some ids?</Typography>
     }
+    if (!schoolInfo) {
+        return <Typography>Loading...</Typography>
+    }
+    if (!courseInfo) {
+        return <Typography>Course not found</Typography>
+    }
 
-    if (courseInfo) {
-        return <TabPanel index={tabIndex} tabs={[
+    return <Stack direction="column">
+        <Typography variant="h4">Classes in {courseInfo.name}</Typography>
+        <ClassesPanelValue onCreate={name => createClass(schoolId, yearGroupId, courseId, name)} schoolInfo={schoolInfo} courseInfo={courseInfo} schoolId={schoolId} yearGroupId={yearGroupId} />
+        <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',
                 heading: `Posts to ${courseInfo.name}`,
@@ -62,21 +90,7 @@ export default function Course({ tabIndex }: {
                 heading: `Work for ${courseInfo.name}`,
                 onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, undefined, true),
                 value: 'World'
-            },
-            {
-                label: 'Classes',
-                heading: `Classes in ${courseInfo.name}`,
-                onSelect: () => switchPage('classes', schoolId, yearGroupId, courseId, undefined, true),
-                value: <TileContainer>
-                        {courseInfo?.classes.map(cls => (
-                            <TileButton key={cls.id} text={cls.name} onClick={() => switchPage('', schoolId, yearGroupId, courseId, cls.id)} />
-                        ))}
-                        {isTeacherOrAdministrator && <AddClassTileButton onClick={name => {
-                            createClass(schoolId, yearGroupId, courseId, name)
-                        }} />
-                        }
-                    </TileContainer>
             }
         ]} />
-    }
+    </Stack>
 }

@@ -28,10 +28,9 @@ function App() {
             <Route path="/:schoolId" element={<School />} ></Route>
             <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
             <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tabIndex={0} />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tabIndex={0} />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tabIndex={1} />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes" element={<Course tabIndex={2} />} />
+            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
+            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
+            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
             <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
           </Routes>
         </WithSidebar>
