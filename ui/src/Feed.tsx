@@ -1,64 +1,57 @@
-import { useEffect, useState } from "react"
-import { useData } from "./DataContext"
-import { Avatar, Button, Dialog, DialogActions, DialogContent, FormControlLabel, Grid, IconButton, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
+import { useEffect, useMemo, useState } from "react"
+import { useData, useRelevantSchoolInfo } from "./DataContext"
+import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
+import { CourseInfo } from "../../data/school"
+import SimpleMenu from "./SimpleMenu"
 
-function PostButton({ schoolId, yearGroupId, courseId, classId, onClick }: {
+function CreatePostForm({ schoolId, yearGroupId, courseId, courseInfo, onClick, close }: {
     schoolId: string
     yearGroupId: string
     courseId?: string
-    classId?: string
+    courseInfo?: CourseInfo
     onClick: (post: PostTemplate) => void
+    close: () => void
 }) {
-    const [dialogOpen, setDialogOpen] = useState(false)
-
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [isPrivate, setIsPrivate] = useState(false)
 
-    return <>
-        <IconButton aria-label="Post" onClick={() => setDialogOpen(true)}><PostAdd /></IconButton>
-        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-            <DialogContent>
-                <Grid container padding={2} spacing={2}>
-                    <Grid item xs={12} md={6}>
-                        <TextField label="Title" value={title} onChange={e => setTitle(e.target.value)} />
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <RadioGroup value={isPrivate} onChange={e => setIsPrivate(e.target.value === "true")} row>
-                            <FormControlLabel value={true} control={<Radio />} label="Private" />
-                            <FormControlLabel value={false} control={<Radio />} label="Public" />
-                        </RadioGroup>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
-                    </Grid>
-                </Grid>
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button variant="contained" onClick={() => {
-                    onClick({
-                        schoolId,
-                        yearGroupId,
-                        courseId,
-                        classIds: classId ? [classId] : [],
-                        type: 'post',
-                        private: isPrivate,
-                        title,
-                        content,
-                        attachments: []
-                    })
-                    setDialogOpen(false)
-                    setTitle("")
-                    setContent("")
-                }}>Post</Button>
-            </DialogActions>
-        </Dialog>
-    </>
+    const [classId, setClassId] = useState<string | undefined>(undefined)
+    const classInfo = courseInfo?.classes.find(c => c.id === classId)
+
+    return <Stack direction="column">
+        <Typography variant="h5">Create post</Typography>
+        <TextField autoFocus label="Title" value={title} onChange={e => setTitle(e.target.value)} />
+        <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
+        <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
+            <FormControlLabel value="public" control={<Radio />} label="Public" />
+            <FormControlLabel value="private" control={<Radio />} label="Private" />
+        </RadioGroup>
+        {courseInfo &&
+            <SimpleMenu buttonContents={classInfo?.name ?? 'All classes'} childrenSupplier={close => [
+                <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
+                ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
+            ]} />
+        }
+        <Stack direction="row">
+            <Button variant="contained" onClick={() => onClick({
+                schoolId,
+                yearGroupId,
+                courseId,
+                classIds: classId ? [classId] : undefined,
+                type: 'post',
+                private: isPrivate,
+                title,
+                content,
+                attachments: []
+            })}>Post</Button>
+            <Button variant="outlined" onClick={close}>Cancel</Button>
+        </Stack>
+    </Stack>
 }
 
 function PostView({ post }: { post: PostInfo }) {
@@ -75,11 +68,10 @@ function PostView({ post }: { post: PostInfo }) {
     </Paper>
 }
 
-export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
+export default function Feed({ schoolId, yearGroupId, courseId }: {
     schoolId: string
     yearGroupId: string
     courseId?: string
-    classId?: string
 }) {
     const { createPost, listPosts } = useData()
 
@@ -87,14 +79,19 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
     const [isEnd, setIsEnd] = useState(false)
     const [loading, setLoading] = useState(false)
 
+    const [creatingPost, setCreatingPost] = useState(false)
+
     const BATCH_SIZE = 10
+
+    const schoolInfo = useRelevantSchoolInfo(schoolId)
+    const course = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
+    const classIds = useMemo(() => course?.classes.map(c => c.id), [course])
 
     const refreshPostsList = async () => {
         if (!loading) {
-            console.log('Here', JSON.stringify(posts))
             setPosts([])
             setLoading(true)
-            const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classId ? [classId] : [])
+            const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds)
             if (result) {
                 setPosts(result.posts)
                 setIsEnd(result.isEnd)
@@ -104,12 +101,16 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
             setLoading(false)
         }
     }
-
+if (classIds) {
+    console.log(classIds)
+}
     useEffect(() => {
-        if (posts.length < BATCH_SIZE && !isEnd) {
+        console.log('AAA')
+        if (posts.length < BATCH_SIZE && schoolInfo) {
+            console.log('BBB', classIds)
             refreshPostsList()
         }
-    }, [schoolId, yearGroupId, courseId, classId, posts])
+    }, [schoolId, yearGroupId, courseId, classIds, schoolInfo])
 
     const fetchMore = async () => {
         if (!isEnd && !loading) {
@@ -117,7 +118,7 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
                 await refreshPostsList()
             } else {
                 setLoading(true)
-                const result = await listPosts(posts[posts.length - 1].postDate, BATCH_SIZE, schoolId, yearGroupId, courseId, classId ? [classId] : [])
+                const result = await listPosts(posts[posts.length - 1].postDate, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds)
                 if (result) {
                     setPosts([...posts, ...result.posts])
                     setIsEnd(result.isEnd)
@@ -130,15 +131,21 @@ export default function Feed({ schoolId, yearGroupId, courseId, classId }: {
     }
 
     return <Stack direction="column">
-        <PostButton
-            schoolId={schoolId}
-            yearGroupId={yearGroupId}
-            courseId={courseId}
-            classId={classId}
-            onClick={post => {
-                createPost(post).then(refreshPostsList)
-            }}
-        />
+        <IconButton disabled={creatingPost} aria-label="Post" onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
+        {creatingPost &&
+            <CreatePostForm
+                schoolId={schoolId}
+                yearGroupId={yearGroupId}
+                courseId={courseId}
+                courseInfo={course}
+                onClick={async (post) => {
+                    await createPost(post)
+                    setCreatingPost(false)
+                    refreshPostsList()
+                }}
+                close={() => setCreatingPost(false)}
+            />
+        }
         <InfiniteScroll
             dataLength={posts.length}
             next={fetchMore}

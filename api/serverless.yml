@@ -23,6 +23,7 @@ plugins:
 functions:
   unauthenticated:
     handler: handler-unauthenticated.handler
+    timeout: 10
     events:
       - httpApi:
           path: /api/google-authenticate

@@ -118,11 +118,13 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         ]
     } : {}
 
-    const classFilter: Filter<Post> = {$or: [
-        { classIds: null },
-        { classIds: { $size: 0 } },
-        ...classIds ?[{ classIds: { $in: classIds } }] : [],
-    ]}
+    const classFilter: Filter<Post> = {
+        $or: [
+            { classIds: null },
+            { classIds: { $size: 0 } },
+            ...classIds ? [{ classIds: { $in: classIds } }] : [],
+        ]
+    }
 
     const collection = getCollection(db)
     const filter = {
@@ -130,10 +132,10 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         schoolId: school._id,
         yearGroupId,
         $and: [
-        studentFilter,
-        classFilter,
+            studentFilter,
+            classFilter,
         ],
-        ...courseId ? { courseId } : {},
+        ...courseId ? { courseId } : { courseId: null },
     }
 
     const cursor = await collection.find(filter).sort({ postDate: -1 })

@@ -292,6 +292,29 @@ describe("Posts", () => {
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
+    it("Should not show course posts on the year group page", async() => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined)
+        expect(posts.posts).toEqual([])
+        expect(posts.isEnd).toBe(true)
+    })
     it("Should list posts to classes", async() => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
