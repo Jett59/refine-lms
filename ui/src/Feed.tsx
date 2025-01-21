@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
-import { useData, useRelevantSchoolInfo } from "./DataContext"
+import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
-import { CourseInfo } from "../../data/school"
+import { CourseInfo, SchoolInfo } from "../../data/school"
 import SimpleMenu from "./SimpleMenu"
 
-function CreatePostForm({ schoolId, yearGroupId, courseId, courseInfo, onClick, close }: {
+function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, onClick, close }: {
     schoolId: string
+    schoolInfo: SchoolInfo
     yearGroupId: string
     courseId?: string
     courseInfo?: CourseInfo
@@ -23,14 +24,18 @@ function CreatePostForm({ schoolId, yearGroupId, courseId, courseInfo, onClick, 
     const [classId, setClassId] = useState<string | undefined>(undefined)
     const classInfo = courseInfo?.classes.find(c => c.id === classId)
 
+    const isStudent = useRole(schoolInfo) === 'student'
+
     return <Stack direction="column">
         <Typography variant="h5">Create post</Typography>
         <TextField autoFocus label="Title" value={title} onChange={e => setTitle(e.target.value)} />
         <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
-        <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
-            <FormControlLabel value="public" control={<Radio />} label="Public" />
-            <FormControlLabel value="private" control={<Radio />} label="Private" />
-        </RadioGroup>
+        {isStudent &&
+            <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
+                <FormControlLabel value="public" control={<Radio />} label="Public" />
+                <FormControlLabel value="private" control={<Radio />} label="Private" />
+            </RadioGroup>
+        }
         {courseInfo &&
             <SimpleMenu buttonContents={classInfo?.name ?? 'All classes'} childrenSupplier={close => [
                 <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
@@ -102,9 +107,9 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
             setLoading(false)
         }
     }
-if (classIds) {
-    console.log(classIds)
-}
+    if (classIds) {
+        console.log(classIds)
+    }
     useEffect(() => {
         console.log('AAA')
         if (posts.length < BATCH_SIZE && schoolInfo) {
@@ -131,11 +136,16 @@ if (classIds) {
         }
     }
 
+if (!schoolInfo) {
+        return <Typography>Loading...</Typography>
+}
+
     return <Stack direction="column">
         <IconButton disabled={creatingPost} aria-label="Post" onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
         {creatingPost &&
             <CreatePostForm
                 schoolId={schoolId}
+                schoolInfo={schoolInfo}
                 yearGroupId={yearGroupId}
                 courseId={courseId}
                 courseInfo={course}
