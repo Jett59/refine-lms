@@ -54,7 +54,8 @@ function CreatePostForm({ schoolId, yearGroupId, courseId, courseInfo, onClick, 
     </Stack>
 }
 
-function PostView({ post }: { post: PostInfo }) {
+function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInfo }) {
+    const classNames = courseInfo?.classes.filter(c => post.classIds?.includes(c.id)).map(c => c.name).join(', ')
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
             <Typography variant="h6">{post.title}</Typography>
@@ -62,7 +63,7 @@ function PostView({ post }: { post: PostInfo }) {
                 <Avatar aria-hidden src={post.poster.picture} ></Avatar>
                 <Typography>{post.poster.name}</Typography>
             </Stack>
-            <Typography>Posted {formatDate(new Date(post.postDate))}</Typography>
+            <Typography>Posted {formatDate(new Date(post.postDate))}{classNames ? ` to ${classNames}` : ''}</Typography>
             <Typography variant="body1">{post.content}</Typography>
         </Stack>
     </Paper>
@@ -152,7 +153,7 @@ if (classIds) {
             hasMore={!isEnd}
             loader={<Typography>Loading...</Typography>}
         >
-            {posts.map(post => <PostView key={post.id} post={post} />)}
+            {posts.map(post => <PostView key={post.id} post={post} courseInfo={course} />)}
         </InfiniteScroll>
     </Stack>
 }
