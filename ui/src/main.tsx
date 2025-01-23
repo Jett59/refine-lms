@@ -12,9 +12,13 @@ import ErrorContextProvider from './ErrorContext.tsx';
 import { UserContextProvider } from './UserContext.tsx';
 import { DataContextProvider } from './DataContext.tsx';
 
+export const GOOGLE_CLIENT_ID = '440807713733-li6c8t0f1pmjrlaceen6afndskghlrrm.apps.googleusercontent.com'
+// This is apparently ok (https://stackoverflow.com/a/61652187)
+export const GOOGLE_DRIVE_DEVELOPER_KEY = 'AIzaSyCWHD0w16RgSSBA8vpIU8And-9CzwZIS_k'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId='440807713733-li6c8t0f1pmjrlaceen6afndskghlrrm.apps.googleusercontent.com'>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ErrorContextProvider>
         <UserContextProvider>
           <DataContextProvider>

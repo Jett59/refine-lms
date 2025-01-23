@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
-import { PostInfo, PostTemplate } from "../../data/post"
+import { PostInfo, PostTemplate, AttachmentTemplate } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
 import { CourseInfo, SchoolInfo } from "../../data/school"
 import SimpleMenu from "./SimpleMenu"
+import useDrivePicker from "react-google-drive-picker"
+import { GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
+import { useUser } from "./UserContext"
+import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
+import { TileButton, TileContainer } from "./Tile"
 
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, onClick, close }: {
     schoolId: string
@@ -20,11 +25,32 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
     const [title, setTitle] = useState("")
     const [content, setContent] = useState("")
     const [isPrivate, setIsPrivate] = useState(false)
+    const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
 
     const [classId, setClassId] = useState<string | undefined>(undefined)
     const classInfo = courseInfo?.classes.find(c => c.id === classId)
 
     const isStudent = useRole(schoolInfo) === 'student'
+
+    const [openPicker, _authResponse] = useDrivePicker()
+    const { getGoogleAccessToken } = useUser()
+    const handleOpenPicker = async () => {
+        openPicker({
+            clientId: GOOGLE_CLIENT_ID,
+            developerKey: GOOGLE_DRIVE_DEVELOPER_KEY,
+            token: await getGoogleAccessToken() ?? undefined,
+            callbackFunction: (data: PickerCallback) => {
+                if (data.action === 'picked') {
+                    setAttachments(attachments => [...attachments, ...data.docs.map(doc => ({
+                        title: doc.name,
+                        mimeType: doc.mimeType,
+                        googleFileId: doc.id,
+                        thumbnail: doc.iconUrl,
+                    }) as AttachmentTemplate)])
+                }
+            }
+        })
+    }
 
     return <Stack direction="column">
         <Typography variant="h5">Create post</Typography>
@@ -42,6 +68,12 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
             ]} />
         }
+        <TileContainer>
+            {attachments.map(attachment => (
+                <TileButton text={<img src={attachment.thumbnail} />} onClick={() => { }} />
+            ))}
+            <TileButton text="Add attachment" onClick={handleOpenPicker} />
+        </TileContainer>
         <Stack direction="row">
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
@@ -136,9 +168,9 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
         }
     }
 
-if (!schoolInfo) {
+    if (!schoolInfo) {
         return <Typography>Loading...</Typography>
-}
+    }
 
     return <Stack direction="column">
         <IconButton disabled={creatingPost} aria-label="Post" onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>

@@ -8,6 +8,7 @@ import { useError } from "./ErrorContext";
 export interface UserContextValue {
     login: () => void
     getIdToken: () => Promise<string | null>
+    getGoogleAccessToken: () => Promise<string | null>
     loggedIn: boolean
     loggingIn: boolean
     name?: string
@@ -18,11 +19,14 @@ export interface UserContextValue {
 const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
     login: () => { },
     getIdToken: async () => null as string | null, // Why?
+    getGoogleAccessToken: async () => null as string | null,
     loggedIn: false as boolean,
     loggingIn: false as boolean,
 })
 
 const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
+
+const SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/drive.file']
 
 export function UserContextProvider({ children }: {
     children: ReactNode
@@ -37,7 +41,10 @@ export function UserContextProvider({ children }: {
         const tokens = localStorage.getItem(LOCAL_STORAGE_TOKENS_KEY)
         if (tokens !== null) {
             try {
-                setGoogleTokens(JSON.parse(tokens))
+                const parsedTokens: GoogleTokenResponse = JSON.parse(tokens)
+                if (parsedTokens.scopes && SCOPES.every(scope => parsedTokens.scopes.includes(scope))) {
+                    setGoogleTokens(parsedTokens)
+                }
             } catch (e) {
                 addError(`Invalid google token structure: ${tokens}`)
             }
@@ -58,9 +65,9 @@ export function UserContextProvider({ children }: {
     const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
 
     // The loginHooks value here should never be read. It should be updated using the setter which provides an up-to-date copy.
-    const [_loginHooks, setLoginHooks] = useState<((token: string) => void)[]>([])
+    const [_loginHooks, setLoginHooks] = useState<((tokens: GoogleTokenResponse) => void)[]>([])
 
-    const handleLoggedOut = async (apiResponse: APIResponse<unknown>): Promise<string | null> => {
+    const handleLoggedOut = async (apiResponse: APIResponse<unknown>): Promise<GoogleTokenResponse | null> => {
         console.log(apiResponse)
         setHandlingLogout(true)
         return await new Promise(resolve => {
@@ -76,7 +83,7 @@ export function UserContextProvider({ children }: {
             if (isSuccessfulAPIResponse(response)) {
                 setGoogleTokens(response.body)
                 setLoginHooks(loginHooks => {
-                    loginHooks.forEach(hook => hook(response.body.idToken))
+                    loginHooks.forEach(hook => hook(response.body))
                     return []
                 })
                 setHandlingLogout(false)
@@ -85,11 +92,11 @@ export function UserContextProvider({ children }: {
             }
             setLoggingIn(false)
         },
-        scope: 'openid profile email',
+        scope: SCOPES.join(' '),
         flow: 'auth-code'
     })
 
-    const getIdToken: () => Promise<string | null> = useCallback(async () => {
+    const getTokens: () => Promise<GoogleTokenResponse | null> = useCallback(async () => {
         if (googleTokens) {
             if (Date.now() >= googleTokens.expiryDate) {
                 const response = await callUnauthenticatedApi<GoogleTokenResponse, GoogleRefreshRequest>("POST", 'google-refresh', {
@@ -97,12 +104,12 @@ export function UserContextProvider({ children }: {
                 })
                 if (isSuccessfulAPIResponse(response) && response.body.accessToken) {
                     setGoogleTokens({ ...response.body, userInfo: googleTokens.userInfo })
-                    return response.body.idToken
+                    return response.body
                 } else {
                     return await handleLoggedOut(response)
                 }
             } else {
-                return googleTokens.idToken
+                return googleTokens
             }
         } else {
             return null
@@ -116,7 +123,14 @@ export function UserContextProvider({ children }: {
                 login()
             }
         },
-        getIdToken,
+        getIdToken: useCallback(async () => {
+            const tokens = await getTokens()
+            return tokens?.idToken ?? null
+        }, [getTokens]),
+        getGoogleAccessToken: useCallback(async () => {
+            const tokens = await getTokens()
+            return tokens?.accessToken ?? null
+        }, [getTokens]),
         loggedIn: !!googleTokens,
         loggingIn,
         name: googleTokens?.userInfo?.name,

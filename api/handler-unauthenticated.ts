@@ -55,6 +55,7 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 }
                 return successResponse<GoogleTokenResponse>({
                     accessToken: tokens.access_token,
+                    scopes: tokens.scope!.split(' '),
                     idToken: tokens.id_token,
                     refreshToken: tokens.refresh_token,
                     expiryDate: tokens.expiry_date,
@@ -76,6 +77,7 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 }
                 return successResponse<GoogleTokenResponse>({
                     accessToken: tokens.access_token,
+                    scopes: tokens.scope!.split(' '),
                     idToken: tokens.id_token,
                     refreshToken: tokens.refresh_token,
                     expiryDate: tokens.expiry_date

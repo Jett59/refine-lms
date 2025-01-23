@@ -4,6 +4,7 @@ import { PostInfo, PostTemplate } from "./post"
 
 export interface GoogleTokenResponse {
     accessToken: string
+    scopes: string[]
     idToken: string
     refreshToken: string
     expiryDate: number
