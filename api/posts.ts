@@ -22,7 +22,10 @@ export interface Post {
 export interface Attachment {
     id: ObjectId
     title: string
-    link: string
+    thumbnail: string
+    mimeType: string
+    host: 'google',
+    googleFileId: string
 }
 
 const COLLECTION_NAME = 'posts'
@@ -84,7 +87,10 @@ export async function convertPostsForApi(db: Db, posts: Post[]): Promise<PostInf
             attachments: post.attachments.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,
-                link: attachment.link
+                thumbnail: attachment.thumbnail,
+                mimeType: attachment.mimeType,
+                host: attachment.host,
+                googleFileId: attachment.googleFileId,
             })),
         }
     }).filter(post => post !== null)

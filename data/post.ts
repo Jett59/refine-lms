@@ -17,7 +17,10 @@ export interface PostInfo {
 export interface AttachmentInfo {
     id: string
     title: string
-    link: string
+    thumbnail: string
+    mimeType: string
+    host: 'google',
+    googleFileId: string
 }
 
 export interface PostTemplate {
@@ -33,5 +36,8 @@ export interface PostTemplate {
 }
 export interface AttachmentTemplate {
     title: string
-    link: string
+    thumbnail: string
+    mimeType: string
+    host: 'google',
+    googleFileId: string
 }
