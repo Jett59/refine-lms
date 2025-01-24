@@ -85,8 +85,9 @@ describe("Posts", () => {
         }
 
         const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
 
-        const postFromDatabase = await postsCollection.findOne({ _id: postId })
+        const postFromDatabase = await postsCollection.findOne({ _id: postId! })
         expect(postFromDatabase).toEqual({ _id: postId, ...post })
     })
     it("Should filter the class list for students", async () => {
@@ -106,7 +107,8 @@ describe("Posts", () => {
         }
 
         const postId = await createPost(db, school, post)
-        const postFromDatabase = await postsCollection.findOne({ _id: postId })
+        expect(postId).not.toBeNull()
+        const postFromDatabase = await postsCollection.findOne({ _id: postId! })
         expect(postFromDatabase).toEqual({ _id: postId, ...post, classIds: [classId] })
     })
     it("Should list posts to a year group", async () => {
@@ -142,10 +144,12 @@ describe("Posts", () => {
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
+        expect(post1Id).not.toBeNull()
+        expect(post2Id).not.toBeNull()
 
         const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined)
         expect(posts1.posts).toEqual([{
-            id: post2Id.toHexString(),
+            id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
             poster: {
                 id: user2.toHexString(),
@@ -167,7 +171,7 @@ describe("Posts", () => {
 
         const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, undefined, undefined)
         expect(posts2.posts).toEqual([{
-            id: post1Id.toHexString(),
+            id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
             poster: {
                 id: user1.toHexString(),
@@ -224,10 +228,12 @@ describe("Posts", () => {
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
+        expect(post1Id).not.toBeNull()
+        expect(post2Id).not.toBeNull
 
         const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
         expect(posts1.posts).toEqual([{
-            id: post2Id.toHexString(),
+            id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
             poster: {
                 id: user2.toHexString(),
@@ -249,7 +255,7 @@ describe("Posts", () => {
 
         const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, undefined)
         expect(posts2.posts).toEqual([{
-            id: post1Id.toHexString(),
+            id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
             poster: {
                 id: user1.toHexString(),
@@ -348,10 +354,12 @@ describe("Posts", () => {
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
+        expect(post1Id).not.toBeNull()
+        expect(post2Id).not.toBeNull
 
         const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
         expect(posts1.posts).toEqual([{
-            id: post2Id.toHexString(),
+            id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
             poster: {
                 id: user2.toHexString(),
@@ -373,7 +381,7 @@ describe("Posts", () => {
 
         const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, [classId])
         expect(posts2.posts).toEqual([{
-            id: post1Id.toHexString(),
+            id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
             poster: {
                 id: user1.toHexString(),
@@ -411,10 +419,11 @@ describe("Posts", () => {
             attachments: []
         }
         const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
 
         const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
         expect(posts.posts).toEqual([{
-            id: postId.toHexString(),
+            id: postId!.toHexString(),
             postDate: post.postDate.toISOString(),
             poster: {
                 id: user1.toHexString(),
@@ -503,5 +512,105 @@ describe("Posts", () => {
 
         const posts = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
         expect(posts.posts.length).toBe(1)
+    })
+    it("Should not create posts for non-existent year groups", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: new ObjectId(),
+            courseId: null,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).toBeNull()
+    })
+    it("Should not create posts for non-existent courses", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: new ObjectId(),
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).toBeNull()
+    })
+    it("Should not let students post to year groups which they are not members of", async() => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: null,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).toBeNull()
+    })
+    it("Should not let students post to courses which they are not members of", async() => {
+        let school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
+        // We have to create another course to avoid hitting the year group branch
+        const courseId2 = new ObjectId()
+        school.yearGroups[0].courses.push({
+            id: courseId2,
+            name: 'Course 2',
+            classes: [{
+                id: new ObjectId(),
+                name: 'Class 1',
+                teacherIds: [],
+                studentIds: [user1],
+                requestingStudentIds: []
+            }]
+        })
+
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+
+        let postId = await createPost(db, school, post)
+        expect(postId).toBeNull()
+    })
+    it("Should return an empty list for non-existant year groups", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined)
+        expect(posts.posts).toEqual([])
+        expect(posts.isEnd).toBe(true)
     })
 })

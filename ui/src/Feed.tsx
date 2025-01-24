@@ -39,6 +39,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             clientId: GOOGLE_CLIENT_ID,
             developerKey: GOOGLE_DRIVE_DEVELOPER_KEY,
             token: await getGoogleAccessToken() ?? undefined,
+            showUploadView: true,
             callbackFunction: (data: PickerCallback) => {
                 if (data.action === 'picked') {
                     setAttachments(attachments => [...attachments, ...data.docs.map(doc => ({

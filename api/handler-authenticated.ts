@@ -364,7 +364,11 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(404, `School not found or user does not have access`)
                 }
                 const postId = await createPost(db, school, preparePostFromTemplate(postTemplate, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds))
+                if (postId) {
                 return successResponse<CreatePostResponse>({ postId: postId.toHexString() })
+                }else {
+                    return errorResponse(400, 'Invalid post')
+                }
             }
             case "/list-posts": {
                 const typedBody: ListPostsRequest = body

@@ -96,8 +96,55 @@ export async function convertPostsForApi(db: Db, posts: Post[]): Promise<PostInf
     }).filter(post => post !== null)
 }
 
+function canViewPosts(db: Db, userId: ObjectId, school: School, yearGroupId: ObjectId, courseId?: ObjectId) {
+    const isStudent = school.studentIds.some(studentId => studentId.equals(userId))
+    if (isStudent) {
+        // Students have to be in the year group
+        const yearGroup = school.yearGroups.find(yg => yg.id.equals(yearGroupId))
+        if (!yearGroup) {
+            return false
+        }
+        const studentsInYearGroup = yearGroup.courses.flatMap(course => course.classes).flatMap(cls => cls.studentIds)
+        if (!studentsInYearGroup.some(studentId => studentId.equals(userId))) {
+            return false
+        }
+        // If the course id is specified, they have to be in the course
+        if (courseId) {
+            const course = yearGroup.courses.find(course => course.id.equals(courseId))
+            if (!course) {
+                return false
+            }
+            const studentsInCourse = course.classes.flatMap(cls => cls.studentIds)
+            if (!studentsInCourse.some(studentId => studentId.equals(userId))) {
+                return false
+            }
+            return true
+        }else {
+            return true
+        }
+    } else {
+        // Teachers can view everything, but we should check that everything exists
+        const yearGroup = school.yearGroups.find(yg => yg.id.equals(yearGroupId))
+        if (!yearGroup) {
+            return false
+        }
+        if (courseId) {
+            const course = yearGroup.courses.find(course => course.id.equals(courseId))
+            if (!course) {
+                return false
+            }
+            return true
+        }else {
+            return true
+        }
+    }
+}
+
 export async function createPost(db: Db, school: School, post: Post) {
     const postCopy = { ...post }
+    if (!canViewPosts(db, post.posterId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return null
+    }
     if (post.courseId && post.classIds) {
         const course = school.yearGroups.find(yg => yg.id.equals(post.yearGroupId))?.courses.find(c => c.id.equals(post.courseId))
         if (course) {
@@ -109,6 +156,9 @@ export async function createPost(db: Db, school: School, post: Post) {
 }
 
 export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined): Promise<ListPostsResponse> {
+    if (!canViewPosts(db, userId, school, yearGroupId, courseId)) {
+        return { posts: [], isEnd: true }
+    }
     if (courseId && classIds) {
         const course = school.yearGroups.find(yg => yg.id.equals(yearGroupId))?.courses.find(c => c.id.equals(courseId))
         if (course) {
