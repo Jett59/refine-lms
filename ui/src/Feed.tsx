@@ -31,12 +31,13 @@ function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, po
     >{attachment.title}</Button>
 }
 
-function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, onClick, close }: {
+function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, disabled, onClick, close }: {
     schoolId: string
     schoolInfo: SchoolInfo
     yearGroupId: string
     courseId?: string
     courseInfo?: CourseInfo
+    disabled?: boolean
     onClick: (post: PostTemplate) => void
     close: () => void
 }) {
@@ -105,8 +106,8 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 title,
                 content,
                 attachments
-            })}>Post</Button>
-            <Button variant="outlined" onClick={close}>Cancel</Button>
+            })} disabled={disabled}>Post</Button>
+            <Button variant="outlined" onClick={close} disabled={disabled}>Cancel</Button>
         </Stack>
     </Stack>
 }
@@ -149,6 +150,8 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const course = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
     const classIds = useMemo(() => course?.classes.map(c => c.id), [course])
+
+    const [posting, setPosting] = useState(false)
 
     const refreshPostsList = async () => {
         if (!loading) {
@@ -201,12 +204,14 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
         <IconButton disabled={creatingPost} aria-label="Post" onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
         {creatingPost &&
             <CreatePostForm
+                disabled={posting}
                 schoolId={schoolId}
                 schoolInfo={schoolInfo}
                 yearGroupId={yearGroupId}
                 courseId={courseId}
                 courseInfo={course}
                 onClick={async (post) => {
+                    setPosting(true)
                     const googleAccessToken = await getGoogleAccessToken()
                     if (googleAccessToken) {
                         await createPost(post, googleAccessToken)
@@ -215,6 +220,7 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
                     } else {
                         addError('Could not authenticate to Google')
                     }
+                    setPosting(false)
                 }}
                 close={() => setCreatingPost(false)}
             />
