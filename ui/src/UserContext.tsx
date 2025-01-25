@@ -1,5 +1,5 @@
 import { useGoogleLogin } from "@react-oauth/google";
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { APIResponse, callUnauthenticatedApi, isSuccessfulAPIResponse } from "./api";
 import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
@@ -64,14 +64,13 @@ export function UserContextProvider({ children }: {
 
     const [handlingLogout, setHandlingLogout] = useState<boolean>(false)
 
-    // The loginHooks value here should never be read. It should be updated using the setter which provides an up-to-date copy.
-    const [_loginHooks, setLoginHooks] = useState<((tokens: GoogleTokenResponse) => void)[]>([])
+    const loginHooks = useRef<((tokens: GoogleTokenResponse) => void)[]>([])
 
     const handleLoggedOut = async (apiResponse: APIResponse<unknown>): Promise<GoogleTokenResponse | null> => {
         console.log(apiResponse)
         setHandlingLogout(true)
         return await new Promise(resolve => {
-            setLoginHooks(loginHooks => [...loginHooks, resolve])
+            loginHooks.current.push(resolve)
         })
     }
 
@@ -82,10 +81,8 @@ export function UserContextProvider({ children }: {
             })
             if (isSuccessfulAPIResponse(response)) {
                 setGoogleTokens(response.body)
-                setLoginHooks(loginHooks => {
-                    loginHooks.forEach(hook => hook(response.body))
-                    return []
-                })
+                loginHooks.current.forEach(hook => hook(response.body))
+                loginHooks.current = []
                 setHandlingLogout(false)
             } else {
                 addAPIError(response)
