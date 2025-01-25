@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
-import { Add, AttachFile, PostAdd } from "@mui/icons-material"
+import { AttachFile, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -11,7 +11,7 @@ import useDrivePicker from "react-google-drive-picker"
 import { GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
 import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
-import { TileButton, TileContainer } from "./Tile"
+import { TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
 
 function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, postId: string, attachment: AttachmentInfo }) {
