@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
-import { createPost, listPosts, preparePostFromTemplate } from "./posts";
+import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { createPost, getAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
 import { isAttachmentPreparationError } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -412,6 +412,37 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 const posts = await listPosts(db, school, user._id!, beforeDate, typedBody.limit, yearGroupObjectId, courseObjectId, classObjectIds)
                 return successResponse<ListPostsResponse>(posts)
+            }
+            case "/attachment-link": {
+                const typedBody: AttachmentLinkRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                if (!typedBody.attachmentId) {
+                    return errorResponse(400, 'Missing attachment ID')
+                }
+                let schoolId: ObjectId
+                let postId: ObjectId
+                let attachmentId: ObjectId
+                try {
+                    schoolId = new ObjectId(typedBody.schoolId)
+                    postId = new ObjectId(typedBody.postId)
+                    attachmentId = new ObjectId(typedBody.attachmentId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid post or attachment ID')
+                }
+                const school = await getSchool(db, user._id!, schoolId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const link = await getAttachmentLink(db, user._id!, user.email, school, postId, attachmentId)
+                if (!link) {
+                    return errorResponse(404, `Attachment not found or user does not have access`)
+                }
+                return successResponse<AttachmentLinkResponse>({ link })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

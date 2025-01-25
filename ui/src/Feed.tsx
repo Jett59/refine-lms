@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { PostAdd } from "@mui/icons-material"
-import { PostInfo, PostTemplate, AttachmentTemplate } from "../../data/post"
+import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
 import { CourseInfo, SchoolInfo } from "../../data/school"
@@ -13,6 +13,19 @@ import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileButton, TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
+
+function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, postId: string, attachment: AttachmentInfo }) {
+    const { getAttachmentLink } = useData()
+
+    return <Button
+        onClick={async () => {
+            const link = await getAttachmentLink(schoolId, postId, attachment.id)
+            if (link) {
+                window.open(link, '_blank')
+            }
+        }}
+    >{attachment.title}</Button>
+}
 
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, onClick, close }: {
     schoolId: string
@@ -105,6 +118,9 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
             </Stack>
             <Typography>Posted {formatDate(new Date(post.postDate))}{classNames ? ` to ${classNames}` : ''}</Typography>
             <Typography variant="body1">{post.content}</Typography>
+            <TileContainer>
+                {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} />)}
+            </TileContainer>
         </Stack>
     </Paper>
 }
@@ -192,7 +208,7 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
                         await createPost(post, googleAccessToken)
                         setCreatingPost(false)
                         refreshPostsList()
-                    }else {
+                    } else {
                         addError('Could not authenticate to Google')
                     }
                 }}

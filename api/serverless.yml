@@ -116,3 +116,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/attachment-link
+          method: post
+          authorizer:
+            name: google

@@ -62,3 +62,24 @@ export async function prepareAttachments(accessToken: string, attachments: Attac
 export function isAttachmentPreparationError(error: any): error is AttachmentPreparationError {
     return error.attachmentIndex !== undefined && error.message !== undefined
 }
+
+export async function getFileLink(fileId: string, userEmail: string, hasEditAccess: boolean): Promise<string | null> {
+    // We assume that the file is already shared with our service account.
+    // We have to share it with the user and then return the webContentLink.
+    const serviceAccountClient = await getServiceAccountClient()
+    try {
+        await serviceAccountClient.permissions.create({
+            fileId,
+            requestBody: {
+                role: hasEditAccess ? 'writer' : 'commenter',
+                type: 'user',
+                emailAddress: userEmail
+            }
+        })
+        const file = await serviceAccountClient.files.get({ fileId, fields: 'webViewLink' })
+        return file.data.webViewLink ?? null
+    } catch (e) {
+        console.error(e)
+        return null
+    }
+}

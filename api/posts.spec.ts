@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, listPosts, Post } from "./posts"
+import { createPost, getAttachmentLink, listPosts, Post } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -612,5 +612,47 @@ describe("Posts", () => {
         const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
+    })
+    it("Should get attachment links (minus the google drive part)", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456'
+            }]
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let googleFileId
+        let userEmail
+        let hasEditAccess
+        const link = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+            googleFileId = fileId
+            userEmail = email
+            hasEditAccess = canEdit
+            return 'https://example.com'
+        })
+        expect(link).toBe('https://example.com')
+        expect(googleFileId).toBe('123456')
+        expect(userEmail).toBe('email')
+        expect(hasEditAccess).toBe(true)
     })
 })

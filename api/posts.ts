@@ -3,7 +3,7 @@ import { Course, School } from "./schools"
 import { PostInfo, PostTemplate } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
-import { AttachmentPreparationError, prepareAttachments } from "./google-drive"
+import { AttachmentPreparationError, getFileLink, prepareAttachments } from "./google-drive"
 
 export interface Post {
     _id?: ObjectId
@@ -207,5 +207,28 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
     return {
         posts: await convertPostsForApi(db, posts),
         isEnd: count <= limit
+    }
+}
+
+export async function getAttachmentLink(db: Db, userId: ObjectId, userEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: (googleFileId: string, userEmail: string, hasEditAccess: boolean) => Promise<string | null>): Promise<string | null> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return null
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return null
+    }
+    if (!canViewPosts(db, userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return null
+    }
+    const hasEditAccess = post.posterId.equals(userId) // TODO: Add options to change this
+    const attachment = post.attachments.find(attachment => attachment.id.equals(attachmentId))
+    if (!attachment) {
+        return null
+    }
+    if (attachment.host === 'google') {
+        return linkAccessor ? linkAccessor(attachment.googleFileId, userEmail, hasEditAccess) : getFileLink(attachment.googleFileId, userEmail, hasEditAccess)
+    } else {
+        return null
     }
 }

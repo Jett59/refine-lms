@@ -168,3 +168,12 @@ export interface ListPostsResponse {
     posts: PostInfo[]
     isEnd: boolean
 }
+
+export interface AttachmentLinkRequest {
+    schoolId: string
+    postId: string
+    attachmentId: string
+}
+export interface AttachmentLinkResponse {
+    link: string
+}
