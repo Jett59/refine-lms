@@ -4,7 +4,7 @@ import { AttachmentTemplate } from "../data/post";
 
 let SERVICE_ACCOUNT_DRIVE_CLIENT: drive_v3.Drive | null = null
 
-const GOOGLE_SERVICE_ACCOUNT_KEY: JWTInput = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || 'No service account key found')
+const GOOGLE_SERVICE_ACCOUNT_KEY: JWTInput = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '{}')
 
 async function getServiceAccountClient() {
     if (!SERVICE_ACCOUNT_DRIVE_CLIENT) {
