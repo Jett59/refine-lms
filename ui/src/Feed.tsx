@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
-import { PostAdd } from "@mui/icons-material"
+import { Add, AttachFile, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -91,9 +91,14 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         }
         <TileContainer>
             {attachments.map(attachment => (
-                <TileButton text={<img src={attachment.thumbnail} />} onClick={() => { }} />
+                <Button
+                    key={attachment.title}
+                    onClick={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
+                >
+                    {attachment.title}
+                </Button>
             ))}
-            <TileButton text="Add attachment" onClick={handleOpenPicker} />
+            <IconButton aria-label="Attach file" onClick={handleOpenPicker} disabled={disabled}><AttachFile /></IconButton>
         </TileContainer>
         <Stack direction="row">
             <Button variant="contained" onClick={() => onClick({
