@@ -27,6 +27,12 @@ export function errorResponse(status: number, message: string): APIGatewayProxyS
         body: JSON.stringify({message})
     }
 }
+export function typedErrorResponse<T>(status: number, message: T): APIGatewayProxyStructuredResultV2 {
+    return {
+        statusCode: status,
+        body: JSON.stringify(message)
+    }
+}
 
 export function raiseInternalServerError(error: any): APIGatewayProxyStructuredResultV2 {
     const id = randomUUID();

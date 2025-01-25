@@ -12,6 +12,7 @@ import { GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
 import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileButton, TileContainer } from "./Tile"
+import { useError } from "./ErrorContext"
 
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, onClick, close }: {
     schoolId: string
@@ -113,6 +114,8 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
     courseId?: string
 }) {
     const { createPost, listPosts } = useData()
+    const { getGoogleAccessToken } = useUser()
+    const { addError } = useError()
 
     const [posts, setPosts] = useState<PostInfo[]>([])
     const [isEnd, setIsEnd] = useState(false)
@@ -183,9 +186,14 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
                 courseId={courseId}
                 courseInfo={course}
                 onClick={async (post) => {
-                    await createPost(post)
-                    setCreatingPost(false)
-                    refreshPostsList()
+                    const googleAccessToken = await getGoogleAccessToken()
+                    if (googleAccessToken) {
+                        await createPost(post, googleAccessToken)
+                        setCreatingPost(false)
+                        refreshPostsList()
+                    }else {
+                        addError('Could not authenticate to Google')
+                    }
                 }}
                 close={() => setCreatingPost(false)}
             />

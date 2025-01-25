@@ -3,6 +3,7 @@ import { Course, School } from "./schools"
 import { PostInfo, PostTemplate } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
+import { AttachmentPreparationError, prepareAttachments } from "./google-drive"
 
 export interface Post {
     _id?: ObjectId
@@ -44,7 +45,13 @@ function filterClassList(posterId: ObjectId, school: School, course: Course, cla
     }
 }
 
-export function preparePostFromTemplate(postTemplate: PostTemplate, posterId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Post {
+export async function preparePostFromTemplate(postTemplate: PostTemplate, googleAccessToken: string, posterId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Promise<Post | AttachmentPreparationError> {
+    if (postTemplate.attachments.length > 0) {
+        const attachmentStatus = await prepareAttachments(googleAccessToken, postTemplate.attachments)
+        if (attachmentStatus !== true) {
+            return attachmentStatus
+        }
+    }
     return {
         postDate: new Date(),
         posterId,
@@ -119,7 +126,7 @@ function canViewPosts(db: Db, userId: ObjectId, school: School, yearGroupId: Obj
                 return false
             }
             return true
-        }else {
+        } else {
             return true
         }
     } else {
@@ -134,7 +141,7 @@ function canViewPosts(db: Db, userId: ObjectId, school: School, yearGroupId: Obj
                 return false
             }
             return true
-        }else {
+        } else {
             return true
         }
     }

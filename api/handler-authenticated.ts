@@ -1,10 +1,11 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda";
-import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers";
+import { errorResponse, getPath, raiseInternalServerError, successResponse, typedErrorResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
 import { AddToClassRequest, AddToClassResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
 import { createPost, listPosts, preparePostFromTemplate } from "./posts";
+import { isAttachmentPreparationError } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -347,6 +348,9 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!postTemplate.attachments) {
                     return errorResponse(400, 'Missing attachments')
                 }
+                if (!typedBody.googleAccessToken) {
+                    return errorResponse(400, 'Missing Google access token')
+                }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
                 let courseObjectId: ObjectId | undefined
@@ -363,10 +367,15 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!school) {
                     return errorResponse(404, `School not found or user does not have access`)
                 }
-                const postId = await createPost(db, school, preparePostFromTemplate(postTemplate, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds))
+                const preparedPost = await preparePostFromTemplate(postTemplate, typedBody.googleAccessToken, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds)
+                if (isAttachmentPreparationError(preparedPost)) {
+                    return typedErrorResponse(400, preparedPost)
+                }
+                const postId = await createPost(db, school, preparedPost)
+
                 if (postId) {
-                return successResponse<CreatePostResponse>({ postId: postId.toHexString() })
-                }else {
+                    return successResponse<CreatePostResponse>({ postId: postId.toHexString() })
+                } else {
                     return errorResponse(400, 'Invalid post')
                 }
             }

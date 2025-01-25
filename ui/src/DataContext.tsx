@@ -29,7 +29,7 @@ export interface DataContextValue {
     getSchoolStructure: (schoolId: string) => Promise<SchoolStructure | null>
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
 
-    createPost: (post: PostTemplate) => Promise<void>
+    createPost: (post: PostTemplate, googleAccessToken: string) => Promise<void>
     listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<{
         posts: PostInfo[]
         isEnd: boolean
@@ -202,8 +202,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        createPost: useCallback(async (post) => {
-            const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post })
+        createPost: useCallback(async (post, googleAccessToken) => {
+            const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post, googleAccessToken })
             if (!isSuccessfulAPIResponse(response)) {
                 addAPIError(response)
             }

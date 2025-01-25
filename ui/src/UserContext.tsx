@@ -26,7 +26,7 @@ const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
 
 const LOCAL_STORAGE_TOKENS_KEY = 'google_tokens'
 
-const SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/drive.file']
+const SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/drive']
 
 export function UserContextProvider({ children }: {
     children: ReactNode

@@ -141,7 +141,8 @@ export interface RequestToJoinClassResponse {
 }
 
 export interface CreatePostRequest {
-    post: PostTemplate
+    post: PostTemplate,
+    googleAccessToken: string
 }
 export interface CreatePostResponse {
     postId: string
