@@ -84,32 +84,31 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }
     }, [loggedIn, updateVisibleSchoolList])
 
-    type SchoolInfosValueType = SchoolInfo | ((schoolInfo: SchoolInfo | null) => void)[]
-    const relevantSchoolInfos = useRef<{ [schoolId: string]: SchoolInfosValueType }>({})
+    const [relevantSchoolInfos, setRelevantSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
+    const relevantSchoolInfosCallbacks = useRef<{ [schoolId: string]: ((school: SchoolInfo | null) => void)[] }>({})
 
     const getRelevantSchoolInfo: (schoolId: string, refreshCache?: boolean) => Promise<SchoolInfo | null> = useCallback(async (schoolId, refreshCache) => {
-        if (!relevantSchoolInfos.current[schoolId] || refreshCache) {
-            relevantSchoolInfos.current[schoolId] = []
+        if (relevantSchoolInfosCallbacks.current[schoolId]) {
+            return new Promise((resolve) => {
+                relevantSchoolInfosCallbacks.current[schoolId].push(resolve)
+            })
+        }
+        if (!relevantSchoolInfos[schoolId] || refreshCache) {
+            relevantSchoolInfosCallbacks.current[schoolId] = []
             const response = await authenticatedAPIs.call<RelevantSchoolInfoResponse>('GET', 'relevant-school-info', undefined, { id: schoolId })
             if (isSuccessfulAPIResponse(response) && response.body.school) {
-                if (relevantSchoolInfos.current[schoolId] instanceof Array) {
-                    relevantSchoolInfos.current[schoolId].forEach(resolve => resolve(response.body.school))
-                }
-                relevantSchoolInfos.current[schoolId] = response.body.school
+                relevantSchoolInfosCallbacks.current[schoolId].forEach(callback => callback(response.body.school))
+                delete relevantSchoolInfosCallbacks.current[schoolId]
+                setRelevantSchoolInfos(prev => ({ ...prev, [schoolId]: response.body.school }))
             } else {
+                relevantSchoolInfosCallbacks.current[schoolId].forEach(callback => callback(null))
+                delete relevantSchoolInfosCallbacks.current[schoolId]
                 addAPIError(response)
                 return null
             }
         }
-        const currentValue = relevantSchoolInfos.current[schoolId]
-        if (currentValue instanceof Array) {
-            return await new Promise(resolve => {
-                currentValue.push(resolve)
-            })
-        } else {
-            return relevantSchoolInfos.current[schoolId] as SchoolInfo
-        }
-    }, [authenticatedAPIs])
+        return relevantSchoolInfos[schoolId]
+    }, [authenticatedAPIs, addAPIError, relevantSchoolInfos])
 
     return <DataContext.Provider value={{
         joinedSchools,
