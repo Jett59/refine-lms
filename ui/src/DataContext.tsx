@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { PostInfo, PostTemplate } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
@@ -84,23 +84,32 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }
     }, [loggedIn, updateVisibleSchoolList])
 
-    const [relevantSchoolInfos, setRelevantSchoolInfos] = useState<{ [schoolId: string]: SchoolInfo }>({})
+    type SchoolInfosValueType = SchoolInfo | ((schoolInfo: SchoolInfo | null) => void)[]
+    const relevantSchoolInfos = useRef<{ [schoolId: string]: SchoolInfosValueType }>({})
 
     const getRelevantSchoolInfo: (schoolId: string, refreshCache?: boolean) => Promise<SchoolInfo | null> = useCallback(async (schoolId, refreshCache) => {
-        if (!relevantSchoolInfos[schoolId] || refreshCache) {
+        if (!relevantSchoolInfos.current[schoolId] || refreshCache) {
+            relevantSchoolInfos.current[schoolId] = []
             const response = await authenticatedAPIs.call<RelevantSchoolInfoResponse>('GET', 'relevant-school-info', undefined, { id: schoolId })
             if (isSuccessfulAPIResponse(response) && response.body.school) {
-                setRelevantSchoolInfos(schoolInfos => ({
-                    ...schoolInfos,
-                    [schoolId]: response.body.school
-                }))
+                if (relevantSchoolInfos.current[schoolId] instanceof Array) {
+                    relevantSchoolInfos.current[schoolId].forEach(resolve => resolve(response.body.school))
+                }
+                relevantSchoolInfos.current[schoolId] = response.body.school
             } else {
                 addAPIError(response)
                 return null
             }
         }
-        return relevantSchoolInfos[schoolId]
-    }, [authenticatedAPIs, relevantSchoolInfos])
+        const currentValue = relevantSchoolInfos.current[schoolId]
+        if (currentValue instanceof Array) {
+            return await new Promise(resolve => {
+                currentValue.push(resolve)
+            })
+        } else {
+            return relevantSchoolInfos.current[schoolId] as SchoolInfo
+        }
+    }, [authenticatedAPIs])
 
     return <DataContext.Provider value={{
         joinedSchools,
