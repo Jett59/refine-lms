@@ -69,6 +69,7 @@ jobs:
         env:
             GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+            GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
             SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
             MONGO_CONNECTION_STRING: ${{ secrets.MONGO_CONNECTION_STRING }}
             REFINE_LMS_DATABASE: 'refine-prod'
