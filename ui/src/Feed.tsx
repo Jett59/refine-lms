@@ -16,14 +16,18 @@ import { useError } from "./ErrorContext"
 
 function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, postId: string, attachment: AttachmentInfo }) {
     const { getAttachmentLink } = useData()
+    const [opening, setOpening] = useState(false)
 
     return <Button
         onClick={async () => {
+            setOpening(true)
             const link = await getAttachmentLink(schoolId, postId, attachment.id)
             if (link) {
                 window.open(link, '_blank')
             }
+            setOpening(false)
         }}
+        disabled={opening}
     >{attachment.title}</Button>
 }
 
