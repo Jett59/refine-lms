@@ -655,4 +655,47 @@ describe("Posts", () => {
         expect(userEmail).toBe('email')
         expect(hasEditAccess).toBe(true)
     })
+    it("Should cache links", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456'
+            }]
+        }
+        const postId = await createPost(db, school, post)
+
+        let called = false
+        const link = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+            called = true
+            return 'https://example.com'
+        })
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+
+        called = false
+        const link2 = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+            called = true
+            return 'https://example.com'
+        })
+        expect(link2).toBe('https://example.com')
+        expect(called).toBeFalsy()
+    })
 })

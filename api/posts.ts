@@ -27,6 +27,9 @@ export interface Attachment {
     mimeType: string
     host: 'google',
     googleFileId: string
+
+    cachedLink?: string
+    usersWithAccess?: ObjectId[]
 }
 
 const COLLECTION_NAME = 'posts'
@@ -226,8 +229,25 @@ export async function getAttachmentLink(db: Db, userId: ObjectId, userEmail: str
     if (!attachment) {
         return null
     }
+    if (attachment.usersWithAccess?.some(id => id.equals(userId)) && attachment.cachedLink) {
+        return attachment.cachedLink
+    }
     if (attachment.host === 'google') {
-        return linkAccessor ? linkAccessor(attachment.googleFileId, userEmail, hasEditAccess) : getFileLink(attachment.googleFileId, userEmail, hasEditAccess)
+        const link = await (linkAccessor ? linkAccessor(attachment.googleFileId, userEmail, hasEditAccess) : getFileLink(attachment.googleFileId, userEmail, hasEditAccess))
+        if (link) {
+            await getCollection(db).updateOne({
+                _id: postId,
+                'attachments.id': attachmentId
+            }, {
+                $set: {
+                    'attachments.$.cachedLink': link
+                },
+                $addToSet: {
+                    'attachments.$.usersWithAccess': userId
+                }
+            })
+        }
+        return link
     } else {
         return null
     }
