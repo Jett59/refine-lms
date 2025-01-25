@@ -34,7 +34,7 @@ functions:
           method: post
   authenticated:
     handler: handler-authenticated.handler
-    timeout: 30
+    timeout: 10
     events:
       - httpApi:
           path: /api/visible-schools

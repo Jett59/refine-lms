@@ -46,9 +46,10 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                     setAttachments(attachments => [...attachments, ...data.docs.map(doc => ({
                         title: doc.name,
                         mimeType: doc.mimeType,
+                        host: 'google' as 'google',
                         googleFileId: doc.id,
                         thumbnail: doc.iconUrl,
-                    }) as AttachmentTemplate)])
+                    }))])
                 }
             }
         })
@@ -86,7 +87,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 private: isPrivate,
                 title,
                 content,
-                attachments: []
+                attachments
             })}>Post</Button>
             <Button variant="outlined" onClick={close}>Cancel</Button>
         </Stack>

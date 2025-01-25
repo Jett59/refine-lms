@@ -1,4 +1,4 @@
-import { GoogleAuth, JWTInput } from "google-auth-library";
+import { GoogleAuth, JWTInput, OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "googleapis";
 import { AttachmentTemplate } from "../data/post";
 
@@ -19,9 +19,9 @@ async function getServiceAccountClient() {
 }
 
 async function getUserClient(accessToken: string) {
-    return new drive_v3.Drive({
-        auth: accessToken
-    })
+    const oAuthClient = new OAuth2Client()
+    oAuthClient.setCredentials({ access_token: accessToken })
+    return new drive_v3.Drive({ auth: oAuthClient })
 }
 
 export interface AttachmentPreparationError {
