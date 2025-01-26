@@ -1,7 +1,8 @@
 node_modules
 .serverless
 
-*.js*
+*.js
+*.js.map
 !jest.config.js
 
 undefined/
