@@ -19,12 +19,37 @@ provider:
         audience: '440807713733-li6c8t0f1pmjrlaceen6afndskghlrrm.apps.googleusercontent.com'
 
 plugins:
+  - serverless-esbuild
   - serverless-offline
+
+package:
+  individually: true
+  exclude:
+    - .git/**
+    - .gitignore
+    - .DS_Store
+    - npm-debug.log
+    - .serverless/**
+    - .serverless_plugins/**
+    - '*.ts'
+    - '*.spec.js'
+    - '*.json'
+    - '**/LICENSE'
+    - '**/license'
+    - '**/*.md'
+    - '**/*.ts'
+    - '*.md'
+    - '*.xml'
+    - 'jest.config.js'
+    - coverage/**
+    - reports/**
+
+build:
+  esbuild: false
 
 functions:
   unauthenticated:
     handler: handler-unauthenticated.handler
-    timeout: 10
     events:
       - httpApi:
           path: /api/google-authenticate
@@ -34,7 +59,6 @@ functions:
           method: post
   authenticated:
     handler: handler-authenticated.handler
-    timeout: 15 # serverless-offline sometimes takes ~10s to start on my machine for some reason
     events:
       - httpApi:
           path: /api/visible-schools
