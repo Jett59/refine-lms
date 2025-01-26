@@ -35,6 +35,7 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 body = JSON.parse(event.body)
             } catch (e) { }
         }
+
         switch (path) {
             case "/google-authenticate": {
                 const typedBody: GoogleAuthenticateRequest = body

@@ -34,7 +34,7 @@ functions:
           method: post
   authenticated:
     handler: handler-authenticated.handler
-    timeout: 10
+    timeout: 15 # serverless-offline sometimes takes ~10s to start on my machine for some reason
     events:
       - httpApi:
           path: /api/visible-schools

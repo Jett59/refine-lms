@@ -8,7 +8,7 @@ import { formatDate } from "./date"
 import { CourseInfo, SchoolInfo } from "../../data/school"
 import SimpleMenu from "./SimpleMenu"
 import useDrivePicker from "react-google-drive-picker"
-import { GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
+import { GOOGLE_PROJECT_NUMBER, GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
 import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileContainer } from "./Tile"
@@ -58,6 +58,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             clientId: GOOGLE_CLIENT_ID,
             developerKey: GOOGLE_DRIVE_DEVELOPER_KEY,
             token: await getGoogleAccessToken() ?? undefined,
+            appId: GOOGLE_PROJECT_NUMBER,
             showUploadView: true,
             callbackFunction: (data: PickerCallback) => {
                 if (data.action === 'picked') {

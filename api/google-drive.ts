@@ -44,6 +44,7 @@ export async function prepareAttachments(accessToken: string, attachments: Attac
                     }
                 })
             } catch (e) {
+                console.error(e)
                 return {
                     attachmentIndex: index,
                     message: 'Failed to share the attachment with the service account'
