@@ -40,6 +40,8 @@ export interface AttachmentTemplate {
     title: string
     thumbnail: string
     mimeType: string
+    shareMode: 'shared' | 'copied'
+    othersCanEdit: boolean
     host: 'google',
     googleFileId: string
 }

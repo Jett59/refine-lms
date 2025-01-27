@@ -40,13 +40,42 @@ function AttachmentView({ schoolId, postId, attachment }: {
     >{attachment.title}</Button>
 }
 
-function CreatePostFormAttachmentView({ attachmentTemplate, onRemove }: {
+function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: {
     attachmentTemplate: AttachmentTemplate
     onRemove: () => void
+    update: (attachment: AttachmentTemplate) => void
 }) {
     return <Stack direction="row" spacing={2}>
         <img src={attachmentTemplate.thumbnail} aria-hidden />
         <Typography variant="h6">{attachmentTemplate.title}</Typography>
+        <SimpleMenu
+            buttonContents={attachmentTemplate.shareMode === 'shared' ? 'Shared Resource' : 'Handout'}
+            childrenSupplier={close => [
+                <MenuItem onClick={() => {
+                    update({ ...attachmentTemplate, shareMode: 'shared' })
+                    close()
+                }}>Shared Resource (one copy for everyone)</MenuItem>,
+                <MenuItem onClick={() => {
+                    update({ ...attachmentTemplate, shareMode: 'copied', othersCanEdit: true })
+                    close()
+                }}>Handout (personal copies)</MenuItem>
+            ]}
+        />
+        <SimpleMenu
+            buttonContents={attachmentTemplate.othersCanEdit ? 'Editable' : 'Read-only'}
+            childrenSupplier={close => [
+                <MenuItem onClick={() => {
+                    update({ ...attachmentTemplate, othersCanEdit: false })
+                    close()
+                }}
+                    disabled={attachmentTemplate.shareMode === 'copied'}
+                >Read-only</MenuItem>,
+                < MenuItem onClick={() => {
+                    update({ ...attachmentTemplate, othersCanEdit: true })
+                    close()
+                }}>Editable</MenuItem>
+            ]}
+        />
         <SimpleMenu
             buttonContents={<Menu />}
             buttonAriaLabel={`Attachment options for ${attachmentTemplate.title}`}
@@ -57,7 +86,7 @@ function CreatePostFormAttachmentView({ attachmentTemplate, onRemove }: {
                 }}>Remove</MenuItem>
             ]}
         />
-    </Stack>
+    </Stack >
 }
 
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, disabled, onClick, close }: {
@@ -94,6 +123,8 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                     setAttachments(attachments => [...attachments, ...data.docs.map(doc => ({
                         title: doc.name,
                         mimeType: doc.mimeType,
+                        shareMode: 'shared' as 'shared',
+                        othersCanEdit: false,
                         host: 'google' as 'google',
                         googleFileId: doc.id,
                         thumbnail: doc.iconUrl,
@@ -119,14 +150,15 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
             ]} />
         }
-            {attachments.map(attachment => (
-                <CreatePostFormAttachmentView
-                    key={attachment.googleFileId}
-                    attachmentTemplate={attachment}
-                    onRemove={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
-                />
-            ))}
-            <IconButton aria-label="Attach file" onClick={handleOpenPicker} disabled={disabled}><AttachFile /></IconButton>
+        {attachments.map(attachment => (
+            <CreatePostFormAttachmentView
+                key={attachment.googleFileId}
+                attachmentTemplate={attachment}
+                onRemove={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
+                update={newAttachment => setAttachments(attachments => attachments.map(a => a === attachment ? newAttachment : a))}
+            />
+        ))}
+        <IconButton aria-label="Attach file" onClick={handleOpenPicker} disabled={disabled}><AttachFile /></IconButton>
         <Stack direction="row">
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
