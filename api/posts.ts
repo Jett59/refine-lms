@@ -25,11 +25,15 @@ export interface Attachment {
     title: string
     thumbnail: string
     mimeType: string
+    shareMode?: 'shared' | 'copied' // default is 'shared'
+    othersCanEdit?: boolean // default is false
     host: 'google',
     googleFileId: string
 
     cachedLink?: string
     usersWithAccess?: ObjectId[]
+
+    perUserLinks?: { [userId: string]: string }
 }
 
 const COLLECTION_NAME = 'posts'
@@ -66,13 +70,25 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
         type: postTemplate.type,
         title: postTemplate.title,
         content: postTemplate.content,
-        attachments: postTemplate.attachments.map(attachment => ({ id: new ObjectId(), ...attachment }))
+        attachments: postTemplate.attachments.map(attachment => ({
+            id: new ObjectId(),
+            title: attachment.title,
+            thumbnail: attachment.thumbnail,
+            mimeType: attachment.mimeType,
+            shareMode: attachment.shareMode,
+            othersCanEdit: attachment.othersCanEdit,
+            host: attachment.host,
+            googleFileId: attachment.googleFileId
+        }))
     }
 }
 
 function getCachedAttachmentLinkIfAvailable(attachment: Attachment, userId: ObjectId) {
     if (attachment.usersWithAccess?.some(id => id.equals(userId)) && attachment.cachedLink) {
         return attachment.cachedLink
+    }
+    if (attachment.perUserLinks && attachment.perUserLinks[userId.toHexString()]) {
+        return attachment.perUserLinks[userId.toHexString()]
     }
     return null
 }
@@ -221,7 +237,8 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
     }
 }
 
-export async function getAttachmentLink(db: Db, userId: ObjectId, userEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: (googleFileId: string, userEmail: string, hasEditAccess: boolean) => Promise<string | null>): Promise<string | null> {
+type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<string | null>
+export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName: string, userEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: LinkAccessorType): Promise<string | null> {
     const post = await getCollection(db).findOne({ _id: postId })
     if (!post) {
         return null
@@ -232,29 +249,42 @@ export async function getAttachmentLink(db: Db, userId: ObjectId, userEmail: str
     if (!canViewPosts(db, userId, school, post.yearGroupId, post.courseId ?? undefined)) {
         return null
     }
-    const hasEditAccess = post.posterId.equals(userId) // TODO: Add options to change this
     const attachment = post.attachments.find(attachment => attachment.id.equals(attachmentId))
     if (!attachment) {
         return null
     }
+    const hasEditAccess = attachment?.othersCanEdit || post.posterId.equals(userId)
+    const shouldCreateCopy = attachment.shareMode === 'copied'
     const cachedLink = getCachedAttachmentLinkIfAvailable(attachment, userId)
     if (cachedLink) {
         return cachedLink
     }
     if (attachment.host === 'google') {
-        const link = await (linkAccessor ? linkAccessor(attachment.googleFileId, userEmail, hasEditAccess) : getFileLink(attachment.googleFileId, userEmail, hasEditAccess))
+        const realLinkAccessor = linkAccessor ?? getFileLink
+        const link = await realLinkAccessor(attachment.googleFileId, attachment.title, userEmail, userName, hasEditAccess, shouldCreateCopy)
         if (link) {
-            await getCollection(db).updateOne({
-                _id: postId,
-                'attachments.id': attachmentId
-            }, {
-                $set: {
-                    'attachments.$.cachedLink': link
-                },
-                $addToSet: {
-                    'attachments.$.usersWithAccess': userId
-                }
-            })
+            if (shouldCreateCopy) {
+                await getCollection(db).updateOne({
+                    _id: postId,
+                    'attachments.id': attachmentId
+                }, {
+                    $set: {
+                        [`attachments.$.perUserLinks.${userId.toHexString()}`]: link
+                    }
+                })
+            } else {
+                await getCollection(db).updateOne({
+                    _id: postId,
+                    'attachments.id': attachmentId
+                }, {
+                    $set: {
+                        'attachments.$.cachedLink': link
+                    },
+                    $addToSet: {
+                        'attachments.$.usersWithAccess': userId
+                    }
+                })
+            }
         }
         return link
     } else {

@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getAttachmentLink, listPosts, Post } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, Post } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -195,7 +195,7 @@ describe("Posts", () => {
         expect(posts3.posts).toEqual([])
         expect(posts3.isEnd).toBe(true)
     })
-    it("Should list posts to course pages", async() => {
+    it("Should list posts to course pages", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
@@ -275,7 +275,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
     })
-    it("Should not show year group posts on the course page", async() => {
+    it("Should not show year group posts on the course page", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -298,7 +298,7 @@ describe("Posts", () => {
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
-    it("Should not show course posts on the year group page", async() => {
+    it("Should not show course posts on the year group page", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -321,7 +321,7 @@ describe("Posts", () => {
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
-    it("Should list posts to classes", async() => {
+    it("Should list posts to classes", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
@@ -401,7 +401,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
     })
-    it("Should show course posts on class lists", async() => {
+    it("Should show course posts on class lists", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -443,7 +443,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts.isEnd).toBe(true)
     })
-    it("Should not show class posts on the course page", async() => {
+    it("Should not show class posts on the course page", async () => {
         const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -466,7 +466,7 @@ describe("Posts", () => {
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
-    it("Should not show studens private posts from others", async() => {
+    it("Should not show studens private posts from others", async () => {
         const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -491,7 +491,7 @@ describe("Posts", () => {
         const posts2 = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
         expect(posts2.posts.length).toBe(0)
     })
-    it("Should let non-students view private posts", async() => {
+    it("Should let non-students view private posts", async () => {
         const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -513,7 +513,7 @@ describe("Posts", () => {
         const posts = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
         expect(posts.posts.length).toBe(1)
     })
-    it("Should not create posts for non-existent year groups", async() => {
+    it("Should not create posts for non-existent year groups", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -533,7 +533,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should not create posts for non-existent courses", async() => {
+    it("Should not create posts for non-existent courses", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -553,7 +553,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should not let students post to year groups which they are not members of", async() => {
+    it("Should not let students post to year groups which they are not members of", async () => {
         const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -573,7 +573,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should not let students post to courses which they are not members of", async() => {
+    it("Should not let students post to courses which they are not members of", async () => {
         let school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
         // We have to create another course to avoid hitting the year group branch
         const courseId2 = new ObjectId()
@@ -607,13 +607,13 @@ describe("Posts", () => {
         let postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should return an empty list for non-existant year groups", async() => {
+    it("Should return an empty list for non-existant year groups", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
-    it("Should get attachment links (minus the google drive part)", async() => {
+    it("Should get attachment links (minus the google drive part)", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -643,19 +643,26 @@ describe("Posts", () => {
 
         let googleFileId
         let userEmail
+        let userName
         let hasEditAccess
-        const link = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+        let shouldCreateCopy
+        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async (fileId, fileName, email, name, canEdit, createCopy) => {
             googleFileId = fileId
             userEmail = email
+            userName = name
             hasEditAccess = canEdit
+            shouldCreateCopy = createCopy
+
             return 'https://example.com'
         })
         expect(link).toBe('https://example.com')
         expect(googleFileId).toBe('123456')
         expect(userEmail).toBe('email')
+        expect(userName).toBe('user1')
         expect(hasEditAccess).toBe(true)
+        expect(shouldCreateCopy).toBe(false)
     })
-    it("Should cache links", async() => {
+    it("Should cache links", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -683,7 +690,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
 
         let called = false
-        const link = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
             called = true
             return 'https://example.com'
         })
@@ -691,11 +698,73 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
 
         called = false
-        const link2 = await getAttachmentLink(db, user1, 'email', school, postId!, attachmentId, async (fileId, email, canEdit) => {
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
             called = true
             return 'https://example.com'
         })
         expect(link2).toBe('https://example.com')
         expect(called).toBeFalsy()
     })
+    it("Should cache per-user links", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                shareMode: 'copied',
+                host: 'google',
+                googleFileId: '123456'
+            }]
+        }
+        const postId = await createPost(db, school, post)
+
+        let called = false
+        let shouldCreateCopy = false
+        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
+            called = true
+            shouldCreateCopy = createCopy
+            return 'https://example.com/1'
+        })
+        expect(link).toBe('https://example.com/1')
+        expect(called).toBeTruthy()
+
+        called = false
+        const link2 = await getUsableAttachmentLink(db, user1, 'user2', 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return 'https://example.com/1'
+        })
+        expect(link2).toBe('https://example.com/1')
+        expect(called).toBeFalsy()
+
+        called = false
+        const link3 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return 'https://example.com/2'
+        })
+        expect(link3).toBe('https://example.com/2')
+        expect(called).toBeTruthy()
+
+        called = false
+        const link4 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return 'https://example.com/2'
+        })
+        expect(link4).toBe('https://example.com/2')
+        expect(called).toBeFalsy()
+    })    
 })

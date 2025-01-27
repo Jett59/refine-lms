@@ -64,8 +64,11 @@ export function isAttachmentPreparationError(error: any): error is AttachmentPre
     return error.attachmentIndex !== undefined && error.message !== undefined
 }
 
-export async function getFileLink(fileId: string, userEmail: string, hasEditAccess: boolean): Promise<string | null> {
+export async function getFileLink(fileId: string, fileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean): Promise<string | null> {
     // We assume that the file is already shared with our service account.
+    if (shouldCreateCopy) {
+        return await createCopyAndGetLink(fileId, fileName, userEmail, userName)
+    }
     // We have to share it with the user and then return the webContentLink.
     const serviceAccountClient = await getServiceAccountClient()
     try {
@@ -79,6 +82,31 @@ export async function getFileLink(fileId: string, userEmail: string, hasEditAcce
         })
         const file = await serviceAccountClient.files.get({ fileId, fields: 'webViewLink' })
         return file.data.webViewLink ?? null
+    } catch (e) {
+        console.error(e)
+        return null
+    }
+}
+
+export async function createCopyAndGetLink(fileId: string, fileName: string, userEmail: string, userName: string): Promise<string | null> {
+    const serviceAccountClient = await getServiceAccountClient()
+    try {
+        const copy = await serviceAccountClient.files.copy({
+            fileId,
+            fields: 'id,webViewLink',
+            requestBody: {
+                name: `${fileName} - ${userName}`
+            }
+        })
+        await serviceAccountClient.permissions.create({
+            fileId: copy.data.id!,
+            requestBody: {
+                role: 'writer',
+                type: 'user',
+                emailAddress: userEmail
+            }
+        })
+        return copy.data.webViewLink ?? null
     } catch (e) {
         console.error(e)
         return null
