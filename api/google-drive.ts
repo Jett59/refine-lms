@@ -1,5 +1,5 @@
 import { GoogleAuth, JWTInput, OAuth2Client } from "google-auth-library";
-import { drive_v3 } from "googleapis/build/src/apis/drive";
+import { drive_v3 } from "@googleapis/drive";
 import { AttachmentTemplate } from "../data/post";
 
 let SERVICE_ACCOUNT_DRIVE_CLIENT: drive_v3.Drive | null = null
