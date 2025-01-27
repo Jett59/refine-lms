@@ -22,6 +22,12 @@ plugins:
   - serverless-esbuild
   - serverless-offline
 
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    target: node20
+
 package:
   individually: true
   exclude:
