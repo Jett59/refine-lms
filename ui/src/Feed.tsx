@@ -20,12 +20,17 @@ function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, po
 
     return <Button
         onClick={async () => {
-            setOpening(true)
-            const link = await getAttachmentLink(schoolId, postId, attachment.id)
-            if (link) {
-                window.open(link, '_blank')
+            if (attachment.accessLink) {
+                window.open(attachment.accessLink, '_blank')
+            } else {
+                setOpening(true)
+                const link = await getAttachmentLink(schoolId, postId, attachment.id)
+                if (link) {
+                    window.open(link, '_blank')
+                }
+                attachment.accessLink = link ?? undefined
+                setOpening(false)
             }
-            setOpening(false)
         }}
         disabled={opening}
     >{attachment.title}</Button>

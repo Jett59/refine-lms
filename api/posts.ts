@@ -70,7 +70,14 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
     }
 }
 
-export async function convertPostsForApi(db: Db, posts: Post[]): Promise<PostInfo[]> {
+function getCachedAttachmentLinkIfAvailable(attachment: Attachment, userId: ObjectId) {
+    if (attachment.usersWithAccess?.some(id => id.equals(userId)) && attachment.cachedLink) {
+        return attachment.cachedLink
+    }
+    return null
+}
+
+export async function convertPostsForApi(db: Db, currentUserId: ObjectId, posts: Post[]): Promise<PostInfo[]> {
     const posterIds = posts.map(post => post.posterId).filter(id => id !== undefined)
     const userInfos = await findUserInfos(db, posterIds)
 
@@ -101,6 +108,7 @@ export async function convertPostsForApi(db: Db, posts: Post[]): Promise<PostInf
                 mimeType: attachment.mimeType,
                 host: attachment.host,
                 googleFileId: attachment.googleFileId,
+                accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId) ?? undefined
             })),
         }
     }).filter(post => post !== null)
@@ -208,7 +216,7 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
     const count = await collection.countDocuments(filter)
     const posts = await cursor.limit(limit).toArray()
     return {
-        posts: await convertPostsForApi(db, posts),
+        posts: await convertPostsForApi(db, userId, posts),
         isEnd: count <= limit
     }
 }
@@ -229,8 +237,9 @@ export async function getAttachmentLink(db: Db, userId: ObjectId, userEmail: str
     if (!attachment) {
         return null
     }
-    if (attachment.usersWithAccess?.some(id => id.equals(userId)) && attachment.cachedLink) {
-        return attachment.cachedLink
+    const cachedLink = getCachedAttachmentLinkIfAvailable(attachment, userId)
+    if (cachedLink) {
+        return cachedLink
     }
     if (attachment.host === 'google') {
         const link = await (linkAccessor ? linkAccessor(attachment.googleFileId, userEmail, hasEditAccess) : getFileLink(attachment.googleFileId, userEmail, hasEditAccess))

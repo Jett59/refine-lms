@@ -21,6 +21,8 @@ export interface AttachmentInfo {
     mimeType: string
     host: 'google',
     googleFileId: string
+
+    accessLink?: string
 }
 
 export interface PostTemplate {
