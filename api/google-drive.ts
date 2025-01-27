@@ -95,7 +95,7 @@ export async function createCopyAndGetLink(fileId: string, fileName: string, use
             fileId,
             fields: 'id,webViewLink',
             requestBody: {
-                name: `${fileName} - ${userName}`
+                name: `${userName} - ${fileName}`
             }
         })
         await serviceAccountClient.permissions.create({
