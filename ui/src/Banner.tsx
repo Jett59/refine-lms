@@ -46,17 +46,17 @@ function SchoolSwitcher() {
     const [name, setName] = useState('')
 
     return <>
-        <SimpleMenu buttonContents={<Typography color="textPrimary">Schools</Typography>} childrenSupplier={close => <>
-            {schools.map(school => <MenuItem key={school.id} onClick={() => {
-                switchSchool(school.id)
-                close()
-            }}>{school.name}</MenuItem>)}
+        <SimpleMenu buttonContents={<Typography color="textPrimary">Schools</Typography>} childrenSupplier={close => [
+            ...schools.map(school => <MenuItem key={school.id} onClick={() => {
+                    switchSchool(school.id)
+                    close()
+                }}>{school.name}</MenuItem>),
             <MenuItem onClick={() => {
                 setName('')
                 setNameSelectorOpen(true)
                 close()
             }}>New school</MenuItem>
-        </>} />
+        ]} />
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>
             <DialogContent>

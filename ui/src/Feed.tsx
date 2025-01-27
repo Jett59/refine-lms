@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
-import { AttachFile, PostAdd } from "@mui/icons-material"
+import { AttachFile, Menu, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -14,7 +14,11 @@ import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
 
-function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, postId: string, attachment: AttachmentInfo }) {
+function AttachmentView({ schoolId, postId, attachment }: {
+    schoolId: string
+    postId: string
+    attachment: AttachmentInfo
+}) {
     const { getAttachmentLink } = useData()
     const [opening, setOpening] = useState(false)
 
@@ -34,6 +38,26 @@ function AttachmentView({ schoolId, postId, attachment }: { schoolId: string, po
         }}
         disabled={opening}
     >{attachment.title}</Button>
+}
+
+function CreatePostFormAttachmentView({ attachmentTemplate, onRemove }: {
+    attachmentTemplate: AttachmentTemplate
+    onRemove: () => void
+}) {
+    return <Stack direction="row" spacing={2}>
+        <img src={attachmentTemplate.thumbnail} aria-hidden />
+        <Typography variant="h6">{attachmentTemplate.title}</Typography>
+        <SimpleMenu
+            buttonContents={<Menu />}
+            buttonAriaLabel={`Attachment options for ${attachmentTemplate.title}`}
+            childrenSupplier={close => [
+                <MenuItem onClick={() => {
+                    onRemove()
+                    close()
+                }}>Remove</MenuItem>
+            ]}
+        />
+    </Stack>
 }
 
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, disabled, onClick, close }: {
@@ -95,17 +119,14 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
             ]} />
         }
-        <TileContainer>
             {attachments.map(attachment => (
-                <Button
-                    key={attachment.title}
-                    onClick={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
-                >
-                    {attachment.title}
-                </Button>
+                <CreatePostFormAttachmentView
+                    key={attachment.googleFileId}
+                    attachmentTemplate={attachment}
+                    onRemove={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
+                />
             ))}
             <IconButton aria-label="Attach file" onClick={handleOpenPicker} disabled={disabled}><AttachFile /></IconButton>
-        </TileContainer>
         <Stack direction="row">
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
