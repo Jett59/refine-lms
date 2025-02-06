@@ -101,7 +101,12 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new course</DialogTitle>
             <DialogContent>
-                <TextField label="Course name" value={name} onChange={e => setName(e.target.value)} />
+                <TextField
+                    autoComplete="off"
+                    label="Course name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                />
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
@@ -128,7 +133,13 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
-                <TextField label="Year group name" value={name} onChange={e => setName(e.target.value)} />
+                <TextField
+                    autoComplete="off"
+                    label="Year group name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    helperText="e.g. 'Year 12'"
+                />
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>

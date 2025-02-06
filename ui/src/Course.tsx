@@ -20,7 +20,12 @@ function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new class</DialogTitle>
             <DialogContent>
-                <TextField label="Class name" value={name} onChange={e => setName(e.target.value)} />
+                <TextField
+                    autoComplete="off"
+                    label="Class name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                />
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
@@ -46,6 +51,12 @@ function ClassesPanelValue({ onCreate, schoolInfo, courseInfo, schoolId, yearGro
     return <TileContainer>
         {courseInfo.classes.map(cls => {
             const notificationCount = getClassNotificationCount(cls)
+            let buttonAriaLabel
+            if (notificationCount) {
+                buttonAriaLabel = `${cls.name} (${notificationCount} join request${notificationCount !== 1 ? 's' : ''})`
+            } else {
+                buttonAriaLabel = cls.name
+            }
             return <Badge
                 key={cls.id}
                 badgeContent={notificationCount ? <Typography aria-hidden>{notificationCount}</Typography> : undefined}
@@ -53,10 +64,10 @@ function ClassesPanelValue({ onCreate, schoolInfo, courseInfo, schoolId, yearGro
                 <TileButton
                     text={cls.name}
                     onClick={() => switchPage('', schoolId, yearGroupId, courseInfo.id, cls.id)}
-                    buttonProps={{ 'aria-label': `${cls.name}${notificationCount ? ` (${notificationCount} join request)` : ''}` }}
+                    buttonProps={{ 'aria-label': buttonAriaLabel }}
                 />
             </Badge>
-})}
+        })}
         {isTeacherOrAdministrator && <AddClassTileButton onClick={onCreate} />
         }
     </TileContainer>

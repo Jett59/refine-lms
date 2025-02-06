@@ -136,7 +136,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     return <Stack direction="column">
         <Typography variant="h5">Create post</Typography>
-        <TextField autoFocus label="Title" value={title} onChange={e => setTitle(e.target.value)} />
+        <TextField autoFocus autoComplete="off" label="Title" value={title} onChange={e => setTitle(e.target.value)} />
         <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
         {isStudent &&
             <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>

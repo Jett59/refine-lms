@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { Avatar, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { Add, InsertInvitation, Menu, Remove } from "@mui/icons-material";
+import { Add, Menu, PersonAdd, Remove } from "@mui/icons-material";
 import { ClassInfo, Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
 import SimpleMenu from "./SimpleMenu";
@@ -78,12 +78,12 @@ function InviteToSchoolButton({ category, schoolInfo }: {
             aria-label={`Invite ${category}`}
             onClick={() => setInviteDialogOpen(true)}
         >
-            <InsertInvitation />
+            <PersonAdd />
         </IconButton>
         <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
-                <TextField inputRef={emailRef} type="email" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                <TextField inputRef={emailRef} type="email" autoComplete="off" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
                 {emailHasError && <Typography color="error">Please enter a valid email</Typography>}
             </DialogContent>
             <DialogActions>

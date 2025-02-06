@@ -48,9 +48,9 @@ function SchoolSwitcher() {
     return <>
         <SimpleMenu buttonContents={<Typography color="textPrimary">Schools</Typography>} childrenSupplier={close => [
             ...schools.map(school => <MenuItem key={school.id} onClick={() => {
-                    switchSchool(school.id)
-                    close()
-                }}>{school.name}</MenuItem>),
+                switchSchool(school.id)
+                close()
+            }}>{school.name}</MenuItem>),
             <MenuItem onClick={() => {
                 setName('')
                 setNameSelectorOpen(true)
@@ -60,7 +60,12 @@ function SchoolSwitcher() {
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>
             <DialogContent>
-                <TextField label="School name" value={name} onChange={e => setName(e.target.value)} />
+                <TextField
+                autoComplete="off"
+                    label="School name"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                />
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setNameSelectorOpen(false)}>Cancel</Button>
