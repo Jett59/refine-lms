@@ -25,6 +25,7 @@ function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
                     label="Class name"
                     value={name}
                     onChange={e => setName(e.target.value)}
+                    helperText="e.g. '12SFW1'"
                 />
             </DialogContent>
             <DialogActions>
