@@ -138,8 +138,11 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, classInf
             <DialogContent>
                 <Typography variant="h4">Add to class</Typography>
                 <AccessibleAutocomplete
-                    options={(role === 'teacher' ? schoolInfo.teachers : schoolInfo.students).filter(user => !existingMembers.includes(user.id))} // Only show users who aren't already in the class
-                    getOptionLabel={user => user.name}
+                    options={(role === 'teacher'
+                        ? schoolInfo.teachers.concat(schoolInfo.administrators)
+                        : schoolInfo.students
+                    ).filter(user => !existingMembers.includes(user.id))} // Only show users who aren't already in the class
+                    getOptionLabel={user => `${user.name} (${user.email})`}
                     onChange={newValue => setSelectedUser(newValue)}
                     value={selectedUser}
                     isOptionEqualToValue={(a, b) => a.id === b.id}
