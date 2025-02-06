@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
-import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
+import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import { AttachFile, Menu, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
@@ -158,7 +158,14 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 update={newAttachment => setAttachments(attachments => attachments.map(a => a === attachment ? newAttachment : a))}
             />
         ))}
-        <IconButton aria-label="Attach file" onClick={handleOpenPicker} disabled={disabled}><AttachFile /></IconButton>
+        <Tooltip title="Attach File">
+            <IconButton
+                onClick={handleOpenPicker}
+                disabled={disabled}
+            >
+                <AttachFile />
+            </IconButton>
+        </Tooltip>
         <Stack direction="row">
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
@@ -265,7 +272,9 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
     }
 
     return <Stack direction="column">
-        <IconButton disabled={creatingPost} aria-label="Post" onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
+        <Tooltip title="Create Post">
+        <IconButton disabled={creatingPost} onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
+        </Tooltip>
         {creatingPost &&
             <CreatePostForm
                 disabled={posting}

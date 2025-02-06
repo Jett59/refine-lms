@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, Stack, Tab, Tabs, TextField, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, Stack, Tab, Tabs, TextField, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
@@ -39,7 +39,9 @@ function JoinClassButton({ schoolInfo, }: {
         }
 
         return <>
-            <IconButton aria-label="Join class" onClick={() => setSelectDialogOpen(true)}><PersonAdd /></IconButton>
+            <Tooltip title="Request to Join Class">
+                <IconButton onClick={() => setSelectDialogOpen(true)}><PersonAdd /></IconButton>
+            </Tooltip>
             <Dialog open={selectDialogOpen} onClose={() => setSelectDialogOpen(false)}>
                 <DialogTitle>Request to Join a Class</DialogTitle>
                 <DialogContent>
@@ -166,9 +168,11 @@ export default function School() {
     const titleButtons = useMemo(() => {
         if (schoolInfo) {
             if (isAdministratorOrTeacher) {
-                return <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
-                    <People />
-                </IconButton>
+                return <Tooltip title="People">
+                    <IconButton aria-label="People" onClick={() => switchPage('people', schoolId)}>
+                        <People />
+                    </IconButton>
+                </Tooltip>
             } else {
                 return <JoinClassButton schoolInfo={schoolInfo} />
             }

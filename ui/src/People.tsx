@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Avatar, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { Avatar, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { Add, Menu, PersonAdd, Remove } from "@mui/icons-material";
@@ -74,12 +74,13 @@ function InviteToSchoolButton({ category, schoolInfo }: {
     const emailRef = useRef<HTMLElement>()
 
     return <>
-        <IconButton
-            aria-label={`Invite ${category}`}
-            onClick={() => setInviteDialogOpen(true)}
-        >
-            <PersonAdd />
-        </IconButton>
+        <Tooltip title={`Invite ${category}`}>
+            <IconButton
+                onClick={() => setInviteDialogOpen(true)}
+            >
+                <PersonAdd />
+            </IconButton>
+        </Tooltip>
         <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
@@ -126,12 +127,13 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, classInf
     const existingMembers = role === 'teacher' ? classInfo.teacherIds : classInfo.studentIds
 
     return <>
-        <IconButton
-            aria-label={`Add ${role}`}
-            onClick={() => setAddDialogOpen(true)}
-        >
-            <Add />
-        </IconButton>
+        <Tooltip title={`Add ${role}`}>
+            <IconButton
+                onClick={() => setAddDialogOpen(true)}
+            >
+                <Add />
+            </IconButton>
+        </Tooltip>
         <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Add to class</Typography>
@@ -266,12 +268,16 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                         if (student) {
                             return <Stack direction="row">
                                 <Person key={student.id} userInfo={student} options={() => []} />
-                                <IconButton aria-label={`Add ${student.name}`} onClick={() => {
-                                    addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
-                                }}><Add /></IconButton>
-                                <IconButton aria-label={`Remove ${student.name}`} onClick={() => {
-                                    removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, student.id)
-                                }}><Remove /></IconButton>
+                                <Tooltip title={`Add ${student.name}`}>
+                                    <IconButton onClick={() => {
+                                        addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
+                                    }}><Add /></IconButton>
+                                </Tooltip>
+                                <Tooltip title={`Remove ${student.name}`}>
+                                    <IconButton onClick={() => {
+                                        removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, student.id)
+                                    }}><Remove /></IconButton>
+                                </Tooltip>
                             </Stack>
                         }
                     }
