@@ -34,6 +34,7 @@ export interface Attachment {
     usersWithAccess?: ObjectId[]
 
     perUserLinks?: { [userId: string]: string }
+    perUserFileIds?: { [userId: string]: string }
 }
 
 const COLLECTION_NAME = 'posts'
@@ -237,7 +238,7 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
     }
 }
 
-type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<string | null>
+type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<{link: string, fileId: string} | null>
 export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName: string, userEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: LinkAccessorType): Promise<string | null> {
     const post = await getCollection(db).findOne({ _id: postId })
     if (!post) {
@@ -261,15 +262,17 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
     }
     if (attachment.host === 'google') {
         const realLinkAccessor = linkAccessor ?? getFileLink
-        const link = await realLinkAccessor(attachment.googleFileId, attachment.title, userEmail, userName, hasEditAccess, shouldCreateCopy)
-        if (link) {
+        const linkAndId = await realLinkAccessor(attachment.googleFileId, attachment.title, userEmail, userName, hasEditAccess, shouldCreateCopy)
+        if (linkAndId) {
+            const {link, fileId} = linkAndId
             if (shouldCreateCopy) {
                 await getCollection(db).updateOne({
                     _id: postId,
                     'attachments.id': attachmentId
                 }, {
                     $set: {
-                        [`attachments.$.perUserLinks.${userId.toHexString()}`]: link
+                        [`attachments.$.perUserLinks.${userId.toHexString()}`]: link,
+                        [`attachments.$.perUserFileIds.${userId.toHexString()}`]: link
                     }
                 })
             } else {
@@ -286,7 +289,7 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
                 })
             }
         }
-        return link
+        return linkAndId?.link ?? null
     } else {
         return null
     }

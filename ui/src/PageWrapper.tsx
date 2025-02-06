@@ -43,7 +43,11 @@ function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, isLas
 function PageWrapperBreadcrumbs() {
     const { schoolId, yearGroupId, courseId, classId } = useLocationParts()
 
-    return <Breadcrumbs>
+    if (!schoolId) {
+        return null
+    }
+
+    return <Breadcrumbs aria-label="Breadcrumb">
         <PageWrapperBreadcrumb isLast={!schoolId} />
         {schoolId && <PageWrapperBreadcrumb schoolId={schoolId} isLast={!yearGroupId} />}
         {yearGroupId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} isLast={!courseId} />}

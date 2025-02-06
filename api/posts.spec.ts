@@ -653,7 +653,7 @@ describe("Posts", () => {
             hasEditAccess = canEdit
             shouldCreateCopy = createCopy
 
-            return 'https://example.com'
+            return { link: 'https://example.com', fileId: '123456' }
         })
         expect(link).toBe('https://example.com')
         expect(googleFileId).toBe('123456')
@@ -692,7 +692,7 @@ describe("Posts", () => {
         let called = false
         const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
             called = true
-            return 'https://example.com'
+            return { link: 'https://example.com', fileId: '' }
         })
         expect(link).toBe('https://example.com')
         expect(called).toBeTruthy()
@@ -700,7 +700,7 @@ describe("Posts", () => {
         called = false
         const link2 = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
             called = true
-            return 'https://example.com'
+            return { link: 'https://example.com', fileId: '' }
         })
         expect(link2).toBe('https://example.com')
         expect(called).toBeFalsy()
@@ -738,7 +738,7 @@ describe("Posts", () => {
         const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
             called = true
             shouldCreateCopy = createCopy
-            return 'https://example.com/1'
+            return { link: 'https://example.com/1', fileId: '' }
         })
         expect(link).toBe('https://example.com/1')
         expect(called).toBeTruthy()
@@ -746,7 +746,7 @@ describe("Posts", () => {
         called = false
         const link2 = await getUsableAttachmentLink(db, user1, 'user2', 'email', school, postId!, attachmentId, async () => {
             called = true
-            return 'https://example.com/1'
+            return { link: 'https://example.com/1', fileId: '' }
         })
         expect(link2).toBe('https://example.com/1')
         expect(called).toBeFalsy()
@@ -754,7 +754,7 @@ describe("Posts", () => {
         called = false
         const link3 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
             called = true
-            return 'https://example.com/2'
+            return { link: 'https://example.com/2', fileId: '' }
         })
         expect(link3).toBe('https://example.com/2')
         expect(called).toBeTruthy()
@@ -762,9 +762,9 @@ describe("Posts", () => {
         called = false
         const link4 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
             called = true
-            return 'https://example.com/2'
+            return { link: 'https://example.com/2', fileId: '' }
         })
         expect(link4).toBe('https://example.com/2')
         expect(called).toBeFalsy()
-    })    
+    })
 })

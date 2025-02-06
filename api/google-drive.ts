@@ -64,7 +64,7 @@ export function isAttachmentPreparationError(error: any): error is AttachmentPre
     return error.attachmentIndex !== undefined && error.message !== undefined
 }
 
-export async function getFileLink(fileId: string, fileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean): Promise<string | null> {
+export async function getFileLink(fileId: string, fileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean): Promise<{ link: string, fileId: string } | null> {
     // We assume that the file is already shared with our service account.
     if (shouldCreateCopy) {
         return await createCopyAndGetLink(fileId, fileName, userEmail, userName)
@@ -81,14 +81,15 @@ export async function getFileLink(fileId: string, fileName: string, userEmail: s
             }
         })
         const file = await serviceAccountClient.files.get({ fileId, fields: 'webViewLink' })
-        return file.data.webViewLink ?? null
+        const link = file.data.webViewLink
+        return link ? { link, fileId } : null
     } catch (e) {
         console.error(e)
         return null
     }
 }
 
-export async function createCopyAndGetLink(fileId: string, fileName: string, userEmail: string, userName: string): Promise<string | null> {
+export async function createCopyAndGetLink(fileId: string, fileName: string, userEmail: string, userName: string): Promise<{ link: string, fileId: string } | null> {
     const serviceAccountClient = await getServiceAccountClient()
     try {
         const copy = await serviceAccountClient.files.copy({
@@ -106,7 +107,9 @@ export async function createCopyAndGetLink(fileId: string, fileName: string, use
                 emailAddress: userEmail
             }
         })
-        return copy.data.webViewLink ?? null
+        const link = copy.data.webViewLink
+        const id = copy.data.id
+        return link && id ? { link, fileId: id } : null
     } catch (e) {
         console.error(e)
         return null
