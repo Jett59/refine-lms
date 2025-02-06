@@ -1,7 +1,56 @@
-import { Box, Paper, Stack, Typography, useTheme } from "@mui/material"
+import { Box, Breadcrumbs, Paper, Stack, Typography, useTheme } from "@mui/material"
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react"
+import { getLocation, useLocationParts } from "./App";
+import { useRelevantSchoolInfo } from "./DataContext";
+import { Link } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 const paddingMargins = '10px';
+
+function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, isLast }: {
+    schoolId?: string
+    yearGroupId?: string
+    courseId?: string
+    classId?: string
+    isLast?: boolean
+}) {
+    const school = useRelevantSchoolInfo(schoolId)
+    const yearGroup = yearGroupId ? school?.yearGroups.find(yearGroup => yearGroup.id === yearGroupId) : null
+    const course = courseId ? yearGroup?.courses.find(course => course.id === courseId) : null
+    const cls = classId ? course?.classes.find(cls => cls.id === classId) : null
+
+    let text
+    if (classId) {
+        text = cls?.name
+    } else if (courseId) {
+        text = course?.name
+    } else if (yearGroupId) {
+        text = yearGroup?.name
+    } else if (schoolId) {
+        text = school?.name
+    } else {
+        text = 'Home'
+    }
+    if (!text) {
+        return <Typography>Loading...</Typography>
+    }
+    if (isLast) {
+        return <Typography>{text}</Typography>
+    }
+    return <Link to={getLocation('', schoolId, yearGroupId, courseId, classId)}>{text}</Link>
+}
+
+function PageWrapperBreadcrumbs() {
+    const { schoolId, yearGroupId, courseId, classId } = useLocationParts()
+
+    return <Breadcrumbs>
+        <PageWrapperBreadcrumb isLast={!schoolId} />
+        {schoolId && <PageWrapperBreadcrumb schoolId={schoolId} isLast={!yearGroupId} />}
+        {yearGroupId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} isLast={!courseId} />}
+        {courseId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} isLast={!classId} />}
+        {classId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} classId={classId} isLast />}
+    </Breadcrumbs>
+}
 
 interface PageWrapperContextValue {
     changeTitle: (title: string) => void
@@ -21,11 +70,16 @@ export default function PageWrapper({ children }: {
         document.title = title
     }, [title])
 
+    const { loggedIn } = useUser()
+
     return <Box position="static">
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} bgcolor={theme.palette.primary.light} paddingTop={'32px'} paddingBottom={'48px'}>
-            <Stack direction="row">
-                <Typography aria-live="polite" variant="h4" align="center">{title}</Typography>
-                {titleButtons}
+            <Stack direction="column">
+                <Stack direction="row">
+                    <Typography aria-live="polite" variant="h4" align="center">{title}</Typography>
+                    {titleButtons}
+                </Stack>
+                {loggedIn && <PageWrapperBreadcrumbs />}
             </Stack>
         </Box>
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} position={'relative'} style={{ top: '-20px' }}>

@@ -8,7 +8,6 @@ import { People, PersonAdd } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
-import { useHideSidebar } from "./WithSidebar"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import Feed from "./Feed"
 
@@ -143,7 +142,6 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
 }
 
 export default function School() {
-    useHideSidebar()
     const { schoolId, yearGroupId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)

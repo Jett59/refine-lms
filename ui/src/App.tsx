@@ -8,7 +8,6 @@ import School from './School';
 import { useCallback } from 'react';
 import { SchoolPeoplePage } from './People';
 import Class from './Class'
-import WithSidebar from './WithSidebar';
 import PageWrapper from './PageWrapper';
 import Course from './Course';
 
@@ -22,18 +21,16 @@ function App() {
     <Banner />
     <PageWrapper>
       {loggedIn ?
-        <WithSidebar>
-          <Routes>
-            <Route index element={<Schools />} />
-            <Route path="/:schoolId" element={<School />} ></Route>
-            <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
-            <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
-            <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
-          </Routes>
-        </WithSidebar>
+        <Routes>
+          <Route index element={<Schools />} />
+          <Route path="/:schoolId" element={<School />} ></Route>
+          <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
+          <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
+        </Routes>
         :
         <Welcome />
       }
@@ -51,28 +48,58 @@ export function useCurrentSchoolId() {
   return parts[1]
 }
 
+export interface LocationParts {
+  schoolId?: string
+  yearGroupId?: string
+  courseId?: string
+  classId?: string
+}
+
+export function useLocationParts() {
+  const location = useLocation()
+  const rawParts = location.pathname.split('/')
+  let parts: LocationParts = {}
+  if (rawParts.length >= 2) {
+    parts.schoolId = rawParts[1]
+  }
+  if (rawParts.length >= 4) {
+    parts.yearGroupId = rawParts[3]
+  }
+  if (rawParts.length >= 6) {
+    parts.courseId = rawParts[5]
+  }
+  if (rawParts.length >= 8) {
+    parts.classId = rawParts[7]
+  }
+  return parts
+}
+
 export function useSwitchSchool() {
   const navigate = useNavigate()
 
   return useCallback((schoolId: string) => navigate(`/${schoolId}`), [navigate])
 }
 
+export function getLocation(page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string) {
+  let prefix = '/'
+  if (schoolId) {
+    prefix += `${schoolId}/`
+  }
+  if (yearGroupId) {
+    prefix += `years/${yearGroupId}/`
+  }
+  if (courseId) {
+    prefix += `courses/${courseId}/`
+  }
+  if (classId) {
+    prefix += `classes/${classId}/`
+  }
+  return `${prefix}${page}`
+}
+
 export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, replace?: boolean) => void {
   const navigate = useNavigate()
   return useCallback((page, schoolId, yearGroupId, courseId, classId, replace) => {
-    let prefix = '/'
-    if (schoolId) {
-      prefix += `${schoolId}/`
-    }
-    if (yearGroupId) {
-      prefix += `years/${yearGroupId}/`
-    }
-    if (courseId) {
-      prefix += `courses/${courseId}/`
-    }
-    if (classId) {
-      prefix += `classes/${classId}/`
-    }
-    navigate(`${prefix}${page}`, { replace })
+    navigate(getLocation(page, schoolId, yearGroupId, courseId, classId), { replace })
   }, [navigate])
 }

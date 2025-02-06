@@ -3,10 +3,8 @@ import { useData } from "./DataContext";
 import { useSwitchSchool } from "./App";
 import { TileButton, TileCard, TileContainer } from "./Tile";
 import { Button, CardActions, CardHeader } from "@mui/material";
-import { useHideSidebar } from "./WithSidebar";
 
 export default function Schools() {
-    useHideSidebar()
     const switchSchool = useSwitchSchool()
     const { joinedSchools, invitedSchools, joinSchool, declineInvitation } = useData()
     useSetPageTitle('Schools')
