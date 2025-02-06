@@ -4,10 +4,11 @@ import { useSetPageTitle } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { TileButton, TileContainer } from "./Tile"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, TextField, Typography } from "@mui/material"
+import { Badge, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, TextField, Typography } from "@mui/material"
 import Feed from "./Feed"
 import { useState } from "react"
 import { CourseInfo, SchoolInfo } from "../../data/school"
+import { getClassNotificationCount } from "./Class"
 
 function AddClassTileButton({ onClick }: { onClick: (name: string) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -43,9 +44,19 @@ function ClassesPanelValue({ onCreate, schoolInfo, courseInfo, schoolId, yearGro
     const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
 
     return <TileContainer>
-        {courseInfo.classes.map(cls => (
-            <TileButton key={cls.id} text={cls.name} onClick={() => switchPage('', schoolId, yearGroupId, courseInfo.id, cls.id)} />
-        ))}
+        {courseInfo.classes.map(cls => {
+            const notificationCount = getClassNotificationCount(cls)
+            return <Badge
+                key={cls.id}
+                badgeContent={notificationCount ? <Typography aria-hidden>{notificationCount}</Typography> : undefined}
+            >
+                <TileButton
+                    text={cls.name}
+                    onClick={() => switchPage('', schoolId, yearGroupId, courseInfo.id, cls.id)}
+                    buttonProps={{ 'aria-label': `${cls.name}${notificationCount ? ` (${notificationCount} join request)` : ''}` }}
+                />
+            </Badge>
+})}
         {isTeacherOrAdministrator && <AddClassTileButton onClick={onCreate} />
         }
     </TileContainer>
@@ -78,7 +89,7 @@ export default function Course({ tab }: {
     return <Stack direction="column">
         <Typography variant="h4">Classes in {courseInfo.name}</Typography>
         <ClassesPanelValue onCreate={name => createClass(schoolId, yearGroupId, courseId, name)} schoolInfo={schoolInfo} courseInfo={courseInfo} schoolId={schoolId} yearGroupId={yearGroupId} />
-            <Divider />
+        <Divider />
         <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',

@@ -3,6 +3,7 @@ import { useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
 import { Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
+import { ClassInfo } from "../../data/school"
 
 export default function Class() {
     const { schoolId, yearGroupId, courseId, classId } = useParams()
@@ -22,4 +23,8 @@ export default function Class() {
     }
 
     return <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} />
+}
+
+export function getClassNotificationCount(cls: ClassInfo) {
+    return cls.requestingStudentIds.length
 }
