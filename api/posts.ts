@@ -272,7 +272,7 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
                 }, {
                     $set: {
                         [`attachments.$.perUserLinks.${userId.toHexString()}`]: link,
-                        [`attachments.$.perUserFileIds.${userId.toHexString()}`]: link
+                        [`attachments.$.perUserFileIds.${userId.toHexString()}`]: fileId
                     }
                 })
             } else {
