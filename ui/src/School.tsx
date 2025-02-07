@@ -159,6 +159,7 @@ export default function School() {
     const { schoolId, yearGroupId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
+    const { userId } = useUser()
     const { createYearGroup, createCourse } = useData()
     const switchPage = useSwitchPage()
 
@@ -201,6 +202,17 @@ export default function School() {
 
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
 
+    const coursesContainingUser = currentYearGroup.courses.filter(course => course.classes.some(cls => {
+        if (!userId) {
+            return false
+        }
+        if (isAdministratorOrTeacher) {
+            return cls.teacherIds.includes(userId)
+        } else {
+            return cls.studentIds.includes(userId)
+        }
+    }))
+
     return <Stack direction="column">
         <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
             switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
@@ -209,7 +221,20 @@ export default function School() {
             {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
-            <Typography variant="h5">Courses in {currentYearGroup.name}</Typography>
+            {coursesContainingUser.length > 0 && isAdministratorOrTeacher && <>
+                <Typography variant="h5">My Courses in {currentYearGroup.name}</Typography>
+                <TileContainer>
+                    {currentYearGroup.courses.map(course =>
+                        <CourseView
+                            key={course.id}
+                            course={course}
+                            goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
+                        />
+                    )}
+                </TileContainer>
+                <Divider />
+            </>}
+            <Typography variant="h5">{coursesContainingUser.length > 0 && isAdministratorOrTeacher && 'All '}Courses in {currentYearGroup.name}</Typography>
             <TileContainer>
                 {currentYearGroup.courses.map(course =>
                     <CourseView
