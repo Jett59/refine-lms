@@ -196,7 +196,7 @@ export function SchoolPeoplePage() {
     const showInviteButton = ourRole === 'administrator'
     const showRemoveOptionInGeneral = ourRole === 'administrator' // You also can't remove yourself, but that's handled below
 
-    useSetPageTitle(schoolInfo?.name ? `People in ${schoolInfo.name}` : 'People')
+    useSetPageTitle(schoolInfo?.name ? `People in ${schoolInfo.name}` : '')
 
     if (!schoolId) {
         return <Typography>No school chosen?</Typography>

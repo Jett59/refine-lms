@@ -249,6 +249,7 @@ export function useRelevantSchoolInfo(schoolId?: string): SchoolInfo | null {
 
     useEffect(() => {
         if (schoolId) {
+            setSchool(null)
             getRelevantSchoolInfo(schoolId).then(setSchool)
         } else {
             setSchool(null)

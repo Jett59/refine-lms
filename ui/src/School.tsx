@@ -166,7 +166,7 @@ export default function School() {
 
     const selectedYearGroupIndex = useMemo(() => yearGroupId ? schoolInfo?.yearGroups.findIndex(yg => yg.id === yearGroupId) ?? 0 : 0, [schoolInfo, yearGroupId])
 
-    useSetPageTitle(schoolInfo?.name ?? 'School')
+    useSetPageTitle(schoolInfo?.name ?? '')
 
     const titleButtons = useMemo(() => {
         if (schoolInfo) {

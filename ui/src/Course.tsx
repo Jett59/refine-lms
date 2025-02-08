@@ -86,7 +86,7 @@ export default function Course({ tab }: {
 
     const { createClass } = useData()
 
-    useSetPageTitle(courseInfo?.name ?? 'Course')
+    useSetPageTitle(courseInfo?.name ?? '')
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Missing some ids?</Typography>

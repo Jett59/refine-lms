@@ -10,7 +10,7 @@ export default function Class() {
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const cls = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)?.classes.find(cls => cls.id === classId)
 
-    useSetPageTitle(cls?.name ?? 'Class')
+    useSetPageTitle(cls?.name ?? '')
 
     if (!yearGroupId || !courseId || !classId) {
         return <Typography>Class not found</Typography>
