@@ -1,12 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Background square for favicon -->
-  <rect width="32" height="32" fill="#2563eb" rx="6"/>
-  
-  <!-- Main diamond -->
-  <path d="M8 16 L16 6 L24 16 L16 26 Z" 
+  <!-- Main diamond - now with stroke and no fill -->
+  <path d="M4 16 L16 1 L28 16 L16 31 Z" 
+        stroke="#4f46e5"
+        stroke-width="1"
         fill="#ffffff"/>
   
-  <!-- Inner diamond -->
-  <path d="M12 16 L16 11 L20 16 L16 21 Z" 
+  <!-- Inner diamond with same width-height ratio -->
+  <path d="M10 16 L16 8.5 L22 16 L16 23.5 Z" 
         fill="#4f46e5"/>
 </svg>
