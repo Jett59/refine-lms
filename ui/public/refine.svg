@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background square for favicon -->
+  <rect width="32" height="32" fill="#2563eb" rx="6"/>
+  
+  <!-- Main diamond -->
+  <path d="M8 16 L16 6 L24 16 L16 26 Z" 
+        fill="#ffffff"/>
+  
+  <!-- Inner diamond -->
+  <path d="M12 16 L16 12 L20 16 L16 20 Z" 
+        fill="#1a365d"/>
+</svg>
