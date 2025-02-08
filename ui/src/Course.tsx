@@ -105,7 +105,6 @@ export default function Course({ tab }: {
         <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',
-                heading: `Posts to ${courseInfo.name}`,
                 onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, true),
                 value: <Feed schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
             },

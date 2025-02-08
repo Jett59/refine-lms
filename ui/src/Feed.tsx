@@ -134,10 +134,24 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         })
     }
 
-    return <Stack direction="column">
-        <Typography variant="h5">Create post</Typography>
-        <TextField autoFocus autoComplete="off" label="Title" value={title} onChange={e => setTitle(e.target.value)} />
-        <TextField multiline label="Content" value={content} onChange={e => setContent(e.target.value)} />
+    return <Stack direction="column" spacing={2} padding={2}>
+        <Typography variant="h6">Create post</Typography>
+        <TextField
+            autoFocus
+            autoComplete="off"
+            label="Title"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            sx={{ maxWidth: '50em' }}
+        />
+        <TextField
+            multiline
+            label="Content"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            // Set the default height to a certain number of lines
+            inputProps={{ style: { lineHeight: '1.5em', minHeight: '6em' } }}
+        />
         {isStudent &&
             <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
                 <FormControlLabel value="public" control={<Radio />} label="Public" />
@@ -188,7 +202,7 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
             <Typography variant="h6">{post.title}</Typography>
-            <Stack direction="row">
+            <Stack direction="row" alignItems="center">
                 <Avatar aria-hidden src={post.poster.picture} ></Avatar>
                 <Typography>{post.poster.name}</Typography>
             </Stack>
@@ -219,8 +233,11 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
     const BATCH_SIZE = 10
 
     const schoolInfo = useRelevantSchoolInfo(schoolId)
-    const course = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
+    const yearGroup = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)
+    const course = yearGroup?.courses.find(c => c.id === courseId)
     const classIds = useMemo(() => course?.classes.map(c => c.id), [course])
+
+    const containerName = course?.name ?? yearGroup?.name
 
     const [posting, setPosting] = useState(false)
 
@@ -271,10 +288,15 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
         return <Typography>Loading...</Typography>
     }
 
-    return <Stack direction="column">
-        <Tooltip title="Create Post">
+    const createPostButton = <Tooltip title="Create Post">
         <IconButton disabled={creatingPost} onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
-        </Tooltip>
+    </Tooltip>
+
+    return <Stack direction="column">
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+            <Typography variant="h5">Posts to {containerName}</Typography>
+            {createPostButton}
+        </Stack>
         {creatingPost &&
             <CreatePostForm
                 disabled={posting}
@@ -297,6 +319,9 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
                 }}
                 close={() => setCreatingPost(false)}
             />
+        }
+        {posts.length === 0 && !loading && !creatingPost &&
+            <Typography>No posts yet. Click {createPostButton} to create the first one.</Typography>
         }
         <InfiniteScroll
             dataLength={posts.length}

@@ -4,7 +4,7 @@ import { ReactNode, useMemo } from "react"
 export interface TabPanelOption {
     label: ReactNode
     ariaLabel?: string
-    heading: string
+    heading?: string
     onSelect: () => void
     value: ReactNode
 }
@@ -22,7 +22,7 @@ export default function TabPanel({ index, tabs }: {
             ))}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`tab-${uniqueId}-${index}`}>
-            <Typography variant="h4">{tabs[index].heading}</Typography>
+            {tabs[index].heading && <Typography variant="h4">{tabs[index].heading}</Typography>}
             {tabs[index].value}
         </div>
     </Stack>

@@ -247,7 +247,6 @@ export default function School() {
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
             </TileContainer>
             <Divider />
-            <Typography variant="h5">Posts to {currentYearGroup.name}</Typography>
             <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
         </div>
     </Stack>
