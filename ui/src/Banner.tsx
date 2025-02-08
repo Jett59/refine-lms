@@ -19,9 +19,7 @@ const RefineLogo = () => {
             animation: 'glow 2s ease-in-out infinite'
         },
         sparkle: {
-            position: 'absolute',
-            width: '3px',
-            height: '3px',
+            position: 'absolute' as 'absolute',
             background: 'white',
             borderRadius: '50%',
             opacity: 0
@@ -37,15 +35,33 @@ const RefineLogo = () => {
             50% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7)); }
           }
           
-          @keyframes sparkle {
+          @keyframes sparkleUp {
             0% { transform: translate(0, 0) scale(0); opacity: 0; }
-            50% { transform: translate(-15px, -15px) scale(1); opacity: 1; }
-            100% { transform: translate(-30px, -30px) scale(0); opacity: 0; }
+            50% { transform: translate(-20px, -30px) scale(1); opacity: 1; }
+            100% { transform: translate(-40px, -60px) scale(0); opacity: 0; }
           }
           
-          .logo-wrapper:hover .sparkle1 { animation: sparkle 1.5s ease-in-out infinite; }
-          .logo-wrapper:hover .sparkle2 { animation: sparkle 1.5s ease-in-out infinite 0.4s; }
-          .logo-wrapper:hover .sparkle3 { animation: sparkle 1.5s ease-in-out infinite 0.8s; }
+          @keyframes sparkleRight {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            50% { transform: translate(30px, -10px) scale(1); opacity: 1; }
+            100% { transform: translate(60px, -20px) scale(0); opacity: 0; }
+          }
+          
+          @keyframes sparkleLeft {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            50% { transform: translate(-30px, -10px) scale(1); opacity: 1; }
+            100% { transform: translate(-60px, -20px) scale(0); opacity: 0; }
+          }
+          
+          @keyframes twinkle {
+            0%, 100% { transform: scale(0.3); opacity: 0.3; }
+            50% { transform: scale(1); opacity: 1; }
+          }
+          
+          .logo-wrapper:hover .sparkle-up { animation: sparkleUp 1.5s ease-in-out infinite; }
+          .logo-wrapper:hover .sparkle-right { animation: sparkleRight 1.5s ease-in-out infinite; }
+          .logo-wrapper:hover .sparkle-left { animation: sparkleLeft 1.5s ease-in-out infinite; }
+          .logo-wrapper:hover .twinkle { animation: twinkle 1s ease-in-out infinite; }
           
           .logo-wrapper:hover {
             filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
@@ -69,21 +85,16 @@ const RefineLogo = () => {
                     role="img"
                     aria-hidden="true"
                 >
-                    {/* Diamond shape representing refinement */}
                     <path
                         d="M30 25 L40 10 L50 25 L40 40 Z"
                         fill="#ffffff"
                         stroke="none"
                     />
-
-                    {/* Smaller diamond overlapping */}
                     <path
                         d="M35 25 L40 20 L45 25 L40 30 Z"
                         fill="#1a365d"
                         stroke="none"
                     />
-
-                    {/* Text */}
                     <text
                         x="65"
                         y="32"
@@ -95,9 +106,23 @@ const RefineLogo = () => {
                         refine
                     </text>
                 </svg>
-                <div className="sparkle1" style={{ ...styles.sparkle, top: '20%', left: '20%' }} />
-                <div className="sparkle2" style={{ ...styles.sparkle, top: '30%', left: '25%' }} />
-                <div className="sparkle3" style={{ ...styles.sparkle, top: '15%', left: '22%' }} />
+                {/* Floating sparkles */}
+                <div className="sparkle-up" style={{ ...styles.sparkle, top: '20%', left: '20%', width: '4px', height: '4px' }} />
+                <div className="sparkle-up" style={{ ...styles.sparkle, top: '25%', left: '22%', width: '3px', height: '3px', animationDelay: '0.2s' }} />
+                <div className="sparkle-up" style={{ ...styles.sparkle, top: '15%', left: '24%', width: '3px', height: '3px', animationDelay: '0.4s' }} />
+
+                {/* Right-moving sparkles */}
+                <div className="sparkle-right" style={{ ...styles.sparkle, top: '30%', left: '18%', width: '3px', height: '3px', animationDelay: '0.3s' }} />
+                <div className="sparkle-right" style={{ ...styles.sparkle, top: '35%', left: '20%', width: '4px', height: '4px', animationDelay: '0.6s' }} />
+
+                {/* Left-moving sparkles */}
+                <div className="sparkle-left" style={{ ...styles.sparkle, top: '25%', left: '26%', width: '3px', height: '3px', animationDelay: '0.5s' }} />
+                <div className="sparkle-left" style={{ ...styles.sparkle, top: '40%', left: '24%', width: '4px', height: '4px', animationDelay: '0.7s' }} />
+
+                {/* Twinkling stationary sparkles */}
+                <div className="twinkle" style={{ ...styles.sparkle, top: '15%', left: '28%', width: '2px', height: '2px' }} />
+                <div className="twinkle" style={{ ...styles.sparkle, top: '35%', left: '16%', width: '2px', height: '2px', animationDelay: '0.3s' }} />
+                <div className="twinkle" style={{ ...styles.sparkle, top: '45%', left: '22%', width: '2px', height: '2px', animationDelay: '0.6s' }} />
             </a>
         </div>
     );
