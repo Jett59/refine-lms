@@ -1,10 +1,11 @@
-import { AppBar, Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField, Typography } from "@mui/material";
+import { AppBar, Avatar, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, TextField, Typography } from "@mui/material";
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
 import { useState } from "react";
 import { useSwitchSchool } from "./App";
 import SimpleMenu from "./SimpleMenu";
+import { Add, ExpandMore, House, More } from "@mui/icons-material";
 
 const RefineLogo = () => {
     return (
@@ -98,22 +99,40 @@ function SchoolSwitcher() {
     const [name, setName] = useState('')
 
     return <>
-        <SimpleMenu buttonContents={<Typography color="textPrimary">Schools</Typography>} childrenSupplier={close => [
-            ...schools.map(school => <MenuItem key={school.id} onClick={() => {
-                switchSchool(school.id)
-                close()
-            }}>{school.name}</MenuItem>),
-            <MenuItem onClick={() => {
-                setName('')
-                setNameSelectorOpen(true)
-                close()
-            }}>New school</MenuItem>
-        ]} />
+        <SimpleMenu
+            buttonContents={<Typography color="textPrimary">Schools</Typography>}
+            buttonProps={{endIcon: <Typography color="textPrimary"><ExpandMore /></Typography>}}
+            childrenSupplier={close => [
+                ...schools.map(school => <MenuItem key={school.id} onClick={() => {
+                    switchSchool(school.id)
+                    close()
+                }}
+                    aria-label={school.name}
+                >
+                    <Stack direction="row" spacing={2}>
+                        <House />
+                        <Typography>{school.name}</Typography>
+                    </Stack>
+                </MenuItem>),
+                <Divider />,
+                <MenuItem onClick={() => {
+                    setName('')
+                    setNameSelectorOpen(true)
+                    close()
+                }}
+                    aria-label="Create school"
+                >
+                    <Stack direction="row" spacing={2}>
+                        <Add />
+                        <Typography>Create school</Typography>
+                    </Stack>
+                </MenuItem>
+            ]} />
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>
             <DialogContent>
                 <TextField
-                autoComplete="off"
+                    autoComplete="off"
                     label="School name"
                     value={name}
                     onChange={e => setName(e.target.value)}

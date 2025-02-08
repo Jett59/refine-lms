@@ -1,7 +1,12 @@
-import { Button, Menu } from "@mui/material";
+import { Button, ButtonProps, Menu } from "@mui/material";
 import { ReactNode, useMemo, useState } from "react";
 
-export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAriaLabel }: { buttonContents: ReactNode, childrenSupplier: (close: () => void) => ReactNode, buttonAriaLabel?: string }) {
+export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAriaLabel, buttonProps }: {
+    buttonContents: ReactNode,
+    childrenSupplier: (close: () => void) => ReactNode,
+    buttonAriaLabel?: string
+    buttonProps?: ButtonProps
+}) {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const open = Boolean(anchorEl)
 
@@ -16,6 +21,7 @@ export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAri
 
     return <>
         <Button
+            {...buttonProps}
             aria-label={buttonAriaLabel}
             aria-controls={`simple-menu-${uniqueId}`}
             aria-haspopup="true"
