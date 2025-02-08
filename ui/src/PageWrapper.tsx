@@ -29,7 +29,7 @@ function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, isLas
     } else if (schoolId) {
         text = school?.name
     } else {
-        text = 'Home'
+        text = 'Schools'
     }
     if (!text) {
         return <Typography>Loading...</Typography>

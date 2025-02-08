@@ -149,6 +149,7 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
                 <Button variant="contained" onClick={() => {
                     onCreate(name)
                     setDialogOpen(false)
+                    setName('')
                 }}>Create</Button>
             </DialogActions>
         </Dialog>
