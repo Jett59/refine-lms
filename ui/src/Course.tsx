@@ -98,7 +98,7 @@ export default function Course({ tab }: {
         return <Typography>Course not found</Typography>
     }
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <Typography variant="h4">Classes in {courseInfo.name}</Typography>
         <ClassesPanelValue onCreate={name => createClass(schoolId, yearGroupId, courseId, name)} schoolInfo={schoolInfo} courseInfo={courseInfo} schoolId={schoolId} yearGroupId={yearGroupId} />
         <Divider />

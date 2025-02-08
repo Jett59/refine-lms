@@ -78,8 +78,8 @@ export default function PageWrapper({ children }: {
 
     return <Box position="static">
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} bgcolor={theme.palette.primary.light} paddingTop={'32px'} paddingBottom={'48px'}>
-            <Stack direction="column">
-                <Stack direction="row">
+            <Stack direction="column" spacing={2}>
+                <Stack direction="row" spacing={2}>
                     <Typography aria-live="polite" variant="h4" align="center">{title}</Typography>
                     {titleButtons}
                 </Stack>

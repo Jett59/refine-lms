@@ -48,7 +48,7 @@ function Person({ userInfo, options }: {
     userInfo: UserInfo
     options: (close: () => void) => ReactNode[]
 }) {
-    return <Stack direction="row">
+    return <Stack direction="row" spacing={2}>
         <Avatar aria-hidden src={userInfo.picture} />
         <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
         {options(() => { }).length !== 0 && <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<Menu />} childrenSupplier={options} />}
@@ -176,7 +176,7 @@ function CategoryHeading({ category, button }: {
     const headingContent = category === 'administrator' ? 'Administrators' : category === 'teacher' ? 'Teachers' : 'Students'
 
     if (button) {
-        return <Stack direction="row">
+        return <Stack direction="row" spacing={2}>
             <Typography variant="h5">{headingContent}</Typography>
             {button}
         </Stack>
@@ -269,7 +269,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                     {cls.requestingStudentIds.map(studentId => {
                         const student = lookupUser(schoolInfo, studentId)
                         if (student) {
-                            return <Stack direction="row">
+                            return <Stack direction="row" spacing={2}>
                                 <Person key={student.id} userInfo={student} options={() => []} />
                                 <Tooltip title={`Add ${student.name}`}>
                                     <IconButton onClick={() => {

@@ -214,7 +214,7 @@ export default function School() {
         }
     }))
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
             switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
         }} aria-label="Year groups">

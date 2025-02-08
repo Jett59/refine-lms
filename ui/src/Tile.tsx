@@ -5,7 +5,9 @@ export function TileContainer({ centre, children }: {
     centre?: boolean
     children: ReactNode
 }) {
-    return <Stack direction="row" useFlexGap flexWrap="wrap" justifyContent={centre ? 'center' : undefined}>{children}</Stack>
+    return <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" justifyContent={centre ? 'center' : undefined}>
+        {children}
+    </Stack>
 }
 
 export function TileButton({ text, onClick, buttonProps }: { text: ReactNode, onClick: () => void, buttonProps?: ButtonProps }) {

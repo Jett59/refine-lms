@@ -15,7 +15,7 @@ export default function TabPanel({ index, tabs }: {
 }) {
     const uniqueId = useMemo(() => Math.random().toString(36).substring(7), [])
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <Tabs value={index} onChange={(_, newIndex) => tabs[newIndex].onSelect()}>
             {tabs.map((tab, i) => (
                 <Tab key={i} label={tab.label} aria-label={tab.ariaLabel} id={`tab-${uniqueId}-${i}`} />

@@ -180,7 +180,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 <AttachFile />
             </IconButton>
         </Tooltip>
-        <Stack direction="row">
+        <Stack direction="row" spacing={2}>
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
                 yearGroupId,
@@ -202,7 +202,7 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
             <Typography variant="h6">{post.title}</Typography>
-            <Stack direction="row" alignItems="center">
+            <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} ></Avatar>
                 <Typography>{post.poster.name}</Typography>
             </Stack>
@@ -292,7 +292,7 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
         <IconButton disabled={creatingPost} onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
     </Tooltip>
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h5">Posts to {containerName}</Typography>
             {createPostButton}
