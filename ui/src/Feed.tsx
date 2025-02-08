@@ -210,7 +210,7 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
         <Stack direction="column" padding={2} spacing={2}>
             <Typography variant="h6">{post.title}</Typography>
             <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar aria-hidden src={post.poster.picture} ></Avatar>
+                <Avatar aria-hidden src={post.poster.picture} />
                 <Typography>{post.poster.name}</Typography>
             </Stack>
             <Typography>Posted {formatDate(new Date(post.postDate))}{classNames ? ` to ${classNames}` : ''}</Typography>

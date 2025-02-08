@@ -159,12 +159,10 @@ export default function Banner() {
                 <ErrorButton />
             </Stack>
             {loggedIn ?
-                <Stack direction="row" spacing={2}>
+                <Stack direction="row" spacing={2} padding={1}>
                     <SchoolSwitcher />
                     <Box>
-                        <Avatar>
-                            <img src={profile_picture_url} alt={name} />
-                        </Avatar>
+                        <Avatar src={profile_picture_url} alt={name} />
                     </Box>
                 </Stack>
                 :
