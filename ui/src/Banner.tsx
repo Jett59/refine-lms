@@ -2,7 +2,7 @@ import { AppBar, Avatar, Box, Button, Dialog, DialogActions, DialogContent, Dial
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { useSwitchSchool } from "./App";
 import SimpleMenu from "./SimpleMenu";
 import { Add, ExpandMore, House } from "@mui/icons-material";
