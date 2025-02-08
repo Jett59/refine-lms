@@ -8,54 +8,98 @@ import SimpleMenu from "./SimpleMenu";
 import { Add, ExpandMore, House } from "@mui/icons-material";
 
 const RefineLogo = () => {
+    const styles = {
+        link: {
+            display: 'flex',
+            alignItems: 'center',
+            height: '48px',
+            textDecoration: 'none',
+            filter: 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.5))',
+            transition: 'all 0.3s ease',
+            animation: 'glow 2s ease-in-out infinite'
+        },
+        sparkle: {
+            position: 'absolute',
+            width: '3px',
+            height: '3px',
+            background: 'white',
+            borderRadius: '50%',
+            opacity: 0
+        }
+    };
+
     return (
-        <a
-            href="/"
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                height: '48px',
-                textDecoration: 'none'
-            }}
-            aria-label="Refine"
-        >
-            <svg
-                viewBox="0 0 200 50"
-                style={{
-                    height: '100%',
-                    width: 'auto'
-                }}
-                xmlns="http://www.w3.org/2000/svg"
-                role="img"
-                aria-hidden="true"
+        <div style={{ position: 'relative' }}>
+            <style>
+                {`
+          @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5)); }
+            50% { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7)); }
+          }
+          
+          @keyframes sparkle {
+            0% { transform: translate(0, 0) scale(0); opacity: 0; }
+            50% { transform: translate(-15px, -15px) scale(1); opacity: 1; }
+            100% { transform: translate(-30px, -30px) scale(0); opacity: 0; }
+          }
+          
+          .logo-wrapper:hover .sparkle1 { animation: sparkle 1.5s ease-in-out infinite; }
+          .logo-wrapper:hover .sparkle2 { animation: sparkle 1.5s ease-in-out infinite 0.4s; }
+          .logo-wrapper:hover .sparkle3 { animation: sparkle 1.5s ease-in-out infinite 0.8s; }
+          
+          .logo-wrapper:hover {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+            transform: scale(1.02);
+          }
+        `}
+            </style>
+            <a
+                href="/"
+                className="logo-wrapper"
+                style={styles.link}
+                aria-label="Return to Refine homepage"
             >
-                {/* Diamond shape representing refinement */}
-                <path
-                    d="M30 25 L40 10 L50 25 L40 40 Z"
-                    fill="#ffffff"
-                    stroke="none"
-                />
-
-                {/* Smaller diamond overlapping */}
-                <path
-                    d="M35 25 L40 20 L45 25 L40 30 Z"
-                    fill="#1a365d"
-                    stroke="none"
-                />
-
-                {/* Text */}
-                <text
-                    x="65"
-                    y="32"
-                    fontFamily="Arial, sans-serif"
-                    fontSize="24"
-                    fontWeight="bold"
-                    fill="#ffffff"
+                <svg
+                    viewBox="0 0 200 50"
+                    style={{
+                        height: '100%',
+                        width: 'auto'
+                    }}
+                    xmlns="http://www.w3.org/2000/svg"
+                    role="img"
+                    aria-hidden="true"
                 >
-                    refine
-                </text>
-            </svg>
-        </a>
+                    {/* Diamond shape representing refinement */}
+                    <path
+                        d="M30 25 L40 10 L50 25 L40 40 Z"
+                        fill="#ffffff"
+                        stroke="none"
+                    />
+
+                    {/* Smaller diamond overlapping */}
+                    <path
+                        d="M35 25 L40 20 L45 25 L40 30 Z"
+                        fill="#1a365d"
+                        stroke="none"
+                    />
+
+                    {/* Text */}
+                    <text
+                        x="65"
+                        y="32"
+                        fontFamily="Arial, sans-serif"
+                        fontSize="24"
+                        fontWeight="bold"
+                        fill="#ffffff"
+                    >
+                        refine
+                    </text>
+                </svg>
+                <div className="sparkle1" style={{ ...styles.sparkle, top: '20%', left: '20%' }} />
+                <div className="sparkle2" style={{ ...styles.sparkle, top: '30%', left: '25%' }} />
+                <div className="sparkle3" style={{ ...styles.sparkle, top: '15%', left: '22%' }} />
+            </a>
+        </div>
     );
 };
 
