@@ -57,6 +57,7 @@ export interface CreateCourseRequest {
     schoolId: string
     yearGroupId: string
     name: string
+    initialClassNames: string[]
 }
 export interface CreateCourseResponse {
     createdId: string

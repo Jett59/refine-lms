@@ -18,7 +18,7 @@ export interface DataContextValue {
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
     createSchool: (name: string) => Promise<void>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
-    createCourse: (schoolId: string, yearGroupId: string, name: string) => Promise<void>
+    createCourse: (schoolId: string, yearGroupId: string, name: string, initialClassNames: string[]) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
     invite: (schoolId: string, role: Role, email: string) => Promise<void>
     joinSchool: (schoolId: string) => Promise<void>
@@ -131,8 +131,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        createCourse: useCallback(async (schoolId, yearGroupId, name) => {
-            const response = await authenticatedAPIs.call<CreateCourseResponse, CreateCourseRequest>('POST', 'create-course', { schoolId, yearGroupId, name })
+        createCourse: useCallback(async (schoolId, yearGroupId, name, initialClassNames) => {
+            const response = await authenticatedAPIs.call<CreateCourseResponse, CreateCourseRequest>('POST', 'create-course', { schoolId, yearGroupId, name, initialClassNames })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {

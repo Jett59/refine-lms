@@ -296,10 +296,15 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
     }
 
     const createPostButton = <Tooltip title="Create Post">
-        <IconButton disabled={creatingPost} onClick={() => setCreatingPost(true)}><PostAdd /></IconButton>
+        <IconButton
+            disabled={creatingPost}
+            onClick={() => setCreatingPost(true)}
+        >
+            <PostAdd />
+        </IconButton>
     </Tooltip>
 
-    return <Stack direction="column" spacing={2}>
+    return <Stack direction="column" spacing={2} padding={2}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="h5">Posts to {containerName}</Typography>
             {createPostButton}

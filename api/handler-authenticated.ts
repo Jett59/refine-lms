@@ -95,6 +95,9 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.name) {
                     return errorResponse(400, 'Missing course name')
                 }
+                if (!typedBody.initialClassNames) {
+                    return errorResponse(400, 'Missing initial class names')
+                }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
                 try {
@@ -103,7 +106,14 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 } catch (e) {
                     return errorResponse(400, 'Invalid school or year group ID')
                 }
-                return successResponse<CreateCourseResponse>({ createdId: (await createCourse(db, user._id!, schoolObjectId, yearGroupObjectId, typedBody.name)).toHexString() })
+                const courseId = await createCourse(db, user._id!, schoolObjectId, yearGroupObjectId, typedBody.name)
+                if (!courseId) {
+                    return errorResponse(400, 'Invalid course creation')
+                }
+                for (const className of typedBody.initialClassNames) {
+                    await createClass(db, user._id!, schoolObjectId, yearGroupObjectId, courseId, className)
+                }
+                return successResponse<CreateCourseResponse>({ createdId: courseId.toHexString() })
             }
             case "/create-class": {
                 const typedBody: CreateClassRequest = body

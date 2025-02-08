@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, Stack, Tab, Tabs, TextField, Tooltip, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
-import { People, PersonAdd } from "@mui/icons-material"
+import { People, PersonAdd, Remove } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
@@ -87,14 +87,17 @@ function CourseView({ course, goToCourse }: {
     return <TileButton onClick={goToCourse} text={course.name} />
 }
 
-function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }) {
+function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, classNames: string[]) => void }) {
     const [dialogOpen, setDialogOpen] = useState(false)
 
-    const [name, setName] = useState('')
+    const [courseName, setCourseName] = useState('')
+
+    const [newClassName, setNewClassName] = useState('')
+    const [classNames, setClassNames] = useState<string[]>([])
 
     useEffect(() => {
         if (dialogOpen) {
-            setName('')
+            setCourseName('')
         }
     }, [dialogOpen])
 
@@ -106,17 +109,68 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
                 <TextField
                     autoComplete="off"
                     label="Course name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
+                    value={courseName}
+                    onChange={e => setCourseName(e.target.value)}
                     helperText="e.g. 'Software Engineering'"
                 />
+                <Divider />
+                <TextField
+                    autoComplete="off"
+                    label="Class name"
+                    value={newClassName}
+                    onChange={e => setNewClassName(e.target.value)}
+                    helperText="e.g. '12SFW1'"
+                    onKeyPress={e => {
+                        if (e.key === 'Enter') {
+                            if (newClassName.trim() !== '') {
+                                setClassNames([...classNames, newClassName.trim()])
+                                setNewClassName('')
+                            }
+                        }
+                    }}
+                />
+                <Button onClick={() => {
+                    if (newClassName.trim() !== '') {
+                        setClassNames([...classNames, newClassName.trim()])
+                        setNewClassName('')
+                    }
+                }}>Add class</Button>
+                <List>
+                    {classNames.map(className =>
+                        <ListItem key={className} secondaryAction={
+                            <IconButton edge="end" onClick={() => {
+                                setClassNames(classNames.filter(cn => cn !== className))
+                            }} aria-label={`Remove ${className}`}>
+                                <Remove />
+                            </IconButton>
+                        }>
+                            <Typography>{className}</Typography>
+                        </ListItem>
+                    )}
+                </List>
+                <Typography aria-live="polite" color={classNames.length === 0 ? 'error' : 'inherit'} sx={classNames.length !== 0 ? {
+                    // Hide the message visually, but leave it visible to screen readers
+                    position: 'absolute',
+                    width: '1px',
+                    margin: '-1px',
+                    overflow: 'hidden',
+                } : undefined}>
+                    {classNames.length === 0
+                        ? 'Please add at least one class'
+                        : `${classNames.length} class${classNames.length === 1 ? '' : 'es'} added`
+                    }
+                </Typography>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
-                <Button variant="contained" onClick={() => {
-                    onClick(name)
-                    setDialogOpen(false)
-                }}>Create</Button>
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        onClick(courseName, classNames)
+                        setDialogOpen(false)
+                    }}
+                    disabled={courseName.trim() === '' || classNames.length === 0}
+                >Create</Button>
             </DialogActions>
         </Dialog>
     </>
@@ -244,7 +298,7 @@ export default function School() {
                         goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
-                {isAdministratorOrTeacher && <CreateCourseTileButton onClick={name => createCourse(schoolId, currentYearGroup.id, name)} />}
+                {isAdministratorOrTeacher && <CreateCourseTileButton onClick={(name, initialClassNames) => createCourse(schoolId, currentYearGroup.id, name, initialClassNames)} />}
             </TileContainer>
             <Divider />
             <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
