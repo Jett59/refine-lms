@@ -7,6 +7,6 @@
         fill="#ffffff"/>
   
   <!-- Inner diamond -->
-  <path d="M12 16 L16 12 L20 16 L16 20 Z" 
-        fill="#1a365d"/>
+  <path d="M12 16 L16 11 L20 16 L16 21 Z" 
+        fill="#4f46e5"/>
 </svg>
