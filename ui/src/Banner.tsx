@@ -2,7 +2,7 @@ import { AppBar, Avatar, Box, Button, Dialog, DialogActions, DialogContent, Dial
 import { useUser } from "./UserContext";
 import { useData } from "./DataContext";
 import { useError } from "./ErrorContext";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useSwitchSchool } from "./App";
 import SimpleMenu from "./SimpleMenu";
 import { Add, ExpandMore, House } from "@mui/icons-material";
@@ -100,8 +100,8 @@ function SchoolSwitcher() {
 
     return <>
         <SimpleMenu
-            buttonContents={<Typography color="textPrimary">Schools</Typography>}
-            buttonProps={{endIcon: <Typography color="textPrimary"><ExpandMore /></Typography>}}
+            buttonContents="Schools"
+            buttonProps={{ color: 'inherit', endIcon: <ExpandMore /> }}
             childrenSupplier={close => [
                 ...schools.map(school => <MenuItem key={school.id} onClick={() => {
                     switchSchool(school.id)
@@ -162,7 +162,7 @@ export default function Banner() {
                 <Stack direction="row" spacing={2}>
                     <SchoolSwitcher />
                     <Box>
-                        <Avatar sx={{ width: 50, height: 50 }}>
+                        <Avatar>
                             <img src={profile_picture_url} alt={name} />
                         </Avatar>
                     </Box>
