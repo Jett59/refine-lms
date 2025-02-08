@@ -99,7 +99,7 @@ function CreateCourseTileButton({ onClick }: { onClick: (name: string) => void }
     }, [dialogOpen])
 
     return <>
-        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{ "aria-label": 'New course' }} />
+        <TileButton onClick={() => setDialogOpen(true)} text="+" buttonProps={{ "aria-label": 'Add course' }} />
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new course</DialogTitle>
             <DialogContent>
@@ -132,7 +132,7 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
     const [name, setName] = useState('')
 
     return <>
-        <Button aria-label={buttonText ?? 'New year group'} onClick={() => setDialogOpen(true)} {...buttonProps}>{buttonText ?? '+'}</Button>
+        <Button aria-label={buttonText ?? 'Add year group'} onClick={() => setDialogOpen(true)} {...buttonProps}>{buttonText ?? '+'}</Button>
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
