@@ -5,7 +5,7 @@ import { useError } from "./ErrorContext";
 import { useState } from "react";
 import { useSwitchSchool } from "./App";
 import SimpleMenu from "./SimpleMenu";
-import { Add, ExpandMore, House, More } from "@mui/icons-material";
+import { Add, ExpandMore, House } from "@mui/icons-material";
 
 const RefineLogo = () => {
     return (
