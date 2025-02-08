@@ -1,10 +1,11 @@
 import { Button, ButtonProps, Menu } from "@mui/material";
 import { ReactNode, useMemo, useState } from "react";
 
-export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAriaLabel, buttonProps }: {
+export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAriaLabel, rounded, buttonProps }: {
     buttonContents: ReactNode,
     childrenSupplier: (close: () => void) => ReactNode,
     buttonAriaLabel?: string
+    rounded?: boolean
     buttonProps?: ButtonProps
 }) {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
@@ -22,6 +23,8 @@ export default function SimpleMenu({ buttonContents, childrenSupplier, buttonAri
     return <>
         <Button
             {...buttonProps}
+            sx={rounded ? { borderRadius: '5em'} : undefined}
+            variant={rounded ? 'contained' : 'text'}
             aria-label={buttonAriaLabel}
             aria-controls={`simple-menu-${uniqueId}`}
             aria-haspopup="true"

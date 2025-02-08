@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, Menu, PostAdd } from "@mui/icons-material"
+import { AttachFile, ExpandMore, Menu, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -152,18 +152,33 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             // Set the default height to a certain number of lines
             inputProps={{ style: { lineHeight: '1.5em', minHeight: '6em' } }}
         />
-        {isStudent &&
-            <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
-                <FormControlLabel value="public" control={<Radio />} label="Public" />
-                <FormControlLabel value="private" control={<Radio />} label="Private" />
-            </RadioGroup>
-        }
-        {courseInfo &&
-            <SimpleMenu buttonContents={classInfo?.name ?? 'All classes'} childrenSupplier={close => [
-                <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
-                ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
-            ]} />
-        }
+        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            {isStudent &&
+                <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
+                    <FormControlLabel value="public" control={<Radio />} label="Public" />
+                    <FormControlLabel value="private" control={<Radio />} label="Private" />
+                </RadioGroup>
+            }
+            {courseInfo &&
+                <SimpleMenu
+                    buttonContents={classInfo?.name ?? 'All classes'}
+                    rounded
+                    buttonProps={{ endIcon: <ExpandMore /> }}
+                    childrenSupplier={close => [
+                        <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
+                        ...courseInfo.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>)
+                    ]}
+                />
+            }
+            <Tooltip title="Attach File">
+                <IconButton
+                    onClick={handleOpenPicker}
+                    disabled={disabled}
+                >
+                    <AttachFile />
+                </IconButton>
+            </Tooltip>
+        </Stack>
         {attachments.map(attachment => (
             <CreatePostFormAttachmentView
                 key={attachment.googleFileId}
@@ -172,14 +187,6 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 update={newAttachment => setAttachments(attachments => attachments.map(a => a === attachment ? newAttachment : a))}
             />
         ))}
-        <Tooltip title="Attach File">
-            <IconButton
-                onClick={handleOpenPicker}
-                disabled={disabled}
-            >
-                <AttachFile />
-            </IconButton>
-        </Tooltip>
         <Stack direction="row" spacing={2}>
             <Button variant="contained" onClick={() => onClick({
                 schoolId,
