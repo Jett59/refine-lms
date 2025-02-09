@@ -3,9 +3,10 @@ import { useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
-import { IconButton, Stack, Tooltip, Typography } from "@mui/material"
+import { Badge, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import Feed from "./Feed"
-import { People } from "@mui/icons-material"
+import { NotificationImportant, People } from "@mui/icons-material"
+import { getHasNotifications } from "./Class"
 
 export default function Course({ tab }: {
     tab: 'feed' | 'work',
@@ -20,16 +21,18 @@ export default function Course({ tab }: {
     useSetPageTitle(courseInfo?.name ?? '')
 
 useSetPageTitleButtons(() => {
-    if (schoolId && yearGroupId && courseId) {
-        return <Tooltip title="Classes">
+    if (schoolId && yearGroupId && courseId && courseInfo) {
+        return <Tooltip title={"Classes" + (getHasNotifications(courseInfo) ? ' (has notifications)' : '')}>
             <IconButton
             onClick={() => switchPage('classes', schoolId, yearGroupId, courseId)}
             >
+                <Badge badgeContent={getHasNotifications(courseInfo) ? <NotificationImportant /> : undefined}>
                 <People />
+                </Badge>
             </IconButton>
         </Tooltip>
     }
-}, [schoolId, yearGroupId, courseId])
+}, [schoolId, yearGroupId, courseId, courseInfo])
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Missing some ids?</Typography>

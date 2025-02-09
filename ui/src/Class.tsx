@@ -1,11 +1,19 @@
 import { useParams } from "react-router-dom"
 import { useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
-import { Typography } from "@mui/material"
+import { Badge, Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
-import { ClassInfo } from "../../data/school"
+import { ClassInfo, CourseInfo } from "../../data/school"
 import { useSwitchPage } from "./App"
 import TabPanel from "./TabPanel"
+
+function getClassNotificationCount(cls: ClassInfo) {
+    return cls.requestingStudentIds.length
+}
+
+export function getHasNotifications(course: CourseInfo) {
+    return course.classes.map(getClassNotificationCount).some(count => count > 0)
+}
 
 export default function Class() {
     const { schoolId, yearGroupId, courseId, classId } = useParams()
@@ -15,7 +23,7 @@ export default function Class() {
 
     const switchPage = useSwitchPage()
 
-    useSetPageTitle(currentClass?.name ?? '')
+    useSetPageTitle(course ? `Classes in ${course.name}` : '')
 
     if (!classId && course && course.classes.length > 0) {
         switchPage('', schoolId, yearGroupId, courseId, course.classes[0].id, true)
@@ -36,15 +44,13 @@ export default function Class() {
     return <TabPanel
         index={tabIndex}
         tabs={course.classes.map(cls => ({
-            label: cls.name,
+            label: <Badge badgeContent={getClassNotificationCount(cls) || undefined}>{cls.name}</Badge>,
+            ariaLabel: getClassNotificationCount(cls) ? `${cls.name} (${getClassNotificationCount(cls)})` : cls.name,
             onSelect: () => {
-                switchPage('', schoolId, yearGroupId, courseId, cls.id)
+                switchPage('', schoolId, yearGroupId, courseId, cls.id, true)
             },
+            heading: cls.name,
             value: <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={cls.id} />
         }))}
     />
-}
-
-export function getClassNotificationCount(cls: ClassInfo) {
-    return cls.requestingStudentIds.length
 }
