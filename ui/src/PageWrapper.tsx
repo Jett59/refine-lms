@@ -7,30 +7,33 @@ import { useUser } from "./UserContext";
 
 const paddingMargins = '10px';
 
-function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, isLast }: {
+function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, page, isLast }: {
     schoolId?: string
     yearGroupId?: string
     courseId?: string
     classId?: string
+    page?: string
     isLast?: boolean
 }) {
     const school = useRelevantSchoolInfo(schoolId)
     const yearGroup = yearGroupId ? school?.yearGroups.find(yearGroup => yearGroup.id === yearGroupId) : null
     const course = courseId ? yearGroup?.courses.find(course => course.id === courseId) : null
-    const cls = classId ? course?.classes.find(cls => cls.id === classId) : null
 
     let text
-    if (classId) {
-        text = cls?.name
-    } else if (courseId) {
-        text = course?.name
-    } else if (yearGroupId) {
-        text = yearGroup?.name
-    } else if (schoolId) {
-        text = school?.name
-    } else {
-        text = 'Schools'
-    }
+    if (page) {
+        text = page
+    } else if (classId) {
+        // All the classes are displayed on the same page, so we shouldn't put the class name in the breadcrumb
+            text = 'Classes'
+        } else if (courseId) {
+            text = course?.name
+        } else if (yearGroupId) {
+            text = yearGroup?.name
+        } else if (schoolId) {
+            text = school?.name
+        } else {
+            text = 'Schools'
+        }
     if (!text) {
         return <Typography>Loading...</Typography>
     }
@@ -41,18 +44,19 @@ function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, isLas
 }
 
 function PageWrapperBreadcrumbs() {
-    const { schoolId, yearGroupId, courseId, classId } = useLocationParts()
+    const { schoolId, yearGroupId, courseId, classId, page } = useLocationParts()
 
     if (!schoolId) {
         return null
     }
 
     return <Breadcrumbs aria-label="Breadcrumb">
-        <PageWrapperBreadcrumb isLast={!schoolId} />
-        {schoolId && <PageWrapperBreadcrumb schoolId={schoolId} isLast={!yearGroupId} />}
-        {yearGroupId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} isLast={!courseId} />}
-        {courseId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} isLast={!classId} />}
-        {classId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} classId={classId} isLast />}
+        <PageWrapperBreadcrumb isLast={!schoolId && !page} />
+        {schoolId && <PageWrapperBreadcrumb schoolId={schoolId} isLast={!yearGroupId && !page} />}
+        {yearGroupId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} isLast={!courseId && !page} />}
+        {courseId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} isLast={!classId && !page} />}
+        {classId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} classId={classId} isLast={!page} />}
+        {page && <PageWrapperBreadcrumb page={page} isLast />}
     </Breadcrumbs>
 }
 
