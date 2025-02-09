@@ -29,7 +29,7 @@ function App() {
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
-          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId" element={<Class />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId?" element={<Class />} />
         </Routes>
         :
         <Welcome />
@@ -53,6 +53,7 @@ export interface LocationParts {
   yearGroupId?: string
   courseId?: string
   classId?: string
+  page?: string
 }
 
 export function useLocationParts() {
@@ -70,6 +71,12 @@ export function useLocationParts() {
   }
   if (rawParts.length >= 8) {
     parts.classId = rawParts[7]
+  }
+  // So far, this is the only kind of page which should appear in the breadcrumb
+  // The feed/work tab uses a similar mechanism so this is hard to generalise
+  // TODO: work out a way of finding these out without hardcoding them
+  if (rawParts.length === 3 && rawParts[2] === 'people') {
+    parts.page = 'people'
   }
   return parts
 }

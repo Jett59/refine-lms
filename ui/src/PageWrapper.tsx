@@ -106,7 +106,9 @@ export function useSetPageTitle(title: string) {
     }, [changeTitle, title])
 }
 
-export function useSetPageTitleButtons(buttons: ReactNode) {
+export function useSetPageTitleButtons(buttonSupplier: () => ReactNode, deps: any[]) {
+    const buttons = useMemo(buttonSupplier, deps)
+
     const { changeTitleButtons } = useContext(PageWrapperContext)
     useEffect(() => {
         changeTitleButtons(buttons)
