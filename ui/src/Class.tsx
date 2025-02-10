@@ -7,13 +7,14 @@ import { ClassInfo, CourseInfo } from "../../data/school"
 import { useSwitchPage } from "./App"
 import TabPanel from "./TabPanel"
 import { useState } from "react"
+import { NotificationImportant } from "@mui/icons-material"
 
-function getClassNotificationCount(cls: ClassInfo) {
-    return cls.requestingStudentIds.length
+function getClassHasNotifications(cls: ClassInfo) {
+    return cls.requestingStudentIds.length > 0
 }
 
 export function getHasNotifications(course: CourseInfo) {
-    return course.classes.map(getClassNotificationCount).some(count => count > 0)
+    return course.classes.map(getClassHasNotifications).some(count => count)
 }
 
 function AddClassButton({ onClick }: {
@@ -75,8 +76,8 @@ export default function Class() {
     return <TabPanel
         index={tabIndex}
         tabs={course.classes.map(cls => ({
-            label: <Badge badgeContent={getClassNotificationCount(cls) || undefined}>{cls.name}</Badge>,
-            ariaLabel: getClassNotificationCount(cls) ? `${cls.name} (${getClassNotificationCount(cls)})` : cls.name,
+            label: <Badge badgeContent={getClassHasNotifications(cls) ? <NotificationImportant /> : undefined}><Typography padding={1}>{cls.name}</Typography></Badge>,
+            ariaLabel: getClassHasNotifications(cls) ? `${cls.name} (has notifications)` : cls.name,
             onSelect: () => {
                 switchPage('', schoolId, yearGroupId, courseId, cls.id, true)
             },

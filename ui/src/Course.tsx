@@ -3,7 +3,7 @@ import { useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
-import { Badge, IconButton, Stack, Tooltip, Typography } from "@mui/material"
+import { Badge, Box, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import Feed from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
 import { getHasNotifications } from "./Class"
@@ -27,7 +27,7 @@ useSetPageTitleButtons(() => {
             onClick={() => switchPage('classes', schoolId, yearGroupId, courseId)}
             >
                 <Badge badgeContent={getHasNotifications(courseInfo) ? <NotificationImportant /> : undefined}>
-                <People />
+                <Box padding={1}><People /></Box>
                 </Badge>
             </IconButton>
         </Tooltip>
