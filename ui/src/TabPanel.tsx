@@ -9,9 +9,10 @@ export interface TabPanelOption {
     value: ReactNode
 }
 
-export default function TabPanel({ index, tabs }: {
+export default function TabPanel({ index, tabs, endButton }: {
     index: number
     tabs: TabPanelOption[]
+    endButton?: ReactNode
 }) {
     const uniqueId = useMemo(() => Math.random().toString(36).substring(7), [])
 
@@ -20,6 +21,7 @@ export default function TabPanel({ index, tabs }: {
             {tabs.map((tab, i) => (
                 <Tab key={i} label={tab.label} aria-label={tab.ariaLabel} id={`tab-${uniqueId}-${i}`} />
             ))}
+            {endButton}
         </Tabs>
         <div role="tabpanel" aria-labelledby={`tab-${uniqueId}-${index}`}>
             {tabs[index].heading && <Typography variant="h4">{tabs[index].heading}</Typography>}
