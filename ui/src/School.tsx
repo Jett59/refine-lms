@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom"
-import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useSchoolStructure } from "./DataContext"
+import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole, useSchoolStructure } from "./DataContext"
 import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
@@ -215,6 +215,7 @@ export default function School() {
     const { schoolId, yearGroupId } = useParams()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const isAdministratorOrTeacher = useIsTeacherOrAdministrator(schoolInfo)
+    const isAdministrator = useRole(schoolInfo) === 'administrator'
     const { userId } = useUser()
     const { createYearGroup, createCourse } = useData()
     const switchPage = useSwitchPage()
@@ -273,7 +274,9 @@ return <Stack direction="column" spacing={2}>
         switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
     }} aria-label="Year groups">
         {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
-        {isAdministratorOrTeacher && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
+        // We don't let teachers create year groups because this could get messy
+        // Some of the teachers might try to create year groups unnecessarily, which would clutter the data model
+        {isAdministrator && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
     </Tabs>
     <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
         {coursesContainingUser.length > 0 && isAdministratorOrTeacher && <>
