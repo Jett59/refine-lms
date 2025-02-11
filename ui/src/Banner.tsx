@@ -27,9 +27,11 @@ function ErrorButton() {
             <Dialog open={open} onClose={() => setOpen(false)}>
                 <DialogTitle>Errors</DialogTitle>
                 <DialogContent>
-                    <ul>
-                        {errors.map((error, i) => <li key={i}>{error}</li>)}
-                    </ul>
+                    <Box padding={1}>
+                        <ul>
+                            {errors.map((error, i) => <li key={i}>{error}</li>)}
+                        </ul>
+                    </Box>
                 </DialogContent>
                 <DialogActions>
                     <Button variant="outlined" onClick={() => setOpen(false)}>Close</Button>
@@ -80,12 +82,14 @@ function SchoolSwitcher() {
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create a new school</DialogTitle>
             <DialogContent>
-                <TextField
-                    autoComplete="off"
-                    label="School name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                />
+                <Box padding={1}>
+                    <TextField
+                        autoComplete="off"
+                        label="School name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                    />
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setNameSelectorOpen(false)}>Cancel</Button>

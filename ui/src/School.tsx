@@ -106,29 +106,33 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new course</DialogTitle>
             <DialogContent>
-                <TextField
-                    autoComplete="off"
-                    label="Course name"
-                    value={courseName}
-                    onChange={e => setCourseName(e.target.value)}
-                    helperText="e.g. 'Software Engineering'"
-                />
+                <Box padding={1}>
+                    <TextField
+                        autoComplete="off"
+                        label="Course name"
+                        value={courseName}
+                        onChange={e => setCourseName(e.target.value)}
+                        helperText="e.g. 'Software Engineering'"
+                    />
+                </Box>
                 <Divider />
-                <TextField
-                    autoComplete="off"
-                    label="Class name"
-                    value={newClassName}
-                    onChange={e => setNewClassName(e.target.value)}
-                    helperText="e.g. '12SFW1'"
-                    onKeyPress={e => {
-                        if (e.key === 'Enter') {
-                            if (newClassName.trim() !== '') {
-                                setClassNames([...classNames, newClassName.trim()])
-                                setNewClassName('')
+                <Box padding={1}>
+                    <TextField
+                        autoComplete="off"
+                        label="Class name"
+                        value={newClassName}
+                        onChange={e => setNewClassName(e.target.value)}
+                        helperText="e.g. '12SFW1'"
+                        onKeyPress={e => {
+                            if (e.key === 'Enter') {
+                                if (newClassName.trim() !== '') {
+                                    setClassNames([...classNames, newClassName.trim()])
+                                    setNewClassName('')
+                                }
                             }
-                        }
-                    }}
-                />
+                        }}
+                    />
+                </Box>
                 <Button onClick={() => {
                     if (newClassName.trim() !== '') {
                         setClassNames([...classNames, newClassName.trim()])
@@ -191,13 +195,15 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
-                <TextField
-                    autoComplete="off"
-                    label="Year group name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    helperText="e.g. 'Year 12'"
-                />
+                <Box padding={1}>
+                    <TextField
+                        autoComplete="off"
+                        label="Year group name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        helperText="e.g. 'Year 12'"
+                    />
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
@@ -240,47 +246,59 @@ export default function School() {
         }
     }, [isAdministratorOrTeacher, schoolInfo, switchPage, schoolId])
 
-if (!schoolId) {
-    return <Typography>No school chosen?</Typography>
-}
-if (!schoolInfo) {
-    return <Typography>Loading...</Typography>
-}
-
-if (schoolInfo?.yearGroups.length === 0) {
-    if (isAdministratorOrTeacher) {
-        return <Box display="flex" sx={{ height: '500px' }} justifyContent="center" alignItems="center">
-            <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" buttonProps={{ variant: "contained" }} />
-        </Box>
+    if (!schoolId) {
+        return <Typography>No school chosen?</Typography>
     }
-    return <Typography>You are not currently a member of a class</Typography>
-}
-
-const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
-
-const coursesContainingUser = currentYearGroup.courses.filter(course => course.classes.some(cls => {
-    if (!userId) {
-        return false
+    if (!schoolInfo) {
+        return <Typography>Loading...</Typography>
     }
-    if (isAdministratorOrTeacher) {
-        return cls.teacherIds.includes(userId)
-    } else {
-        return cls.studentIds.includes(userId)
-    }
-}))
 
-return <Stack direction="column" spacing={2}>
-    <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
-        switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
-    }} aria-label="Year groups">
-        {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
+    if (schoolInfo?.yearGroups.length === 0) {
+        if (isAdministratorOrTeacher) {
+            return <Box display="flex" sx={{ height: '500px' }} justifyContent="center" alignItems="center">
+                <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" buttonProps={{ variant: "contained" }} />
+            </Box>
+        }
+        return <Typography>You are not currently a member of a class</Typography>
+    }
+
+    const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
+
+    const coursesContainingUser = currentYearGroup.courses.filter(course => course.classes.some(cls => {
+        if (!userId) {
+            return false
+        }
+        if (isAdministratorOrTeacher) {
+            return cls.teacherIds.includes(userId)
+        } else {
+            return cls.studentIds.includes(userId)
+        }
+    }))
+
+    return <Stack direction="column" spacing={2}>
+        <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
+            switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
+        }} aria-label="Year groups">
+            {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
         // We don't let teachers create year groups because this could get messy
-        // Some of the teachers might try to create year groups unnecessarily, which would clutter the data model
-        {isAdministrator && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
-    </Tabs>
-    <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
-        {coursesContainingUser.length > 0 && isAdministratorOrTeacher && <>
-            <Typography variant="h5">My Courses in {currentYearGroup.name}</Typography>
+            // Some of the teachers might try to create year groups unnecessarily, which would clutter the data model
+            {isAdministrator && <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} />}
+        </Tabs>
+        <div role="tabpanel" aria-labelledby={`year-group-tab-${currentYearGroup.id}`}>
+            {coursesContainingUser.length > 0 && isAdministratorOrTeacher && <>
+                <Typography variant="h5">My Courses in {currentYearGroup.name}</Typography>
+                <TileContainer>
+                    {currentYearGroup.courses.map(course =>
+                        <CourseView
+                            key={course.id}
+                            course={course}
+                            goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
+                        />
+                    )}
+                </TileContainer>
+                <Divider />
+            </>}
+            <Typography variant="h5">{coursesContainingUser.length > 0 && isAdministratorOrTeacher && 'All '}Courses in {currentYearGroup.name}</Typography>
             <TileContainer>
                 {currentYearGroup.courses.map(course =>
                     <CourseView
@@ -289,22 +307,10 @@ return <Stack direction="column" spacing={2}>
                         goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
+                {isAdministratorOrTeacher && <CreateCourseTileButton onClick={(name, initialClassNames) => createCourse(schoolId, currentYearGroup.id, name, initialClassNames)} />}
             </TileContainer>
             <Divider />
-        </>}
-        <Typography variant="h5">{coursesContainingUser.length > 0 && isAdministratorOrTeacher && 'All '}Courses in {currentYearGroup.name}</Typography>
-        <TileContainer>
-            {currentYearGroup.courses.map(course =>
-                <CourseView
-                    key={course.id}
-                    course={course}
-                    goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
-                />
-            )}
-            {isAdministratorOrTeacher && <CreateCourseTileButton onClick={(name, initialClassNames) => createCourse(schoolId, currentYearGroup.id, name, initialClassNames)} />}
-        </TileContainer>
-        <Divider />
-        <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
-    </div>
-</Stack>
+            <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
+        </div>
+    </Stack>
 }

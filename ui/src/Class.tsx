@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
-import { Badge, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
 import { ClassInfo, CourseInfo } from "../../data/school"
 import { useSwitchPage } from "./App"
@@ -28,7 +28,9 @@ function AddClassButton({ onClick }: {
         <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
             <DialogTitle>Create New Class</DialogTitle>
             <DialogContent>
-                <TextField label="Class Name" helperText="e.g. '12SFW1'" value={name} onChange={e => setName(e.target.value)} />
+                <Box padding={1}>
+                    <TextField label="Class Name" helperText="e.g. '12SFW1'" value={name} onChange={e => setName(e.target.value)} />
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setNameSelectorOpen(false)}>Cancel</Button>
@@ -36,7 +38,7 @@ function AddClassButton({ onClick }: {
                     setNameSelectorOpen(false)
                     setName('')
                     onClick(name)
-                    }}>Create</Button>
+                }}>Create</Button>
             </DialogActions>
         </Dialog>
     </>
@@ -44,7 +46,7 @@ function AddClassButton({ onClick }: {
 
 export default function Class() {
     const { schoolId, yearGroupId, courseId, classId } = useParams()
-    const {createClass} = useData()
+    const { createClass } = useData()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const course = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
     const currentClass = course?.classes.find(cls => cls.id === classId)

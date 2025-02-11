@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Avatar, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { Add, Menu, PersonAdd, Remove } from "@mui/icons-material";
@@ -84,8 +84,10 @@ function InviteToSchoolButton({ category, schoolInfo }: {
         <Dialog open={inviteDialogOpen} onClose={() => setInviteDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
-                <TextField inputRef={emailRef} type="email" autoComplete="off" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
-                {emailHasError && <Typography color="error">Please enter a valid email</Typography>}
+                <Box padding={1}>
+                    <TextField inputRef={emailRef} type="email" autoComplete="off" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                    {emailHasError && <Typography color="error">Please enter a valid email</Typography>}
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setInviteDialogOpen(false)}>Cancel</Button>
@@ -137,19 +139,21 @@ function AddToClassButton({ schoolInfo, yearGroupId, courseId, classId, classInf
         <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)}>
             <DialogContent>
                 <Typography variant="h4">Add to class</Typography>
-                <AccessibleAutocomplete
-                    options={(role === 'teacher'
-                        ? schoolInfo.teachers.concat(schoolInfo.administrators)
-                        : schoolInfo.students
-                    ).filter(user => !existingMembers.includes(user.id))} // Only show users who aren't already in the class
-                    getOptionLabel={user => `${user.name} (${user.email})`}
-                    onChange={newValue => setSelectedUser(newValue)}
-                    value={selectedUser}
-                    isOptionEqualToValue={(a, b) => a.id === b.id}
-                    inputRef={userSelectorRef}
-                    error={userSelectorHasError}
-                />
-                {userSelectorHasError && <Typography color="error">Please select a user</Typography>}
+                <Box padding={1}>
+                    <AccessibleAutocomplete
+                        options={(role === 'teacher'
+                            ? schoolInfo.teachers.concat(schoolInfo.administrators)
+                            : schoolInfo.students
+                        ).filter(user => !existingMembers.includes(user.id))} // Only show users who aren't already in the class
+                        getOptionLabel={user => `${user.name} (${user.email})`}
+                        onChange={newValue => setSelectedUser(newValue)}
+                        value={selectedUser}
+                        isOptionEqualToValue={(a, b) => a.id === b.id}
+                        inputRef={userSelectorRef}
+                        error={userSelectorHasError}
+                    />
+                    {userSelectorHasError && <Typography color="error">Please select a user</Typography>}
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setAddDialogOpen(false)}>Cancel</Button>
