@@ -16,7 +16,7 @@ export interface DataContextValue {
         id: string
     }[],
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
-    createSchool: (name: string) => Promise<void>
+    createSchool: (name: string) => Promise<string>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
     createCourse: (schoolId: string, yearGroupId: string, name: string, initialClassNames: string[]) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
@@ -41,7 +41,7 @@ const DataContext = createContext<DataContextValue>({
     joinedSchools: [],
     invitedSchools: [],
     getRelevantSchoolInfo: async () => null,
-    createSchool: async () => { },
+    createSchool: async () => '',
     createYearGroup: async () => { },
     createCourse: async () => { },
     createClass: async () => { },
@@ -118,9 +118,11 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             const response = await authenticatedAPIs.call<CreateSchoolResponse, CreateSchoolRequest>('POST', 'create-school', { name })
             if (isSuccessfulAPIResponse(response)) {
                 await updateVisibleSchoolList()
+                return response.body.createdId
             } else {
                 addAPIError(response)
             }
+            return null
         }, [authenticatedAPIs]),
         createYearGroup: useCallback(async (schoolId, name) => {
             const response = await authenticatedAPIs.call<CreateYearGroupResponse, CreateYearGroupRequest>('POST', 'create-year-group', { schoolId, name })
