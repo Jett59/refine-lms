@@ -31,7 +31,7 @@ export interface PostTemplate {
     courseId?: string
     classIds?: string[]
     private: boolean
-    type: 'post' | 'material' | 'assignment'
+    type: 'post' | 'assignment'
     title: string
     content: string
     attachments: AttachmentTemplate[]

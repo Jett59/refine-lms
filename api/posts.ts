@@ -14,7 +14,7 @@ export interface Post {
     courseId: ObjectId | null
     classIds: ObjectId[] | null
     private: boolean
-    type: 'post' | 'material' | 'assignment'
+    type: 'post' | 'assignment'
     title: string
     content: string
     attachments: Attachment[]
