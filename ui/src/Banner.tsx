@@ -117,7 +117,9 @@ function SchoolSwitcher() {
                     createSchool(name).then(id => {
                         setNameSelectorOpen(false)
                         setLoading(false)
-                        switchSchool(id)
+                        if (id) {
+                            switchSchool(id)
+                        }
                     })
                 }}>Create</Button>
             </DialogActions>

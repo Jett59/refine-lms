@@ -16,7 +16,7 @@ export interface DataContextValue {
         id: string
     }[],
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
-    createSchool: (name: string) => Promise<string>
+    createSchool: (name: string) => Promise<string | null>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
     createCourse: (schoolId: string, yearGroupId: string, name: string, initialClassNames: string[]) => Promise<void>
     createClass: (schoolId: string, yearGroupId: string, courseId: string, name: string) => Promise<void>
