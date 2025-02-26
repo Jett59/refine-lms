@@ -9,7 +9,7 @@ export interface PostInfo {
     courseId?: string
     classIds?: string[] // Leave out to post to all classes
     private: boolean
-    type: 'post' | 'material' | 'assignment'
+    type: 'post' | 'assignment'
     title: string
     content: string
     attachments: AttachmentInfo[]
@@ -25,13 +25,15 @@ export interface AttachmentInfo {
     accessLink?: string
 }
 
+export type PostType = 'post' | 'assignment'
+
 export interface PostTemplate {
     schoolId: string
     yearGroupId: string
     courseId?: string
     classIds?: string[]
     private: boolean
-    type: 'post' | 'assignment'
+    type: PostType
     title: string
     content: string
     attachments: AttachmentTemplate[]

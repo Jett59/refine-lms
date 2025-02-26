@@ -4,7 +4,7 @@ import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import TabPanel from "./TabPanel"
 import { useSwitchPage } from "./App"
 import { Badge, Box, IconButton, Stack, Tooltip, Typography } from "@mui/material"
-import Feed from "./Feed"
+import PostsList from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
 import { getHasNotifications } from "./Class"
 
@@ -20,19 +20,19 @@ export default function Course({ tab }: {
 
     useSetPageTitle(courseInfo?.name ?? '')
 
-useSetPageTitleButtons(() => {
-    if (schoolId && yearGroupId && courseId && courseInfo) {
-        return <Tooltip title={"Classes" + (getHasNotifications(courseInfo) ? ' (has notifications)' : '')}>
-            <IconButton
-            onClick={() => switchPage('classes', schoolId, yearGroupId, courseId)}
-            >
-                <Badge badgeContent={getHasNotifications(courseInfo) ? <NotificationImportant /> : undefined}>
-                <Box padding={1}><People /></Box>
-                </Badge>
-            </IconButton>
-        </Tooltip>
-    }
-}, [schoolId, yearGroupId, courseId, courseInfo])
+    useSetPageTitleButtons(() => {
+        if (schoolId && yearGroupId && courseId && courseInfo) {
+            return <Tooltip title={"Classes" + (getHasNotifications(courseInfo) ? ' (has notifications)' : '')}>
+                <IconButton
+                    onClick={() => switchPage('classes', schoolId, yearGroupId, courseId)}
+                >
+                    <Badge badgeContent={getHasNotifications(courseInfo) ? <NotificationImportant /> : undefined}>
+                        <Box padding={1}><People /></Box>
+                    </Badge>
+                </IconButton>
+            </Tooltip>
+        }
+    }, [schoolId, yearGroupId, courseId, courseInfo])
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Missing some ids?</Typography>
@@ -49,13 +49,12 @@ useSetPageTitleButtons(() => {
             {
                 label: 'Feed',
                 onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, true),
-                value: <Feed schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
+                value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="feed" />
             },
             {
                 label: 'Work',
-                heading: `Work for ${courseInfo.name}`,
                 onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, undefined, true),
-                value: 'work'
+                value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="work" />
             }
         ]} />
     </Stack>

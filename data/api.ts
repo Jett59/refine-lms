@@ -1,6 +1,6 @@
 import { SchoolInfo, SchoolStructure } from "./school"
 import { UserInfo } from "./user"
-import { PostInfo, PostTemplate } from "./post"
+import { PostInfo, PostTemplate, PostType } from "./post"
 
 export interface GoogleTokenResponse {
     accessToken: string
@@ -164,6 +164,8 @@ export interface ListPostsRequest {
     yearGroupId: string
     courseId?: string
     classIds?: string[] // Leave out to post to all classes
+
+    postTypes?: PostType[]
 }
 export interface ListPostsResponse {
     posts: PostInfo[]

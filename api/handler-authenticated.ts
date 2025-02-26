@@ -420,7 +420,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!school) {
                     return errorResponse(404, `School not found or user does not have access`)
                 }
-                const posts = await listPosts(db, school, user._id!, beforeDate, typedBody.limit, yearGroupObjectId, courseObjectId, classObjectIds)
+                const posts = await listPosts(db, school, user._id!, beforeDate, typedBody.limit, yearGroupObjectId, courseObjectId, classObjectIds, typedBody.postTypes)
                 return successResponse<ListPostsResponse>(posts)
             }
             case "/attachment-link": {

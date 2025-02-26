@@ -9,7 +9,7 @@ import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
-import Feed from "./Feed"
+import PostsList from "./Feed"
 
 function JoinClassButton({ schoolInfo, }: {
     schoolInfo: SchoolInfo
@@ -310,7 +310,7 @@ export default function School() {
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={(name, initialClassNames) => createCourse(schoolId, currentYearGroup.id, name, initialClassNames)} />}
             </TileContainer>
             <Divider />
-            <Feed schoolId={schoolId} yearGroupId={currentYearGroup.id} />
+            <PostsList schoolId={schoolId} yearGroupId={currentYearGroup.id} listType="feed" />
         </div>
     </Stack>
 }

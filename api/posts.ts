@@ -1,6 +1,6 @@
 import { Db, Filter, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
-import { PostInfo, PostTemplate } from "../data/post"
+import { PostInfo, PostTemplate, PostType } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, getFileLink, prepareAttachments } from "./google-drive"
@@ -190,7 +190,7 @@ export async function createPost(db: Db, school: School, post: Post) {
     return response.insertedId
 }
 
-export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined): Promise<ListPostsResponse> {
+export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined, postTypes: PostType[] | undefined): Promise<ListPostsResponse> {
     if (!canViewPosts(db, userId, school, yearGroupId, courseId)) {
         return { posts: [], isEnd: true }
     }
@@ -217,6 +217,8 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         ]
     }
 
+const postTypeFilter: Filter<Post> = postTypes ? {type: {$in: postTypes}} : {}
+
     const collection = getCollection(db)
     const filter = {
         postDate: { $lt: beforeDate ?? new Date() },
@@ -225,6 +227,7 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         $and: [
             studentFilter,
             classFilter,
+            postTypeFilter,
         ],
         ...courseId ? { courseId } : { courseId: null },
     }

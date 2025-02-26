@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
-import { PostInfo, PostTemplate } from "../../data/post"
+import { PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
 import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
@@ -30,7 +30,7 @@ export interface DataContextValue {
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
 
     createPost: (post: PostTemplate, googleAccessToken: string) => Promise<void>
-    listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<{
+    listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[], postTypes?: PostType[]) => Promise<{
         posts: PostInfo[]
         isEnd: boolean
     } | null>
@@ -220,8 +220,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs]),
-        listPosts: useCallback(async (beforeDate, limit, schoolId, yearGroupId, courseId, classIds) => {
-            const response = await authenticatedAPIs.call<ListPostsResponse, ListPostsRequest>('POST', 'list-posts', { beforeDate: beforeDate ?? undefined, limit, schoolId, yearGroupId, courseId, classIds })
+        listPosts: useCallback(async (beforeDate, limit, schoolId, yearGroupId, courseId, classIds, postTypes) => {
+            const response = await authenticatedAPIs.call<ListPostsResponse, ListPostsRequest>('POST', 'list-posts', { beforeDate: beforeDate ?? undefined, limit, schoolId, yearGroupId, courseId, classIds, postTypes })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body
             } else {

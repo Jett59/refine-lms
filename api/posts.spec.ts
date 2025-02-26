@@ -147,7 +147,7 @@ describe("Posts", () => {
         expect(post1Id).not.toBeNull()
         expect(post2Id).not.toBeNull()
 
-        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined)
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined, undefined)
         expect(posts1.posts).toEqual([{
             id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
@@ -169,7 +169,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
-        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, undefined, undefined)
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, undefined, undefined, undefined)
         expect(posts2.posts).toEqual([{
             id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
@@ -191,7 +191,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
 
-        const posts3 = await listPosts(db, school, user1, date1, 1, yearGroupId, undefined, undefined)
+        const posts3 = await listPosts(db, school, user1, date1, 1, yearGroupId, undefined, undefined, undefined)
         expect(posts3.posts).toEqual([])
         expect(posts3.isEnd).toBe(true)
     })
@@ -231,7 +231,7 @@ describe("Posts", () => {
         expect(post1Id).not.toBeNull()
         expect(post2Id).not.toBeNull
 
-        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined, undefined)
         expect(posts1.posts).toEqual([{
             id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
@@ -253,7 +253,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
-        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, undefined)
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, undefined, undefined)
         expect(posts2.posts).toEqual([{
             id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
@@ -294,7 +294,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
 
-        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
@@ -317,7 +317,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
 
-        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined)
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, undefined, undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
@@ -357,7 +357,7 @@ describe("Posts", () => {
         expect(post1Id).not.toBeNull()
         expect(post2Id).not.toBeNull
 
-        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts1.posts).toEqual([{
             id: post2Id!.toHexString(),
             postDate: post2.postDate.toISOString(),
@@ -379,7 +379,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
-        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, [classId])
+        const posts2 = await listPosts(db, school, user1, date2, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts2.posts).toEqual([{
             id: post1Id!.toHexString(),
             postDate: post1.postDate.toISOString(),
@@ -421,7 +421,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts.posts).toEqual([{
             id: postId!.toHexString(),
             postDate: post.postDate.toISOString(),
@@ -462,7 +462,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
 
-        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined)
+        const posts = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
@@ -485,10 +485,10 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
 
-        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId])
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts1.posts.length).toBe(1)
 
-        const posts2 = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
+        const posts2 = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts2.posts.length).toBe(0)
     })
     it("Should let non-students view private posts", async () => {
@@ -510,7 +510,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
 
-        const posts = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId])
+        const posts = await listPosts(db, school, user2, null, 1, yearGroupId, courseId, [classId], undefined)
         expect(posts.posts.length).toBe(1)
     })
     it("Should not create posts for non-existent year groups", async () => {
@@ -609,7 +609,7 @@ describe("Posts", () => {
     })
     it("Should return an empty list for non-existant year groups", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
-        const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined)
+        const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
@@ -766,5 +766,63 @@ describe("Posts", () => {
         })
         expect(link4).toBe('https://example.com/2')
         expect(called).toBeFalsy()
+    })
+    it("Should filter based on post type", async () => {
+        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date1 = new Date('2025-01-14T23:22:43.157Z')
+        const date2 = new Date('2025-01-15T23:22:43.157Z')
+
+        const post1: Post = {
+            postDate: date1,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const post2: Post = {
+            postDate: date2,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'World',
+            content: 'World Hello',
+            attachments: []
+        }
+        const post1Id = await createPost(db, school, post1)
+        const post2Id = await createPost(db, school, post2)
+        expect(post1Id).not.toBeNull()
+        expect(post2Id).not.toBeNull
+
+        const posts1 = await listPosts(db, school, user1, null, 1, yearGroupId, courseId, undefined, ['assignment'])
+        expect(posts1.posts).toEqual([{
+            id: post1Id!.toHexString(),
+            postDate: post1.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo])
+        expect(posts1.isEnd).toBe(true)
     })
 })

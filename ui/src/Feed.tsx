@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import { AttachFile, ExpandMore, Menu, PostAdd } from "@mui/icons-material"
-import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo } from "../../data/post"
+import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
 import { CourseInfo, SchoolInfo } from "../../data/school"
@@ -222,10 +222,11 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
     </Paper>
 }
 
-export default function Feed({ schoolId, yearGroupId, courseId }: {
+export default function PostsList({ schoolId, yearGroupId, courseId, listType }: {
     schoolId: string
     yearGroupId: string
     courseId?: string
+    listType: 'feed' | 'work'
 }) {
     const { createPost, listPosts } = useData()
     const { getGoogleAccessToken } = useUser()
@@ -248,11 +249,14 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
 
     const [posting, setPosting] = useState(false)
 
+const visiblePostTypes: PostType[] | undefined = listType === 'work' ? ['assignment'] : undefined
+const postTypeForCreation: PostType = listType === 'feed' : 'post' : 'assignment'
+
     const refreshPostsList = async () => {
         if (!loading) {
             setPosts([])
             setLoading(true)
-            const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds)
+            const result = await listPosts(null, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds, visiblePostTypes)
             if (result) {
                 setPosts(result.posts)
                 setIsEnd(result.isEnd)
@@ -262,13 +266,9 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
             setLoading(false)
         }
     }
-    if (classIds) {
-        console.log(classIds)
-    }
+
     useEffect(() => {
-        console.log('AAA')
         if (posts.length < BATCH_SIZE && schoolInfo) {
-            console.log('BBB', classIds)
             refreshPostsList()
         }
     }, [schoolId, yearGroupId, courseId, classIds, schoolInfo])
@@ -279,7 +279,7 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
                 await refreshPostsList()
             } else {
                 setLoading(true)
-                const result = await listPosts(posts[posts.length - 1].postDate, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds)
+                const result = await listPosts(posts[posts.length - 1].postDate, BATCH_SIZE, schoolId, yearGroupId, courseId, classIds, visiblePostTypes)
                 if (result) {
                     setPosts([...posts, ...result.posts])
                     setIsEnd(result.isEnd)
@@ -306,7 +306,12 @@ export default function Feed({ schoolId, yearGroupId, courseId }: {
 
     return <Stack direction="column" spacing={2} padding={2}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h5">Posts to {containerName}</Typography>
+            <Typography variant="h5">
+                {listType === 'feed'
+                    ? `Posts to ${containerName}`
+                    : `Work for ${containerName}`
+                }
+            </Typography>
             {createPostButton}
         </Stack>
         {creatingPost &&
