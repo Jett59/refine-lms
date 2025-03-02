@@ -309,8 +309,10 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
         return <Typography>Loading...</Typography>
     }
 
-    const createPostButton = <Tooltip title="Create Post">
-        {canCreateAssignments ?
+const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Students can't post work
+
+    const createPostButton = <Tooltip title={listType === 'feed' ? "Create Post" : "Create Assignment"}>
+        {canCreateAssignments && listType === 'feed' ?
             <SimpleMenu
                 buttonAriaLabel="Create Post"
                 buttonContents={<PostAdd />}
@@ -322,7 +324,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
             />
             :
             <IconButton
-                onClick={() => { setPostTypeForCreation('post'); setCreatingPost(true) }}
+                onClick={() => { setPostTypeForCreation(listType === 'feed' ? 'post' : 'assignment'); setCreatingPost(true) }}
                 disabled={creatingPost}
             >
                 <PostAdd />
@@ -331,14 +333,14 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     </Tooltip>
 
     return <Stack direction="column" spacing={2} padding={2}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" justifyContent={canCreatePosts ? "space-between" : "normal"} alignItems="center">
             <Typography variant="h5">
                 {listType === 'feed'
                     ? `Posts to ${containerName}`
                     : `Work for ${containerName}`
                 }
             </Typography>
-            {createPostButton}
+            {canCreatePosts && createPostButton}
         </Stack>
         {creatingPost &&
             <CreatePostForm
@@ -365,9 +367,16 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
                 close={() => setCreatingPost(false)}
             />
         }
-        {posts.length === 0 && !loading && !creatingPost &&
-            <Typography>No posts yet. Click {createPostButton} to create the first one.</Typography>
-        }
+        {posts.length === 0 && !loading && !creatingPost &&(
+        listType === 'feed' ? 
+                    <Typography>No posts yet. Click {createPostButton} to create the first one.</Typography>
+                    :
+                    (isTeacherOrAdministrator ?
+                    <Typography>No work yet. Click {createPostButton} to create the first assignment.</Typography>
+                    :
+                    <Typography>No work yet.</Typography>
+                    )
+        )}
         <InfiniteScroll
             dataLength={posts.length}
             next={fetchMore}
