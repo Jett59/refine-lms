@@ -89,12 +89,13 @@ function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: 
     </Stack >
 }
 
-function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, disabled, onClick, close }: {
+function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, postType, disabled, onClick, close }: {
     schoolId: string
     schoolInfo: SchoolInfo
     yearGroupId: string
     courseId?: string
     courseInfo?: CourseInfo
+    postType: PostType
     disabled?: boolean
     onClick: (post: PostTemplate) => void
     close: () => void
@@ -148,7 +149,6 @@ useEffect(() => {
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
         <TextField
-            autoFocus
             autoComplete="off"
             label="Title"
             value={title}
@@ -205,7 +205,7 @@ useEffect(() => {
                 yearGroupId,
                 courseId,
                 classIds: classId ? [classId] : undefined,
-                type: 'post',
+                type: postType,
                 private: isPrivate,
                 title,
                 content,
@@ -264,7 +264,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
     const canCreateAssignments = isTeacherOrAdministrator && courseId
 
-    const visiblePostTypes: PostType[] | undefined = listType === 'work' ? ['assignment'] : undefined
+    const visiblePostTypes: PostType[] | undefined = useMemo(() => listType === 'work' ? ['assignment'] : undefined, [listType])
 
     const refreshPostsList = async () => {
         if (!loading) {
@@ -282,10 +282,10 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     }
 
     useEffect(() => {
-        if (posts.length < BATCH_SIZE && schoolInfo) {
+        if (schoolInfo) {
             refreshPostsList()
         }
-    }, [schoolId, yearGroupId, courseId, classIds, schoolInfo])
+    }, [schoolId, yearGroupId, courseId, classIds, schoolInfo, visiblePostTypes])
 
     const fetchMore = async () => {
         if (!isEnd && !loading) {
@@ -349,6 +349,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
                 yearGroupId={yearGroupId}
                 courseId={courseId}
                 courseInfo={course}
+                postType={postTypeForCreation ?? 'post'}
                 onClick={async (post) => {
                     setPosting(true)
                     const googleAccessToken = await getGoogleAccessToken()

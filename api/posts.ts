@@ -217,7 +217,9 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         ]
     }
 
-const postTypeFilter: Filter<Post> = postTypes ? {type: {$in: postTypes}} : {}
+const postTypeFilter: Filter<Post> = postTypes ? {
+        type: { $in: postTypes }
+    } : {}
 
     const collection = getCollection(db)
     const filter = {
