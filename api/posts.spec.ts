@@ -825,4 +825,24 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts1.isEnd).toBe(true)
     })
+    it("Should not let students create assignments", async() => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-03-02T04: 21: 17.490Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: [classId],
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).toBeNull()
+    })
 })

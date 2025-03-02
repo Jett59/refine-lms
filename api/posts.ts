@@ -186,6 +186,10 @@ export async function createPost(db: Db, school: School, post: Post) {
             postCopy.classIds = filterClassList(post.posterId, school, course, post.classIds)
         }
     }
+    // Students can't create assignments
+    if (school.studentIds.some(studentId => studentId.equals(post.posterId)) && post.type === 'assignment') {
+        return null
+    }
     const response = await getCollection(db).insertOne(postCopy)
     return response.insertedId
 }
