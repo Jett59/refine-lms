@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import { useData, useRelevantSchoolInfo, useRole } from "./DataContext"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import { AttachFile, ExpandMore, Menu, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
@@ -134,6 +134,17 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         })
     }
 
+const titleRef = useRef<HTMLInputElement>(null)
+
+// The autoFocus prop doesn't always work, so we use a ref to focus the title field
+useEffect(() => {
+    // Add a delay to ensure all other focus events have finished
+    const timeout = setTimeout(() => {
+        titleRef.current?.focus()
+    }, 0) // 0ms so it happens when the event loop is free
+    return () => clearTimeout(timeout)
+}, [])
+
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
         <TextField
@@ -143,6 +154,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             value={title}
             onChange={e => setTitle(e.target.value)}
             sx={{ maxWidth: '50em' }}
+            inputRef={titleRef}
         />
         <TextField
             multiline
@@ -248,9 +260,11 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     const containerName = course?.name ?? yearGroup?.name
 
     const [posting, setPosting] = useState(false)
+    const [postTypeForCreation, setPostTypeForCreation] = useState<PostType | undefined>(undefined)
+    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
+    const canCreateAssignments = isTeacherOrAdministrator && courseId
 
-const visiblePostTypes: PostType[] | undefined = listType === 'work' ? ['assignment'] : undefined
-const postTypeForCreation: PostType = listType === 'feed' : 'post' : 'assignment'
+    const visiblePostTypes: PostType[] | undefined = listType === 'work' ? ['assignment'] : undefined
 
     const refreshPostsList = async () => {
         if (!loading) {
@@ -296,12 +310,24 @@ const postTypeForCreation: PostType = listType === 'feed' : 'post' : 'assignment
     }
 
     const createPostButton = <Tooltip title="Create Post">
-        <IconButton
-            disabled={creatingPost}
-            onClick={() => setCreatingPost(true)}
-        >
-            <PostAdd />
-        </IconButton>
+        {canCreateAssignments ?
+            <SimpleMenu
+                buttonAriaLabel="Create Post"
+                buttonContents={<PostAdd />}
+                buttonProps={{ disabled: creatingPost }}
+                childrenSupplier={close => [
+                    <MenuItem key="post" onClick={() => { setPostTypeForCreation('post'); setCreatingPost(true); close() }}>Post</MenuItem>,
+                    <MenuItem key="assignment" onClick={() => { setPostTypeForCreation('assignment'); setCreatingPost(true); close() }}>Assignment</MenuItem>,
+                ]}
+            />
+            :
+            <IconButton
+                onClick={() => { setPostTypeForCreation('post'); setCreatingPost(true) }}
+                disabled={creatingPost}
+            >
+                <PostAdd />
+            </IconButton>
+        }
     </Tooltip>
 
     return <Stack direction="column" spacing={2} padding={2}>
@@ -316,6 +342,7 @@ const postTypeForCreation: PostType = listType === 'feed' : 'post' : 'assignment
         </Stack>
         {creatingPost &&
             <CreatePostForm
+            key="Create post form"
                 disabled={posting}
                 schoolId={schoolId}
                 schoolInfo={schoolInfo}
