@@ -11,6 +11,7 @@ import Class from './Class'
 import PageWrapper from './PageWrapper';
 import Course from './Course';
 import Post from './Post';
+import CreateAssignment from './CreateAssignment';
 
 function App() {
   const theme = createTheme();
@@ -31,6 +32,7 @@ function App() {
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/create-assignment" element={<CreateAssignment />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId?" element={<Class />} />
         </Routes>

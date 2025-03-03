@@ -13,7 +13,7 @@ import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
-import { getLocation } from "./App"
+import { getLocation, useSwitchPage } from "./App"
 import { Link } from "react-router-dom"
 
 export function AttachmentView({ schoolId, postId, attachment }: {
@@ -42,7 +42,7 @@ export function AttachmentView({ schoolId, postId, attachment }: {
     >{attachment.title}</Button>
 }
 
-function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: {
+export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: {
     attachmentTemplate: AttachmentTemplate
     onRemove: () => void
     update: (attachment: AttachmentTemplate) => void
@@ -91,6 +91,45 @@ function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: 
     </Stack >
 }
 
+export function CreatePostFormAddAttachmentButton({disabled, addAttachments}: {
+    disabled?: boolean
+    addAttachments: (attachments: AttachmentTemplate[]) => void
+}) {
+    const [openPicker, _authResponse] = useDrivePicker()
+    const { getGoogleAccessToken } = useUser()
+    const handleOpenPicker = async () => {
+        openPicker({
+            clientId: GOOGLE_CLIENT_ID,
+            developerKey: GOOGLE_DRIVE_DEVELOPER_KEY,
+            token: await getGoogleAccessToken() ?? undefined,
+            appId: GOOGLE_PROJECT_NUMBER,
+            showUploadView: true,
+            callbackFunction: (data: PickerCallback) => {
+                if (data.action === 'picked') {
+                    addAttachments(data.docs.map(doc => ({
+                        title: doc.name,
+                        mimeType: doc.mimeType,
+                        shareMode: 'shared' as 'shared',
+                        othersCanEdit: false,
+                        host: 'google' as 'google',
+                        googleFileId: doc.id,
+                        thumbnail: doc.iconUrl,
+                    })))
+                }
+            }
+        })
+    }
+
+    return <Tooltip title="Attach File">
+        <IconButton
+            onClick={handleOpenPicker}
+            disabled={disabled}
+        >
+            <AttachFile />
+        </IconButton>
+    </Tooltip>
+}
+
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, postType, disabled, onClick, close }: {
     schoolId: string
     schoolInfo: SchoolInfo
@@ -111,31 +150,6 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
     const classInfo = courseInfo?.classes.find(c => c.id === classId)
 
     const isStudent = useRole(schoolInfo) === 'student'
-
-    const [openPicker, _authResponse] = useDrivePicker()
-    const { getGoogleAccessToken } = useUser()
-    const handleOpenPicker = async () => {
-        openPicker({
-            clientId: GOOGLE_CLIENT_ID,
-            developerKey: GOOGLE_DRIVE_DEVELOPER_KEY,
-            token: await getGoogleAccessToken() ?? undefined,
-            appId: GOOGLE_PROJECT_NUMBER,
-            showUploadView: true,
-            callbackFunction: (data: PickerCallback) => {
-                if (data.action === 'picked') {
-                    setAttachments(attachments => [...attachments, ...data.docs.map(doc => ({
-                        title: doc.name,
-                        mimeType: doc.mimeType,
-                        shareMode: 'shared' as 'shared',
-                        othersCanEdit: false,
-                        host: 'google' as 'google',
-                        googleFileId: doc.id,
-                        thumbnail: doc.iconUrl,
-                    }))])
-                }
-            }
-        })
-    }
 
     const titleRef = useRef<HTMLInputElement>(null)
 
@@ -184,14 +198,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                     ]}
                 />
             }
-            <Tooltip title="Attach File">
-                <IconButton
-                    onClick={handleOpenPicker}
-                    disabled={disabled}
-                >
-                    <AttachFile />
-                </IconButton>
-            </Tooltip>
+            <CreatePostFormAddAttachmentButton disabled={disabled} addAttachments={attachments => setAttachments(oldAttachments => [...oldAttachments, ...attachments])} />
         </Stack>
         {attachments.map(attachment => (
             <CreatePostFormAttachmentView
@@ -231,7 +238,7 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
         <Stack direction="column" padding={2} spacing={2}>
             {isAssignment
                 ? <Typography variant="h6"><Link to={postLocation}>{post.title}</Link></Typography>
-            : <Typography variant="h6">{post.title}</Typography>
+                : <Typography variant="h6">{post.title}</Typography>
             }
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} />
@@ -320,6 +327,8 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
         }
     }
 
+    const switchPage = useSwitchPage()
+
     if (!schoolInfo) {
         return <Typography>Loading...</Typography>
     }
@@ -327,8 +336,12 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Students can't post work
 
     const onCreatePostButtonClicked = (postType: PostType) => {
-        setPostTypeForCreation(postType)
-        setCreatingPost(true)
+        if (postType === 'assignment') {
+            switchPage('create-assignment', schoolId, yearGroupId, courseId)
+        } else {
+            setPostTypeForCreation(postType)
+            setCreatingPost(true)
+        }
     }
 
     const createPostButton = <Tooltip title={listType === 'feed' ? "Create Post" : "Create Assignment"}>

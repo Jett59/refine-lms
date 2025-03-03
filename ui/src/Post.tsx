@@ -19,6 +19,7 @@ export default function Post() {
             if (courseId) {
                 classIds = getVisibleClassIds(school, yearGroupId, courseId)
             }
+            setPostInfo(null)
             getPost(postId, schoolId, yearGroupId, courseId, classIds).then(postInfo => {
                 if (postInfo) {
                     setPostInfo(postInfo)

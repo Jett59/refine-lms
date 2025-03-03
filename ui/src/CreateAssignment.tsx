@@ -1,0 +1,107 @@
+import { Box, Button, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { useSetPageTitle } from "./PageWrapper"
+import { useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { useData, useRelevantSchoolInfo } from "./DataContext"
+import SimpleMenu from "./SimpleMenu"
+import { ExpandMore } from "@mui/icons-material"
+import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
+import { AttachmentTemplate } from "../../data/post"
+import { useUser } from "./UserContext"
+
+export default function CreateAssignment() {
+    const { schoolId, yearGroupId, courseId } = useParams()
+    const { createPost } = useData()
+    const { getGoogleAccessToken } = useUser()
+    const school = useRelevantSchoolInfo(schoolId)
+    const course = school?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
+
+    const navigate = useNavigate()
+
+    useSetPageTitle('Create Assignment')
+
+    const theme = useTheme()
+    const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
+
+    const [disabled, setDisabled] = useState(false)
+
+    const [title, setTitle] = useState('')
+    const [content, setContent] = useState('')
+    const [classId, setClassId] = useState<string | undefined>(undefined)
+    const classInfo = course?.classes.find(cls => cls.id === classId)
+    const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
+
+if (!schoolId || !yearGroupId || !courseId) {
+    return <Typography>Not found</Typography>
+}
+
+    return <Stack direction="column">
+        <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
+            <Box flex={3}>
+                <TextField autoFocus autoComplete="off" value={title} onChange={e => setTitle(e.target.value)} label="Title" />
+                <Typography variant="h4">Instructions</Typography>
+                <TextField
+                    multiline
+                    fullWidth
+                    value={content}
+                    onChange={e => setContent(e.target.value)}
+                    inputProps={{ style: { lineHeight: '1.5em', minHeight: '18em' } }}
+                />
+                <Stack direction="row">
+                    <SimpleMenu
+                        buttonContents={classInfo?.name ?? 'All classes'}
+                        rounded
+                        buttonProps={{ endIcon: <ExpandMore /> }}
+                        childrenSupplier={close => [
+                            <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
+                            ...course?.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>) ?? []
+                        ]}
+                    />
+                    <CreatePostFormAddAttachmentButton disabled={disabled} addAttachments={attachments => setAttachments(oldAttachments => [...oldAttachments, ...attachments])} />
+                </Stack>
+                {attachments.map(attachment => (
+                    <CreatePostFormAttachmentView
+                        key={attachment.googleFileId}
+                        attachmentTemplate={attachment}
+                        onRemove={() => setAttachments(attachments => attachments.filter(a => a !== attachment))}
+                        update={newAttachment => setAttachments(attachments => attachments.map(a => a === attachment ? newAttachment : a))}
+                    />
+                ))}
+            </Box>
+            <Box flex={1}>
+                <Typography variant="h4">Marking criteria (coming soon)</Typography>
+            </Box>
+        </Stack>
+        <Stack direction="row" justifyContent="end">
+            <Button
+                variant="outlined"
+                disabled={disabled}
+                onClick={() => navigate(-1)}
+            >Cancel</Button>
+            <Button
+                variant="contained"
+                disabled={disabled}
+                onClick={async () => {
+                    setDisabled(true)
+                    const googleAccessToken = await getGoogleAccessToken()
+                    if (googleAccessToken) {
+                    await createPost({
+                        schoolId,
+                        yearGroupId,
+                        courseId,
+                        classIds: classId ? [classId] : undefined,
+                        type: 'assignment',
+                        private: false,
+                        title,
+                        content,
+                        attachments
+                    }, googleAccessToken)
+                        navigate(-1)
+                }else {
+                    setDisabled(false)
+                }
+                }}
+            >Assign</Button>
+        </Stack>
+    </Stack>
+}
