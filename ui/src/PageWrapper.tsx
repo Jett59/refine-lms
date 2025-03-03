@@ -1,7 +1,7 @@
 import { Box, Breadcrumbs, Paper, Stack, Typography, useTheme } from "@mui/material"
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react"
 import { getLocation, useLocationParts } from "./App";
-import { useData, useRelevantSchoolInfo } from "./DataContext";
+import { getVisibleClassIds, useData, useRelevantSchoolInfo } from "./DataContext";
 import { Link } from "react-router-dom";
 import { useUser } from "./UserContext";
 
@@ -23,8 +23,12 @@ function PageWrapperBreadcrumb({ schoolId, yearGroupId, courseId, classId, postI
 
 const [postTitle, setPostTitle] = useState<string | null>(null)
 useEffect(() => {
-    if (schoolId && yearGroupId && postId) {
-        getPost(postId, schoolId, yearGroupId, courseId,).then(post => {
+    if (school && schoolId && yearGroupId && postId) {
+        let classIds
+        if (courseId) {
+            classIds = getVisibleClassIds(school, yearGroupId, courseId)
+        }
+        getPost(postId, schoolId, yearGroupId, courseId, classIds).then(post => {
             if (post) {
                 setPostTitle(post.title)
             }

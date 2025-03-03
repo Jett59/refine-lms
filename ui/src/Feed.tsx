@@ -16,7 +16,7 @@ import { useError } from "./ErrorContext"
 import { getLocation } from "./App"
 import { Link } from "react-router-dom"
 
-function AttachmentView({ schoolId, postId, attachment }: {
+export function AttachmentView({ schoolId, postId, attachment }: {
     schoolId: string
     postId: string
     attachment: AttachmentInfo

@@ -10,6 +10,7 @@ import { SchoolPeoplePage } from './People';
 import Class from './Class'
 import PageWrapper from './PageWrapper';
 import Course from './Course';
+import Post from './Post';
 
 function App() {
   const theme = createTheme();
@@ -26,9 +27,11 @@ function App() {
           <Route path="/:schoolId" element={<School />} ></Route>
           <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
           <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
+          <Route path="/:schoolId/years/:yearGroupId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId?" element={<Class />} />
         </Routes>
         :

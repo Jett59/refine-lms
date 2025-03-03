@@ -313,3 +313,7 @@ export function useSchoolStructure(schoolId: string): SchoolStructure | null {
 
     return structure
 }
+
+export function getVisibleClassIds(school: SchoolInfo, yearGroupId: string, courseId: string): string[] {
+    return school.yearGroups.find(yearGroup => yearGroup.id === yearGroupId)?.courses.find(course => course.id === courseId)?.classes.map(cls => cls.id) ?? []
+}
