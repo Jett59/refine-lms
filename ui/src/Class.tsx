@@ -58,7 +58,7 @@ export default function Class() {
     useSetPageTitle(course ? `Classes in ${course.name}` : '')
 
     if (!classId && course && course.classes.length > 0) {
-        switchPage('', schoolId, yearGroupId, courseId, course.classes[0].id, true)
+        switchPage('', schoolId, yearGroupId, courseId, course.classes[0].id, undefined, true)
     }
 
     if (!schoolId || !yearGroupId || !courseId) {
@@ -81,7 +81,7 @@ export default function Class() {
             label: <Badge badgeContent={getClassHasNotifications(cls) ? <NotificationImportant /> : undefined}><Typography padding={1}>{cls.name}</Typography></Badge>,
             ariaLabel: getClassHasNotifications(cls) ? `${cls.name} (has notifications)` : cls.name,
             onSelect: () => {
-                switchPage('', schoolId, yearGroupId, courseId, cls.id, true)
+                switchPage('', schoolId, yearGroupId, courseId, cls.id, undefined, true)
             },
             heading: cls.name,
             value: <ClassPeopleView schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={cls.id} />

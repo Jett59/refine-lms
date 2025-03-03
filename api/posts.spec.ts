@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, Post } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -827,7 +827,7 @@ describe("Posts", () => {
     })
     it("Should not let students create assignments", async() => {
         const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
-        const date = new Date('2025-03-02T04: 21: 17.490Z')
+        const date = new Date('2025-03-02T04:21:17.490Z')
 
         const post: Post = {
             postDate: date,
@@ -844,5 +844,45 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
+    })
+    it("Should get an individual post by id", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-03-03T06:00:51.510Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const postFromDatabase = await getPost(db, school, user1, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toEqual({
+            id: postId!.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: []
+        } as PostInfo)
     })
 })

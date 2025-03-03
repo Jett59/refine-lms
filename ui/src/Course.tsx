@@ -48,12 +48,12 @@ export default function Course({ tab }: {
         <TabPanel index={tabIndex} tabs={[
             {
                 label: 'Feed',
-                onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, true),
+                onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, undefined, true),
                 value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="feed" />
             },
             {
                 label: 'Work',
-                onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, undefined, true),
+                onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, undefined, undefined, true),
                 value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="work" />
             }
         ]} />

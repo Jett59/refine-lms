@@ -53,6 +53,7 @@ export interface LocationParts {
   yearGroupId?: string
   courseId?: string
   classId?: string
+  postId?: string
   page?: string
 }
 
@@ -63,17 +64,21 @@ export function useLocationParts() {
   if (rawParts.length >= 2) {
     parts.schoolId = rawParts[1]
   }
-  if (rawParts.length >= 4) {
+  if (rawParts.length >= 4 && rawParts[2] === 'years') {
     parts.yearGroupId = rawParts[3]
   }
-  if (rawParts.length >= 6) {
+  if (rawParts.length >= 6 && rawParts[4] === 'courses') {
     parts.courseId = rawParts[5]
   }
-  if (rawParts.length >= 8) {
+  if (rawParts.length >= 8 && rawParts[6] === 'classes') {
     parts.classId = rawParts[7]
   }
-  // So far, this is the only kind of page which should appear in the breadcrumb
-  // The feed/work tab uses a similar mechanism so this is hard to generalise
+  // This part could appear after any of the sections above
+  if (rawParts.includes('posts')) {
+    parts.postId = rawParts[rawParts.indexOf('posts') + 1]
+  }
+  // So far, this is the only trailing path component which represents a separate page
+  // The feed/work tab also uses paths so we can't assume that the final part is a separate page
   // TODO: work out a way of finding these out without hardcoding them
   if (rawParts.length === 3 && rawParts[2] === 'people') {
     parts.page = 'people'
@@ -87,7 +92,7 @@ export function useSwitchSchool() {
   return useCallback((schoolId: string) => navigate(`/${schoolId}`), [navigate])
 }
 
-export function getLocation(page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string) {
+export function getLocation(page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, postId?: string) {
   let prefix = '/'
   if (schoolId) {
     prefix += `${schoolId}/`
@@ -101,12 +106,15 @@ export function getLocation(page: string, schoolId?: string, yearGroupId?: strin
   if (classId) {
     prefix += `classes/${classId}/`
   }
+  if (postId) {
+    prefix += `posts/${postId}/`
+  }
   return `${prefix}${page}`
 }
 
-export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, replace?: boolean) => void {
+export function useSwitchPage(): (page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, postId?: string, replace?: boolean) => void {
   const navigate = useNavigate()
-  return useCallback((page, schoolId, yearGroupId, courseId, classId, replace) => {
-    navigate(getLocation(page, schoolId, yearGroupId, courseId, classId), { replace })
+  return useCallback((page, schoolId, yearGroupId, courseId, classId, postId, replace) => {
+    navigate(getLocation(page, schoolId, yearGroupId, courseId, classId, postId), { replace })
   }, [navigate])
 }

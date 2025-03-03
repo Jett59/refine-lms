@@ -153,3 +153,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/post
+          method: post
+          authorizer:
+            name: google

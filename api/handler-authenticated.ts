@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
-import { createPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
+import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
 import { isAttachmentPreparationError } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -453,6 +453,41 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(404, `Attachment not found or user does not have access`)
                 }
                 return successResponse<AttachmentLinkResponse>({ link })
+            }
+            case "/post": {
+                const typedBody: GetPostRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId | undefined
+                let classObjectIds: ObjectId[] | undefined
+                let postId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                    postId = new ObjectId(typedBody.postId)
+                    courseObjectId = typedBody.courseId ? new ObjectId(typedBody.courseId) : undefined
+                    classObjectIds = typedBody.classIds?.map((id: string) => new ObjectId(id))
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school, year group, post, course, or class ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const post = await getPost(db, school, user._id!, postId, yearGroupObjectId, courseObjectId, classObjectIds)
+                if (!post) {
+                    return errorResponse(404, `Post not found or user does not have access`)
+                }
+                return successResponse<GetPostResponse>({ post })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

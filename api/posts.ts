@@ -131,7 +131,7 @@ export async function convertPostsForApi(db: Db, currentUserId: ObjectId, posts:
     }).filter(post => post !== null)
 }
 
-function canViewPosts(db: Db, userId: ObjectId, school: School, yearGroupId: ObjectId, courseId?: ObjectId) {
+function canViewPosts(userId: ObjectId, school: School, yearGroupId: ObjectId, courseId?: ObjectId) {
     const isStudent = school.studentIds.some(studentId => studentId.equals(userId))
     if (isStudent) {
         // Students have to be in the year group
@@ -177,7 +177,7 @@ function canViewPosts(db: Db, userId: ObjectId, school: School, yearGroupId: Obj
 
 export async function createPost(db: Db, school: School, post: Post) {
     const postCopy = { ...post }
-    if (!canViewPosts(db, post.posterId, school, post.yearGroupId, post.courseId ?? undefined)) {
+    if (!canViewPosts(post.posterId, school, post.yearGroupId, post.courseId ?? undefined)) {
         return null
     }
     if (post.courseId && post.classIds) {
@@ -194,9 +194,9 @@ export async function createPost(db: Db, school: School, post: Post) {
     return response.insertedId
 }
 
-export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined, postTypes: PostType[] | undefined): Promise<ListPostsResponse> {
-    if (!canViewPosts(db, userId, school, yearGroupId, courseId)) {
-        return { posts: [], isEnd: true }
+function getFilterForPosts(school: School, userId: ObjectId, beforeDate: Date | null, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined, postTypes: PostType[] | undefined): Filter<Post> | null {
+    if (!canViewPosts(userId, school, yearGroupId, courseId)) {
+        return null
     }
     if (courseId && classIds) {
         const course = school.yearGroups.find(yg => yg.id.equals(yearGroupId))?.courses.find(c => c.id.equals(courseId))
@@ -221,12 +221,11 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
         ]
     }
 
-const postTypeFilter: Filter<Post> = postTypes ? {
+    const postTypeFilter: Filter<Post> = postTypes ? {
         type: { $in: postTypes }
     } : {}
 
-    const collection = getCollection(db)
-    const filter = {
+    return {
         postDate: { $lt: beforeDate ?? new Date() },
         schoolId: school._id,
         yearGroupId,
@@ -237,7 +236,18 @@ const postTypeFilter: Filter<Post> = postTypes ? {
         ],
         ...courseId ? { courseId } : { courseId: null },
     }
+}
 
+export async function listPosts(db: Db, school: School, userId: ObjectId, beforeDate: Date | null, limit: number, yearGroupId: ObjectId, courseId: ObjectId | undefined, classIds: ObjectId[] | undefined, postTypes: PostType[] | undefined): Promise<ListPostsResponse> {
+    const filter = getFilterForPosts(school, userId, beforeDate, yearGroupId, courseId, classIds, postTypes)
+    if (!filter) {
+        return {
+            posts: [],
+            isEnd: true
+        }
+    }
+
+    const collection = getCollection(db)
     const cursor = await collection.find(filter).sort({ postDate: -1 })
     const count = await collection.countDocuments(filter)
     const posts = await cursor.limit(limit).toArray()
@@ -245,6 +255,20 @@ const postTypeFilter: Filter<Post> = postTypes ? {
         posts: await convertPostsForApi(db, userId, posts),
         isEnd: count <= limit
     }
+}
+
+export async function getPost(db: Db, school: School, userId: ObjectId, postId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Promise<PostInfo | null> {
+    // We use the same filter as listPosts, but with the post id added
+    const filter = getFilterForPosts(school, userId, null, yearGroupId, courseId, classIds, undefined)
+    if (!filter) {
+        return null
+    }
+    filter._id = postId
+    const post = await getCollection(db).findOne(filter)
+    if (!post) {
+        return null
+    }
+    return (await convertPostsForApi(db, userId, [post]))[0]
 }
 
 type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<{link: string, fileId: string} | null>
@@ -256,7 +280,7 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
     if (!post.schoolId.equals(school._id)) {
         return null
     }
-    if (!canViewPosts(db, userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
         return null
     }
     const attachment = post.attachments.find(attachment => attachment.id.equals(attachmentId))

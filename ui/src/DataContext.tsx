@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -35,6 +35,7 @@ export interface DataContextValue {
         isEnd: boolean
     } | null>
     getAttachmentLink: (schoolId: string, postId: string, attachmentId: string) => Promise<string | null>
+    getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -56,6 +57,7 @@ const DataContext = createContext<DataContextValue>({
     createPost: async () => { },
     listPosts: async () => null,
     getAttachmentLink: async () => null,
+    getPost: async() => null,
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -233,6 +235,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             const response = await authenticatedAPIs.call<AttachmentLinkResponse, AttachmentLinkRequest>('POST', 'attachment-link', { schoolId, postId, attachmentId })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.link
+            } else {
+                addAPIError(response)
+                return null
+            }
+        }, [authenticatedAPIs]),
+        getPost: useCallback(async (postId, schoolId, yearGroupId, courseId, classIds) => {
+            const response = await authenticatedAPIs.call<GetPostResponse, GetPostRequest>('POST', 'post', { postId, schoolId, yearGroupId, courseId, classIds })
+            if (isSuccessfulAPIResponse(response)) {
+                return response.body.post
             } else {
                 addAPIError(response)
                 return null

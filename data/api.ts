@@ -180,3 +180,14 @@ export interface AttachmentLinkRequest {
 export interface AttachmentLinkResponse {
     link: string
 }
+
+export interface GetPostRequest {
+    postId: string
+    schoolId: string
+    yearGroupId: string
+    courseId?: string
+    classIds?: string[]
+}
+export interface GetPostResponse {
+    post: PostInfo
+}

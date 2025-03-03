@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandMore, Menu, PostAdd } from "@mui/icons-material"
+import { AttachFile, ExpandMore, Menu, NoteAdd, PostAdd } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -13,6 +13,8 @@ import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
+import { getLocation } from "./App"
+import { Link } from "react-router-dom"
 
 function AttachmentView({ schoolId, postId, attachment }: {
     schoolId: string
@@ -135,16 +137,16 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         })
     }
 
-const titleRef = useRef<HTMLInputElement>(null)
+    const titleRef = useRef<HTMLInputElement>(null)
 
-// The autoFocus prop doesn't always work, so we use a ref to focus the title field
-useEffect(() => {
-    // Add a delay to ensure all other focus events have finished
-    const timeout = setTimeout(() => {
-        titleRef.current?.focus()
-    }, 0) // 0ms so it happens when the event loop is free
-    return () => clearTimeout(timeout)
-}, [])
+    // The autoFocus prop doesn't always work, so we use a ref to focus the title field
+    useEffect(() => {
+        // Add a delay to ensure all other focus events have finished
+        const timeout = setTimeout(() => {
+            titleRef.current?.focus()
+        }, 0) // 0ms so it happens when the event loop is free
+        return () => clearTimeout(timeout)
+    }, [])
 
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
@@ -218,18 +220,31 @@ useEffect(() => {
 
 function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInfo }) {
     const classNames = courseInfo?.classes.filter(c => post.classIds?.includes(c.id)).map(c => c.name).join(', ')
+
+    // Assignments are shown differently:
+    // - The title is a link to the assignment
+    // - The content and attachments are not shown
+    const isAssignment = post.type === 'assignment'
+    const postLocation = getLocation('', post.schoolId, post.yearGroupId, post.courseId, undefined, post.id)
+
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
-            <Typography variant="h6">{post.title}</Typography>
+            {isAssignment
+                ? <Typography variant="h6"><Link to={postLocation}>{post.title}</Link></Typography>
+            : <Typography variant="h6">{post.title}</Typography>
+            }
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} />
                 <Typography>{post.poster.name}</Typography>
             </Stack>
             <Typography>Posted {formatDate(new Date(post.postDate))}{classNames ? ` to ${classNames}` : ''}</Typography>
-            <Typography variant="body1">{post.content}</Typography>
-            <TileContainer>
-                {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} />)}
-            </TileContainer>
+            {!isAssignment && <>
+                <Typography variant="body1">{post.content}</Typography>
+                <TileContainer>
+                    {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} />)}
+                </TileContainer>
+            </>
+            }
         </Stack>
     </Paper>
 }
@@ -309,7 +324,12 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
         return <Typography>Loading...</Typography>
     }
 
-const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Students can't post work
+    const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Students can't post work
+
+    const onCreatePostButtonClicked = (postType: PostType) => {
+        setPostTypeForCreation(postType)
+        setCreatingPost(true)
+    }
 
     const createPostButton = <Tooltip title={listType === 'feed' ? "Create Post" : "Create Assignment"}>
         {canCreateAssignments && listType === 'feed' ?
@@ -318,16 +338,17 @@ const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Studen
                 buttonContents={<PostAdd />}
                 buttonProps={{ disabled: creatingPost }}
                 childrenSupplier={close => [
-                    <MenuItem key="post" onClick={() => { setPostTypeForCreation('post'); setCreatingPost(true); close() }}>Post</MenuItem>,
-                    <MenuItem key="assignment" onClick={() => { setPostTypeForCreation('assignment'); setCreatingPost(true); close() }}>Assignment</MenuItem>,
+                    <MenuItem key="post" onClick={() => { onCreatePostButtonClicked('post'); close() }}>Post</MenuItem>,
+                    <MenuItem key="assignment" onClick={() => { onCreatePostButtonClicked('assignment'); close() }}>Assignment</MenuItem>,
                 ]}
             />
             :
             <IconButton
-                onClick={() => { setPostTypeForCreation(listType === 'feed' ? 'post' : 'assignment'); setCreatingPost(true) }}
+                onClick={() => onCreatePostButtonClicked(listType === 'feed' ? 'post' : 'assignment')}
                 disabled={creatingPost}
             >
-                <PostAdd />
+                // Show a different icon for assignments
+                {listType === 'feed' ? <PostAdd /> : <NoteAdd />}
             </IconButton>
         }
     </Tooltip>
@@ -344,7 +365,7 @@ const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Studen
         </Stack>
         {creatingPost &&
             <CreatePostForm
-            key="Create post form"
+                key="Create post form"
                 disabled={posting}
                 schoolId={schoolId}
                 schoolInfo={schoolInfo}
@@ -367,15 +388,15 @@ const canCreatePosts = isTeacherOrAdministrator || listType === 'feed' // Studen
                 close={() => setCreatingPost(false)}
             />
         }
-        {posts.length === 0 && !loading && !creatingPost &&(
-        listType === 'feed' ? 
-                    <Typography>No posts yet. Click {createPostButton} to create the first one.</Typography>
-                    :
-                    (isTeacherOrAdministrator ?
+        {posts.length === 0 && !loading && !creatingPost && (
+            listType === 'feed' ?
+                <Typography>No posts yet. Click {createPostButton} to create the first one.</Typography>
+                :
+                (isTeacherOrAdministrator ?
                     <Typography>No work yet. Click {createPostButton} to create the first assignment.</Typography>
                     :
                     <Typography>No work yet.</Typography>
-                    )
+                )
         )}
         <InfiniteScroll
             dataLength={posts.length}

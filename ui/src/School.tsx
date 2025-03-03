@@ -277,7 +277,7 @@ export default function School() {
 
     return <Stack direction="column" spacing={2}>
         <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
-            switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, true)
+            switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, undefined, true)
         }} aria-label="Year groups">
             {schoolInfo.yearGroups.map(yearGroup => <Tab id={`year-group-tab-${yearGroup.id}`} key={yearGroup.id} label={yearGroup.name} />)}
         // We don't let teachers create year groups because this could get messy
