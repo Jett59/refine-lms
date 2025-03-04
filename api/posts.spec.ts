@@ -81,7 +81,11 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: [{
+                title: 'Criteria 1',
+                maximumMarks: 10
+            }]
         }
 
         const postId = await createPost(db, school, post)
@@ -103,7 +107,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
 
         const postId = await createPost(db, school, post)
@@ -127,7 +132,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post2: Post = {
             postDate: date2,
@@ -140,7 +146,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -211,7 +218,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post2: Post = {
             postDate: date2,
@@ -224,7 +232,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -290,7 +299,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -313,7 +323,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -337,7 +348,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post2: Post = {
             postDate: date2,
@@ -350,7 +362,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -416,7 +429,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -458,7 +472,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -481,7 +496,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -506,7 +522,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -528,7 +545,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -548,7 +566,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -568,7 +587,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -601,7 +621,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
 
         let postId = await createPost(db, school, post)
@@ -636,7 +657,8 @@ describe("Posts", () => {
                 thumbnail: '',
                 host: 'google',
                 googleFileId: '123456'
-            }]
+            }],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -685,7 +707,8 @@ describe("Posts", () => {
                 thumbnail: '',
                 host: 'google',
                 googleFileId: '123456'
-            }]
+            }],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -729,7 +752,8 @@ describe("Posts", () => {
                 shareMode: 'copied',
                 host: 'google',
                 googleFileId: '123456'
-            }]
+            }],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
 
@@ -783,7 +807,8 @@ describe("Posts", () => {
             type: 'assignment',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post2: Post = {
             postDate: date2,
@@ -796,7 +821,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -840,7 +866,8 @@ describe("Posts", () => {
             type: 'assignment',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -860,7 +887,8 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
-            attachments: []
+            attachments: [],
+            markingCriteria: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
