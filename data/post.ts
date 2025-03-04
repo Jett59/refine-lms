@@ -47,3 +47,8 @@ export interface AttachmentTemplate {
     host: 'google',
     googleFileId: string
 }
+
+export interface MarkingCriterion {
+    title: string
+    maximumMarks: number
+}

@@ -7,12 +7,13 @@ import { Badge, Box, IconButton, Stack, Tooltip, Typography } from "@mui/materia
 import PostsList from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
 import { getHasNotifications } from "./Class"
+import { useEffect } from "react"
+
+const PREFERED_TAB_LOCAL_STORAGE_PREFIX = 'course-prefered-tab-'
 
 export default function Course({ tab }: {
-    tab: 'feed' | 'work',
+    tab?: 'feed' | 'work',
 }) {
-    const tabIndex = tab === 'feed' ? 0 : 1
-
     const { schoolId, yearGroupId, courseId } = useParams()
     const switchPage = useSwitchPage()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
@@ -33,6 +34,15 @@ export default function Course({ tab }: {
             </Tooltip>
         }
     }, [schoolId, yearGroupId, courseId, courseInfo])
+
+    const preferredTab = localStorage.getItem(PREFERED_TAB_LOCAL_STORAGE_PREFIX + courseId)
+    const tabIndex = (tab ?? preferredTab) === 'work' ? 1 : 0
+
+useEffect(() => {
+    if (tab && courseId) {
+        localStorage.setItem(PREFERED_TAB_LOCAL_STORAGE_PREFIX + courseId, tab)
+    }
+}, [courseId, tab])
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Missing some ids?</Typography>

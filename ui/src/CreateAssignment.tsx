@@ -6,8 +6,28 @@ import { useData, useRelevantSchoolInfo } from "./DataContext"
 import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
-import { AttachmentTemplate } from "../../data/post"
+import { AttachmentTemplate, MarkingCriterion } from "../../data/post"
 import { useUser } from "./UserContext"
+
+function CriterionView({ criterion, update }: {
+    criterion: MarkingCriterion
+    update: (newValue: MarkingCriterion) => void
+}) {
+    return <Stack direction="row">
+        <Typography>/</Typography>
+        <TextField
+            type="number"
+            value={criterion.maximumMarks}
+            onChange={e => update({ ...criterion, maximumMarks: Number(e.target.value) })}
+        />
+        <TextField
+            autoComplete="off"
+            value={criterion.title}
+            onChange={e => update({ ...criterion, title: e.target.value })}
+            label="title"
+        />
+    </Stack>
+}
 
 export default function CreateAssignment() {
     const { schoolId, yearGroupId, courseId } = useParams()
@@ -30,10 +50,11 @@ export default function CreateAssignment() {
     const [classId, setClassId] = useState<string | undefined>(undefined)
     const classInfo = course?.classes.find(cls => cls.id === classId)
     const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
+    const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterion[]>([])
 
-if (!schoolId || !yearGroupId || !courseId) {
-    return <Typography>Not found</Typography>
-}
+    if (!schoolId || !yearGroupId || !courseId) {
+        return <Typography>Not found</Typography>
+    }
 
     return <Stack direction="column">
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
@@ -69,7 +90,24 @@ if (!schoolId || !yearGroupId || !courseId) {
                 ))}
             </Box>
             <Box flex={1}>
-                <Typography variant="h4">Marking criteria (coming soon)</Typography>
+                <Typography variant="h4">Marking Criteria</Typography>
+                <Stack direction="column">
+                    {markingCriteria.map((criterion, index) => (
+                        <CriterionView
+                            key={index}
+                            criterion={criterion}
+                            update={newValue => {
+                                const newCriteria = [...markingCriteria]
+                                newCriteria[index] = newValue
+                                setMarkingCriteria(newCriteria)
+                            }}
+                        />
+                    ))}
+                    <Button
+                        onClick={() => setMarkingCriteria([...markingCriteria, { title: '', maximumMarks: 0 }])}
+                        disabled={markingCriteria.length > 0 && markingCriteria[markingCriteria.length - 1].maximumMarks === 0}
+                    >Add Criterion</Button>
+                </Stack>
             </Box>
         </Stack>
         <Stack direction="row" justifyContent="end">
@@ -85,21 +123,21 @@ if (!schoolId || !yearGroupId || !courseId) {
                     setDisabled(true)
                     const googleAccessToken = await getGoogleAccessToken()
                     if (googleAccessToken) {
-                    await createPost({
-                        schoolId,
-                        yearGroupId,
-                        courseId,
-                        classIds: classId ? [classId] : undefined,
-                        type: 'assignment',
-                        private: false,
-                        title,
-                        content,
-                        attachments
-                    }, googleAccessToken)
+                        await createPost({
+                            schoolId,
+                            yearGroupId,
+                            courseId,
+                            classIds: classId ? [classId] : undefined,
+                            type: 'assignment',
+                            private: false,
+                            title,
+                            content,
+                            attachments
+                        }, googleAccessToken)
                         navigate(-1)
-                }else {
-                    setDisabled(false)
-                }
+                    } else {
+                        setDisabled(false)
+                    }
                 }}
             >Assign</Button>
         </Stack>

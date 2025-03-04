@@ -292,7 +292,7 @@ export default function School() {
                         <CourseView
                             key={course.id}
                             course={course}
-                            goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
+                            goToCourse={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
                         />
                     )}
                 </TileContainer>
@@ -304,7 +304,7 @@ export default function School() {
                     <CourseView
                         key={course.id}
                         course={course}
-                        goToCourse={() => switchPage('', schoolId, currentYearGroup.id, course.id)}
+                        goToCourse={() => switchPage('feed', schoolId, currentYearGroup.id, course.id)}
                     />
                 )}
                 {isAdministratorOrTeacher && <CreateCourseTileButton onClick={(name, initialClassNames) => createCourse(schoolId, currentYearGroup.id, name, initialClassNames)} />}

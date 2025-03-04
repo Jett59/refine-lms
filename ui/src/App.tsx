@@ -29,7 +29,7 @@ function App() {
           <Route path="/:schoolId/people" element={<SchoolPeoplePage />} />
           <Route path="/:schoolId/years/:yearGroupId" element={<School />} />
           <Route path="/:schoolId/years/:yearGroupId/posts/:postId" element={<Post />} />
-          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course tab="feed" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/create-assignment" element={<CreateAssignment />} />
@@ -82,11 +82,14 @@ export function useLocationParts() {
   if (rawParts.includes('posts')) {
     parts.postId = rawParts[rawParts.indexOf('posts') + 1]
   }
-  // So far, this is the only trailing path component which represents a separate page
+  // So far, these are the only trailing path component which represents a separate page
   // The feed/work tab also uses paths so we can't assume that the final part is a separate page
   // TODO: work out a way of finding these out without hardcoding them
   if (rawParts.length === 3 && rawParts[2] === 'people') {
     parts.page = 'people'
+  }
+  if (rawParts[rawParts.length - 1] === 'create-assignment') {
+    parts.page = 'Create Assignment'
   }
   return parts
 }
