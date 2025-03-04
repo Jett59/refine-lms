@@ -51,7 +51,9 @@ function Assignment({ assignment }: { assignment: PostInfo }) {
     return <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
         <Box flex={3}>
             <Typography variant="h4">Instructions</Typography>
-            <Typography>{assignment.content}</Typography>
+            <Typography>
+                {assignment.content || 'No instructions'}
+                </Typography>
             <TileContainer>
                 {assignment.attachments.map(attachment => (
                     <AttachmentView key={attachment.id} postId={assignment.id} schoolId={assignment.schoolId} attachment={attachment} />
