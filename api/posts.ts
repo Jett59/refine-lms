@@ -1,6 +1,6 @@
 import { Db, Filter, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
-import { PostInfo, PostTemplate, PostType } from "../data/post"
+import { MarkingCriterion, PostInfo, PostTemplate, PostType } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, getFileLink, prepareAttachments } from "./google-drive"
@@ -18,6 +18,8 @@ export interface Post {
     title: string
     content: string
     attachments: Attachment[]
+
+    markingCriteria: MarkingCriterion[] | null
 }
 
 export interface Attachment {
@@ -80,7 +82,8 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             othersCanEdit: attachment.othersCanEdit,
             host: attachment.host,
             googleFileId: attachment.googleFileId
-        }))
+        })),
+        markingCriteria: postTemplate.markingCriteria ?? null
     }
 }
 
@@ -127,6 +130,7 @@ export async function convertPostsForApi(db: Db, currentUserId: ObjectId, posts:
                 googleFileId: attachment.googleFileId,
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId) ?? undefined
             })),
+            markingCriteria: post.markingCriteria ?? undefined
         }
     }).filter(post => post !== null)
 }

@@ -13,6 +13,8 @@ export interface PostInfo {
     title: string
     content: string
     attachments: AttachmentInfo[]
+
+    markingCriteria?: MarkingCriterion[]
 }
 export interface AttachmentInfo {
     id: string
@@ -37,6 +39,8 @@ export interface PostTemplate {
     title: string
     content: string
     attachments: AttachmentTemplate[]
+
+    markingCriteria?: MarkingCriterion[]
 }
 export interface AttachmentTemplate {
     title: string

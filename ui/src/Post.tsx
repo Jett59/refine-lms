@@ -59,7 +59,25 @@ function Assignment({ assignment }: { assignment: PostInfo }) {
             </TileContainer>
         </Box>
         <Box flex={1}>
-            <Typography variant="h4">Marking criteria (coming soon)</Typography>
+            <Stack direction="row">
+                <Typography variant="h4">Marking Criteria</Typography>
+                {assignment.markingCriteria &&
+                <Typography>
+                    {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                </Typography>
+}
+            </Stack>
+            {assignment.markingCriteria
+                ? <Stack direction="column">
+                    {assignment.markingCriteria.map((criterion, index) => (
+                        <Stack key={index} direction="row" spacing={2}>
+                        <Typography>{criterion.title}</Typography>
+                        <Typography>/{criterion.maximumMarks}</Typography>
+                        </Stack>
+                    ))}
+                </Stack>
+                : <Typography>No marking criteria</Typography>
+            }
         </Box>
     </Stack>
 }

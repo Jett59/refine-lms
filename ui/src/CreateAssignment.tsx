@@ -14,17 +14,17 @@ function CriterionView({ criterion, update }: {
     update: (newValue: MarkingCriterion) => void
 }) {
     return <Stack direction="row">
-        <Typography>/</Typography>
-        <TextField
-            type="number"
-            value={criterion.maximumMarks}
-            onChange={e => update({ ...criterion, maximumMarks: Number(e.target.value) })}
-        />
         <TextField
             autoComplete="off"
             value={criterion.title}
             onChange={e => update({ ...criterion, title: e.target.value })}
             label="title"
+        />
+        <Typography>/</Typography>
+        <TextField
+            type="number"
+            value={criterion.maximumMarks}
+            onChange={e => update({ ...criterion, maximumMarks: Number(e.target.value) })}
         />
     </Stack>
 }
@@ -90,7 +90,12 @@ export default function CreateAssignment() {
                 ))}
             </Box>
             <Box flex={1}>
-                <Typography variant="h4">Marking Criteria</Typography>
+                <Stack direction="row">
+                    <Typography variant="h4">Marking Criteria</Typography>
+                    <Typography>
+                        {`/${markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                    </Typography>
+                </Stack>
                 <Stack direction="column">
                     {markingCriteria.map((criterion, index) => (
                         <CriterionView
@@ -132,7 +137,8 @@ export default function CreateAssignment() {
                             private: false,
                             title,
                             content,
-                            attachments
+                            attachments,
+                            markingCriteria
                         }, googleAccessToken)
                         navigate(-1)
                     } else {
