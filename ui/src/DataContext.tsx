@@ -34,7 +34,7 @@ export interface DataContextValue {
         posts: PostInfo[]
         isEnd: boolean
     } | null>
-    getAttachmentLink: (schoolId: string, postId: string, attachmentId: string) => Promise<string | null>
+    getAttachmentLink: (schoolId: string, postId: string, attachmentId: string, individualCopyOwnerId?: string) => Promise<string | null>
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
 }
 
@@ -231,8 +231,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return null
             }
         }, [authenticatedAPIs]),
-        getAttachmentLink: useCallback(async (schoolId, postId, attachmentId) => {
-            const response = await authenticatedAPIs.call<AttachmentLinkResponse, AttachmentLinkRequest>('POST', 'attachment-link', { schoolId, postId, attachmentId })
+        getAttachmentLink: useCallback(async (schoolId, postId, attachmentId, individualCopyOwnerId) => {
+            const response = await authenticatedAPIs.call<AttachmentLinkResponse, AttachmentLinkRequest>('POST', 'attachment-link', { schoolId, postId, attachmentId, individualCopyOwnerId })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.link
             } else {

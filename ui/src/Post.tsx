@@ -6,6 +6,8 @@ import { getVisibleClassIds, useData, useRelevantSchoolInfo } from "./DataContex
 import { useSetPageTitle } from "./PageWrapper"
 import { AttachmentView } from "./Feed"
 import { TileContainer } from "./Tile"
+import { SchoolInfo } from "../../data/school"
+import { UserInfo } from "../../data/user"
 
 export default function Post() {
     const { schoolId, yearGroupId, courseId, postId } = useParams()
@@ -33,18 +35,18 @@ export default function Post() {
     if (!postId) {
         return <Typography variant="h4">No post selected</Typography>
     }
-    if (!postInfo) {
+    if (!school || !postInfo) {
         return <Typography>Loading...</Typography>
     }
 
     if (postInfo.type === 'assignment') {
-        return <Assignment assignment={postInfo} />
+        return <Assignment assignment={postInfo} school={school} />
     } else {
         return <Typography>Not implemented</Typography>
     }
 }
 
-function Assignment({ assignment }: { assignment: PostInfo }) {
+function Assignment({ assignment, school }: { assignment: PostInfo, school: SchoolInfo }) {
     const theme = useTheme()
     const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
 
@@ -56,7 +58,7 @@ function Assignment({ assignment }: { assignment: PostInfo }) {
                 </Typography>
             <TileContainer>
                 {assignment.attachments.map(attachment => (
-                    <AttachmentView key={attachment.id} postId={assignment.id} schoolId={assignment.schoolId} attachment={attachment} />
+                    <AttachmentView key={attachment.id} postId={assignment.id} schoolId={assignment.schoolId} attachment={attachment} students={studentsWhoCanSeePost(assignment, school)} />
                 ))}
             </TileContainer>
         </Box>
@@ -82,4 +84,23 @@ function Assignment({ assignment }: { assignment: PostInfo }) {
             }
         </Box>
     </Stack>
+}
+
+export function studentsWhoCanSeePost(post: PostInfo, school: SchoolInfo): UserInfo[] {
+    if (!post.courseId) {
+        const ids = school.yearGroups.find(yg => yg.id === post.yearGroupId)?.courses.flatMap(course => course.classes).flatMap(cls => cls.studentIds)
+        const students = ids?.map(id => school.students.find(student => student.id === id)).filter(student => student !== undefined) ?? school.students
+        return students
+    }else {
+        const yearGroup = school.yearGroups.find(yg => yg.id === post.yearGroupId)
+        const course = yearGroup?.courses.find(course => course.id === post.courseId)
+        let ids
+        if (post.classIds) {
+            const classes = course?.classes.filter(cls => post.classIds?.includes(cls.id))
+            ids = classes?.flatMap(cls => cls.studentIds)
+        }else {
+            ids = course?.classes.flatMap(cls => cls.studentIds)
+        }
+        return school.students.filter(student => ids?.includes(student.id))
+    }
 }

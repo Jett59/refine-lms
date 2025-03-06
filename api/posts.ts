@@ -135,6 +135,8 @@ export async function convertPostsForApi(db: Db, currentUserId: ObjectId, posts:
                 title: attachment.title,
                 thumbnail: attachment.thumbnail,
                 mimeType: attachment.mimeType,
+                shareMode: attachment.shareMode || 'shared',
+                othersCanEdit: attachment.othersCanEdit ?? false,
                 host: attachment.host,
                 googleFileId: attachment.googleFileId,
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
@@ -353,7 +355,7 @@ export async function getUsableAttachmentLink(db: Db, owningUserId: ObjectId, ow
                         'attachments.$.cachedLink': link
                     },
                     $addToSet: {
-                        'attachments.$.usersWithAccess': owningUserId
+                        'attachments.$.usersWithAccess': accessingUserId
                     }
                 })
             }

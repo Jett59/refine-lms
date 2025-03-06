@@ -437,10 +437,14 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 let schoolId: ObjectId
                 let postId: ObjectId
                 let attachmentId: ObjectId
+                let individualCopyOwnerIdFromBody: ObjectId | undefined = undefined
                 try {
                     schoolId = new ObjectId(typedBody.schoolId)
                     postId = new ObjectId(typedBody.postId)
                     attachmentId = new ObjectId(typedBody.attachmentId)
+                    if (typedBody.individualCopyOwnerId) {
+                        individualCopyOwnerIdFromBody = new ObjectId(typedBody.individualCopyOwnerId)
+                    }
                 } catch (e) {
                     return errorResponse(400, 'Invalid post or attachment ID')
                 }
@@ -448,7 +452,27 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!school) {
                     return errorResponse(404, `School not found or user does not have access`)
                 }
-                const link = await getUsableAttachmentLink(db, user._id!, user.name, user._id!, user.email, school, postId, attachmentId)
+                // Only teachers and administrators can request a copy from another user
+                const isTeacherOrAdministrator = school.teacherIds.some(id => id.equals(user._id!)) || school.administratorIds.some(id => id.equals(user._id!))
+                let ownerId: ObjectId
+                if (isTeacherOrAdministrator && individualCopyOwnerIdFromBody) {
+                    ownerId = individualCopyOwnerIdFromBody
+                }else {
+                    ownerId = user._id!
+                }
+                let ownerUserName: string
+                if (ownerId.equals(user._id!)) {
+                    ownerUserName = user.name
+                }else {
+                    const owner = await findUser(db, ownerId)
+                    if (owner) {
+                    ownerUserName = owner?.name
+                    }else {
+                        return errorResponse(404, 'User for individual copies not found: ' + typedBody.individualCopyOwnerId)
+                    }
+                }
+
+                const link = await getUsableAttachmentLink(db, ownerId, ownerUserName, user._id!, user.email, school, postId, attachmentId)
                 if (!link) {
                     return errorResponse(404, `Attachment not found or user does not have access`)
                 }

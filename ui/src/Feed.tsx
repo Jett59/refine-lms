@@ -15,31 +15,60 @@ import { TileContainer } from "./Tile"
 import { useError } from "./ErrorContext"
 import { getLocation, useSwitchPage } from "./App"
 import { Link } from "react-router-dom"
+import { UserInfo } from "../../data/user"
+import { studentsWhoCanSeePost } from "./Post"
 
-export function AttachmentView({ schoolId, postId, attachment }: {
+export function AttachmentView({ schoolId, postId, attachment, students }: {
     schoolId: string
     postId: string
     attachment: AttachmentInfo
+    students: UserInfo[]
 }) {
     const { getAttachmentLink } = useData()
+    const schoolInfo = useRelevantSchoolInfo(schoolId)
     const [opening, setOpening] = useState(false)
+    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
 
-    return <Button
-        onClick={async () => {
-            if (attachment.accessLink) {
-                window.open(attachment.accessLink, '_blank')
-            } else {
-                setOpening(true)
-                const link = await getAttachmentLink(schoolId, postId, attachment.id)
-                if (link) {
-                    window.open(link, '_blank')
+    if (attachment.shareMode === 'copied' && isTeacherOrAdministrator) {
+        return <SimpleMenu
+            buttonContents={attachment.title}
+            buttonProps={{ disabled: opening }}
+            childrenSupplier={close => (
+                students.map(student => (
+                    <MenuItem
+                        onClick={async () => {
+                            close()
+                            setOpening(true)
+                            const link = await getAttachmentLink(schoolId, postId, attachment.id, student.id)
+                            if (link) {
+                                window.open(link, '_blank')
+                            }
+                            setOpening(false)
+                        }}
+                    >
+                        {student.name}
+                    </MenuItem>
+                ))
+            )}
+        />
+    } else {
+        return <Button
+            onClick={async () => {
+                if (attachment.accessLink) {
+                    window.open(attachment.accessLink, '_blank')
+                } else {
+                    setOpening(true)
+                    const link = await getAttachmentLink(schoolId, postId, attachment.id)
+                    if (link) {
+                        window.open(link, '_blank')
+                    }
+                    attachment.accessLink = link ?? undefined
+                    setOpening(false)
                 }
-                attachment.accessLink = link ?? undefined
-                setOpening(false)
-            }
-        }}
-        disabled={opening}
-    >{attachment.title}</Button>
+            }}
+            disabled={opening}
+        >{attachment.title}</Button>
+    }
 }
 
 export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: {
@@ -91,7 +120,7 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, upd
     </Stack >
 }
 
-export function CreatePostFormAddAttachmentButton({disabled, addAttachments}: {
+export function CreatePostFormAddAttachmentButton({ disabled, addAttachments }: {
     disabled?: boolean
     addAttachments: (attachments: AttachmentTemplate[]) => void
 }) {
@@ -225,8 +254,11 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
     </Stack>
 }
 
-function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInfo }) {
-    const classNames = courseInfo?.classes.filter(c => post.classIds?.includes(c.id)).map(c => c.name).join(', ')
+function PostView({ post, schoolInfo, courseInfo }: { post: PostInfo, schoolInfo: SchoolInfo, courseInfo?: CourseInfo }) {
+    const classes = courseInfo?.classes.filter(c => post.classIds?.includes(c.id))
+    const classNames = classes?.map(c => c.name).join(', ')
+
+    const students = studentsWhoCanSeePost(post, schoolInfo)
 
     // Assignments are shown differently:
     // - The title is a link to the assignment
@@ -248,7 +280,7 @@ function PostView({ post, courseInfo }: { post: PostInfo, courseInfo?: CourseInf
             {!isAssignment && <>
                 <Typography variant="body1">{post.content}</Typography>
                 <TileContainer>
-                    {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} />)}
+                    {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} students={students} />)}
                 </TileContainer>
             </>
             }
@@ -417,7 +449,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
             hasMore={!isEnd}
             loader={<Typography>Loading...</Typography>}
         >
-            {posts.map(post => <PostView key={post.id} post={post} courseInfo={course} />)}
+            {posts.map(post => <PostView key={post.id} post={post} schoolInfo={schoolInfo} courseInfo={course} />)}
         </InfiniteScroll>
     </Stack>
 }

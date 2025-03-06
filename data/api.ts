@@ -176,6 +176,9 @@ export interface AttachmentLinkRequest {
     schoolId: string
     postId: string
     attachmentId: string
+
+    // Allows teachers to view the individual copies of an attachment
+    individualCopyOwnerId?: string
 }
 export interface AttachmentLinkResponse {
     link: string

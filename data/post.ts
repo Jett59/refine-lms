@@ -23,6 +23,8 @@ export interface AttachmentInfo {
     mimeType: string
     host: 'google',
     googleFileId: string
+    shareMode: 'shared' | 'copied'
+    othersCanEdit: boolean
 
     accessLink?: string
 }
