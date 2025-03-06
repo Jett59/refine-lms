@@ -448,7 +448,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!school) {
                     return errorResponse(404, `School not found or user does not have access`)
                 }
-                const link = await getUsableAttachmentLink(db, user._id!, user.name, user.email, school, postId, attachmentId)
+                const link = await getUsableAttachmentLink(db, user._id!, user.name, user._id!, user.email, school, postId, attachmentId)
                 if (!link) {
                     return errorResponse(404, `Attachment not found or user does not have access`)
                 }

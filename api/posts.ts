@@ -4,6 +4,7 @@ import { MarkingCriterion, PostInfo, PostTemplate, PostType } from "../data/post
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, getFileLink, prepareAttachments } from "./google-drive"
+import { access } from "fs"
 
 export interface Post {
     _id?: ObjectId
@@ -37,6 +38,7 @@ export interface Attachment {
 
     perUserLinks?: { [userId: string]: string }
     perUserFileIds?: { [userId: string]: string }
+    perUserUsersWithAccess?: { [userId: string]: ObjectId[] }
 }
 
 const COLLECTION_NAME = 'posts'
@@ -87,12 +89,19 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
     }
 }
 
-function getCachedAttachmentLinkIfAvailable(attachment: Attachment, userId: ObjectId) {
-    if (attachment.usersWithAccess?.some(id => id.equals(userId)) && attachment.cachedLink) {
+function getPerUserFileId(attachment: Attachment, owningUserId: ObjectId) {
+    if (attachment.perUserFileIds && attachment.perUserFileIds[owningUserId.toHexString()]) {
+        return attachment.perUserFileIds[owningUserId.toHexString()]
+    }
+    return null
+}
+
+function getCachedAttachmentLinkIfAvailable(attachment: Attachment, owningUserId: ObjectId, accessingUserId: ObjectId) {
+    if (attachment.usersWithAccess?.some(id => id.equals(accessingUserId)) && attachment.cachedLink) {
         return attachment.cachedLink
     }
-    if (attachment.perUserLinks && attachment.perUserLinks[userId.toHexString()]) {
-        return attachment.perUserLinks[userId.toHexString()]
+    if (attachment.perUserLinks && attachment.perUserLinks[owningUserId.toHexString()] && attachment.perUserUsersWithAccess && attachment.perUserUsersWithAccess[owningUserId.toHexString()] && attachment.perUserUsersWithAccess[owningUserId.toHexString()].some(id => id.equals(accessingUserId))) {
+        return attachment.perUserLinks[owningUserId.toHexString()]
     }
     return null
 }
@@ -128,7 +137,7 @@ export async function convertPostsForApi(db: Db, currentUserId: ObjectId, posts:
                 mimeType: attachment.mimeType,
                 host: attachment.host,
                 googleFileId: attachment.googleFileId,
-                accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId) ?? undefined
+                accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
             })),
             markingCriteria: post.markingCriteria ?? undefined
         }
@@ -276,7 +285,21 @@ export async function getPost(db: Db, school: School, userId: ObjectId, postId: 
 }
 
 type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<{link: string, fileId: string} | null>
-export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName: string, userEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: LinkAccessorType): Promise<string | null> {
+/**
+ * 
+ * @param db 
+ * @param owningUserId the user who the attachment will be created for (usually the same as the accessing user)
+ * @param owningUserName
+ * @param accessingUserId the user id of the user who is accessing the file (see below)
+ * @param accessingUserEmail the email address of the user who will access the file
+ * This may differ from the owning user if a teacher is viewing the personal copy created by a student
+ * @param school the school which the post was posted to
+ * @param postId 
+ * @param attachmentId the id of the attachment
+ * @param linkAccessor (optional) a custom function to get the link from Google
+ * @returns a link which can be used by the given email to access the file
+ */
+export async function getUsableAttachmentLink(db: Db, owningUserId: ObjectId, owningUserName: string, accessingUserId: ObjectId, accessingUserEmail: string, school: School, postId: ObjectId, attachmentId: ObjectId, linkAccessor?: LinkAccessorType): Promise<string | null> {
     const post = await getCollection(db).findOne({ _id: postId })
     if (!post) {
         return null
@@ -284,22 +307,28 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
     if (!post.schoolId.equals(school._id)) {
         return null
     }
-    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+    if (!canViewPosts(owningUserId, school, post.yearGroupId, post.courseId ?? undefined)) {
         return null
     }
     const attachment = post.attachments.find(attachment => attachment.id.equals(attachmentId))
     if (!attachment) {
         return null
     }
-    const hasEditAccess = attachment?.othersCanEdit || post.posterId.equals(userId)
-    const shouldCreateCopy = attachment.shareMode === 'copied'
-    const cachedLink = getCachedAttachmentLinkIfAvailable(attachment, userId)
+    // The rules for edit access:
+    // - If the accessing user is the same as the owning user:
+    //   * If othersCanEdit, then the attachment is editable
+    //   * If the user created the post, then it is editable
+    // - If the accessing user is not the owning user, then they can't edit
+    const hasEditAccess = owningUserId.equals(accessingUserId) && (attachment?.othersCanEdit || post.posterId.equals(accessingUserId))
+    const cachedLink = getCachedAttachmentLinkIfAvailable(attachment, owningUserId, accessingUserId)
     if (cachedLink) {
         return cachedLink
     }
     if (attachment.host === 'google') {
         const realLinkAccessor = linkAccessor ?? getFileLink
-        const linkAndId = await realLinkAccessor(attachment.googleFileId, attachment.title, userEmail, userName, hasEditAccess, shouldCreateCopy)
+        const perUserFileId = getPerUserFileId(attachment, owningUserId)
+        const shouldCreateCopy = attachment.shareMode === 'copied' && !perUserFileId
+        const linkAndId = await realLinkAccessor(perUserFileId ?? attachment.googleFileId, attachment.title, accessingUserEmail, owningUserName, hasEditAccess, shouldCreateCopy)
         if (linkAndId) {
             const {link, fileId} = linkAndId
             if (shouldCreateCopy) {
@@ -308,8 +337,11 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
                     'attachments.id': attachmentId
                 }, {
                     $set: {
-                        [`attachments.$.perUserLinks.${userId.toHexString()}`]: link,
-                        [`attachments.$.perUserFileIds.${userId.toHexString()}`]: fileId
+                        [`attachments.$.perUserLinks.${owningUserId.toHexString()}`]: link,
+                        [`attachments.$.perUserFileIds.${owningUserId.toHexString()}`]: fileId
+                    },
+                    $addToSet: {
+                        [`attachments.$.perUserUsersWithAccess.${owningUserId.toHexString()}`]: accessingUserId
                     }
                 })
             } else {
@@ -321,7 +353,7 @@ export async function getUsableAttachmentLink(db: Db, userId: ObjectId, userName
                         'attachments.$.cachedLink': link
                     },
                     $addToSet: {
-                        'attachments.$.usersWithAccess': userId
+                        'attachments.$.usersWithAccess': owningUserId
                     }
                 })
             }

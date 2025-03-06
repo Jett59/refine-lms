@@ -668,7 +668,7 @@ describe("Posts", () => {
         let userName
         let hasEditAccess
         let shouldCreateCopy
-        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async (fileId, fileName, email, name, canEdit, createCopy) => {
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (fileId, fileName, email, name, canEdit, createCopy) => {
             googleFileId = fileId
             userEmail = email
             userName = name
@@ -713,7 +713,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
 
         let called = false
-        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async () => {
             called = true
             return { link: 'https://example.com', fileId: '' }
         })
@@ -721,7 +721,7 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
 
         called = false
-        const link2 = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async () => {
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async () => {
             called = true
             return { link: 'https://example.com', fileId: '' }
         })
@@ -759,7 +759,7 @@ describe("Posts", () => {
 
         let called = false
         let shouldCreateCopy = false
-        const link = await getUsableAttachmentLink(db, user1, 'user1', 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
             called = true
             shouldCreateCopy = createCopy
             return { link: 'https://example.com/1', fileId: '' }
@@ -768,7 +768,7 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
 
         called = false
-        const link2 = await getUsableAttachmentLink(db, user1, 'user2', 'email', school, postId!, attachmentId, async () => {
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async () => {
             called = true
             return { link: 'https://example.com/1', fileId: '' }
         })
@@ -776,7 +776,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
 
         called = false
-        const link3 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
+        const link3 = await getUsableAttachmentLink(db, user2, 'user2', user2, 'email', school, postId!, attachmentId, async () => {
             called = true
             return { link: 'https://example.com/2', fileId: '' }
         })
@@ -784,7 +784,7 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
 
         called = false
-        const link4 = await getUsableAttachmentLink(db, user2, 'user2', 'email', school, postId!, attachmentId, async () => {
+        const link4 = await getUsableAttachmentLink(db, user2, 'user2', user2, 'email', school, postId!, attachmentId, async () => {
             called = true
             return { link: 'https://example.com/2', fileId: '' }
         })
@@ -851,7 +851,7 @@ describe("Posts", () => {
         } as PostInfo])
         expect(posts1.isEnd).toBe(true)
     })
-    it("Should not let students create assignments", async() => {
+    it("Should not let students create assignments", async () => {
         const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-03-02T04:21:17.490Z')
 
@@ -872,7 +872,7 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should get an individual post by id", async() => {
+    it("Should get an individual post by id", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-03-03T06:00:51.510Z')
 
@@ -912,5 +912,64 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: []
         } as PostInfo)
+    })
+    it("Should re-share per-user files for different accessors", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied'
+            }],
+            markingCriteria: null
+        }
+        const postId = await createPost(db, school, post)
+
+        let called = false
+        let emailForCall = ''
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (googleFileId, googleFileName, userEmail, userName, hasEditAccess, shouldCreateCopy) => {
+            called = true
+            emailForCall = userEmail
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(emailForCall).toBe('email')
+
+        called = false
+        emailForCall = ''
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', user2, 'gmail', school, postId!, attachmentId, async (googleFileId, googleFileName, userEmail, userName, hasEditAccess, shouldCreateCopy) => {
+            called = true
+            emailForCall = userEmail
+            return { link: 'https://example.com/blah', fileId: '' }
+        })
+        expect(link2).toBe('https://example.com/blah')
+        expect(called).toBeTruthy()
+        expect(emailForCall).toBe('gmail')
+
+        called = false
+        const link3 = await getUsableAttachmentLink(db, user1, 'user1', user2, 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return { link: 'https://example.com/blah/bleh', fileId: '' }
+        })
+        expect(link2).toBe('https://example.com/blah')
+        expect(called).toBeFalsy()
     })
 })
