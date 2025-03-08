@@ -392,7 +392,6 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
                 onClick={() => onCreatePostButtonClicked(listType === 'feed' ? 'post' : 'assignment')}
                 disabled={creatingPost}
             >
-                // Show a different icon for assignments
                 {listType === 'feed' ? <PostAdd /> : <NoteAdd />}
             </IconButton>
         }
