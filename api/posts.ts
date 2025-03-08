@@ -318,10 +318,11 @@ export async function getUsableAttachmentLink(db: Db, owningUserId: ObjectId, ow
     }
     // The rules for edit access:
     // - If the accessing user is the same as the owning user:
+    //   * If individual copies are to be created, then the attachment is editable
     //   * If othersCanEdit, then the attachment is editable
     //   * If the user created the post, then it is editable
     // - If the accessing user is not the owning user, then they can't edit
-    const hasEditAccess = owningUserId.equals(accessingUserId) && (attachment?.othersCanEdit || post.posterId.equals(accessingUserId))
+    const hasEditAccess = owningUserId.equals(accessingUserId) && (attachment.shareMode === 'copied' || attachment?.othersCanEdit || post.posterId.equals(accessingUserId))
     const cachedLink = getCachedAttachmentLinkIfAvailable(attachment, owningUserId, accessingUserId)
     if (cachedLink) {
         return cachedLink

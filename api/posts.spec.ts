@@ -972,4 +972,101 @@ describe("Posts", () => {
         expect(link2).toBe('https://example.com/blah')
         expect(called).toBeFalsy()
     })
+    it("Should not let non-owners edit individual copies", async() => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied'
+            }],
+            markingCriteria: null
+        }
+        const postId = await createPost(db, school, post)
+
+        let called = false
+        let editable = false
+        const link = await getUsableAttachmentLink(db, user2, 'user2', user2, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, hasEditAccess, _createCopy) => {
+            called = true
+            editable = hasEditAccess
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(editable).toBeTruthy()
+
+        called = false
+        editable = false
+        const link2 = await getUsableAttachmentLink(db, user2, 'user2', user1, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, hasEditAccess, _createCopy) => {
+            called = true
+            editable = hasEditAccess
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link2).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(editable).toBeFalsy()
+    })
+    it("Should not let students get posts from classes which they cannot access", async () => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: true,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user2, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toBeNull()
+    })
+    it("Should not let students get private posts which they did not create", async() => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: true,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user2, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toBeNull()
+    })
 })
