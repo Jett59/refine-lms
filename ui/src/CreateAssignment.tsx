@@ -1,4 +1,4 @@
-import { Box, Button, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -50,6 +50,7 @@ export default function CreateAssignment() {
     const [classId, setClassId] = useState<string | undefined>(undefined)
     const classInfo = course?.classes.find(cls => cls.id === classId)
     const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
+    const [submissionTemplates, setSubmissionTemplates] = useState<AttachmentTemplate[]>([])
     const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterion[]>([])
 
     if (!schoolId || !yearGroupId || !courseId) {
@@ -60,7 +61,7 @@ export default function CreateAssignment() {
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
             <Box flex={3}>
                 <TextField autoFocus autoComplete="off" value={title} onChange={e => setTitle(e.target.value)} label="Title" />
-                <Typography variant="h4">Instructions</Typography>
+                <Typography variant="h5">Instructions</Typography>
                 <TextField
                     multiline
                     fullWidth
@@ -91,7 +92,7 @@ export default function CreateAssignment() {
             </Box>
             <Box flex={1}>
                 <Stack direction="row">
-                    <Typography variant="h4">Marking Criteria</Typography>
+                    <Typography variant="h5">Marking Criteria</Typography>
                     <Typography>
                         {`/${markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
                     </Typography>
@@ -115,6 +116,22 @@ export default function CreateAssignment() {
                 </Stack>
             </Box>
         </Stack>
+        <Divider />
+        <Box>
+            <Typography variant="h5">Work Templates</Typography>
+            {
+                submissionTemplates.map(template => (
+                    <CreatePostFormAttachmentView
+                        key={template.googleFileId}
+                        attachmentTemplate={template}
+                        onRemove={() => setAttachments(attachments => attachments.filter(a => a !== template))}
+                        update={newAttachment => setAttachments(attachments => attachments.map(a => a === template ? newAttachment : a))}
+                    />
+                ))
+            }
+            <CreatePostFormAddAttachmentButton disabled={disabled} addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])} />
+        </Box>
+        <Divider />
         <Stack direction="row" justifyContent="end">
             <Button
                 variant="outlined"
@@ -138,6 +155,7 @@ export default function CreateAssignment() {
                             title,
                             content,
                             attachments,
+                            submissionTemplates,
                             markingCriteria
                         }, googleAccessToken)
                         navigate(-1)

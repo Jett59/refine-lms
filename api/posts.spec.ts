@@ -85,7 +85,9 @@ describe("Posts", () => {
             markingCriteria: [{
                 title: 'Criteria 1',
                 maximumMarks: 10
-            }]
+            }],
+            submissionTemplates: null,
+            studentAttachments: null
         }
 
         const postId = await createPost(db, school, post)
@@ -108,7 +110,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
 
         const postId = await createPost(db, school, post)
@@ -133,7 +137,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -147,7 +153,9 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -219,7 +227,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -233,7 +243,9 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -300,7 +312,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -324,7 +338,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -349,7 +365,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -363,7 +381,9 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -430,7 +450,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -473,7 +495,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -497,7 +521,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -523,7 +549,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -546,7 +574,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -567,7 +597,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -588,7 +620,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -622,7 +656,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
 
         let postId = await createPost(db, school, post)
@@ -658,7 +694,9 @@ describe("Posts", () => {
                 host: 'google',
                 googleFileId: '123456'
             }],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -708,7 +746,9 @@ describe("Posts", () => {
                 host: 'google',
                 googleFileId: '123456'
             }],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -753,7 +793,9 @@ describe("Posts", () => {
                 host: 'google',
                 googleFileId: '123456'
             }],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -808,7 +850,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -822,7 +866,9 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -867,7 +913,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -888,7 +936,9 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -938,7 +988,9 @@ describe("Posts", () => {
                 googleFileId: '123456',
                 shareMode: 'copied'
             }],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -972,7 +1024,7 @@ describe("Posts", () => {
         expect(link2).toBe('https://example.com/blah')
         expect(called).toBeFalsy()
     })
-    it("Should not let non-owners edit individual copies", async() => {
+    it("Should not let non-owners edit individual copies", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -997,7 +1049,9 @@ describe("Posts", () => {
                 googleFileId: '123456',
                 shareMode: 'copied'
             }],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1039,14 +1093,16 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
         const postFromDatabase = await getPost(db, school, user2, postId!, yearGroupId, courseId)
         expect(postFromDatabase).toBeNull()
     })
-    it("Should not let students get private posts which they did not create", async() => {
+    it("Should not let students get private posts which they did not create", async () => {
         const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
@@ -1062,11 +1118,441 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             attachments: [],
-            markingCriteria: null
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
         }
         const postId = await createPost(db, school, post)
 
         const postFromDatabase = await getPost(db, school, user2, postId!, yearGroupId, courseId)
         expect(postFromDatabase).toBeNull()
+    })
+    it("Should find submission templates as attachments", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456'
+            }],
+            studentAttachments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let googleFileId
+        let userEmail
+        let userName
+        let hasEditAccess
+        let shouldCreateCopy
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (fileId, fileName, email, name, canEdit, createCopy) => {
+            googleFileId = fileId
+            userEmail = email
+            userName = name
+            hasEditAccess = canEdit
+            shouldCreateCopy = createCopy
+
+            return { link: 'https://example.com', fileId: '123456' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(googleFileId).toBe('123456')
+        expect(userEmail).toBe('email')
+        expect(userName).toBe('user1')
+        expect(hasEditAccess).toBe(true)
+        expect(shouldCreateCopy).toBe(false)
+    })
+    it("Should find attachment in student submissions", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456'
+                }]
+            }
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let googleFileId
+        let userEmail
+        let userName
+        let hasEditAccess
+        let shouldCreateCopy
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (fileId, fileName, email, name, canEdit, createCopy) => {
+            googleFileId = fileId
+            userEmail = email
+            userName = name
+            hasEditAccess = canEdit
+            shouldCreateCopy = createCopy
+
+            return { link: 'https://example.com', fileId: '123456' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(googleFileId).toBe('123456')
+        expect(userEmail).toBe('email')
+        expect(userName).toBe('user1')
+        expect(hasEditAccess).toBe(true)
+        expect(shouldCreateCopy).toBe(false)
+    })
+    it("Should not create a new copy for non-owners accessing existing per-user files", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied'
+            }],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
+        }
+        const postId = await createPost(db, school, post)
+
+        // First call as the original user to create the copy
+        let called = false
+        let shouldCreateCopy = false
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
+            called = true
+            shouldCreateCopy = createCopy
+            return { link: 'https://example.com', fileId: '123' }
+        }
+        )
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(shouldCreateCopy).toBeTruthy()
+
+        // Second call as a different user to access the copy (should not create a new copy)
+        called = false
+        shouldCreateCopy = false
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', user2, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
+            called = true
+            shouldCreateCopy = createCopy
+            return { link: 'https://example.com', fileId: '123' }
+        }
+        )
+        expect(link2).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(shouldCreateCopy).toBeFalsy()
+
+        // Then it should create a new copy for user2 as owner
+        called = false
+        shouldCreateCopy = false
+        const link3 = await getUsableAttachmentLink(db, user2, 'user2', user2, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, _hasEditAccess, createCopy) => {
+            called = true
+            shouldCreateCopy = createCopy
+            return { link: 'https://example.com', fileId: '123' }
+        }
+        )
+        expect(link3).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(shouldCreateCopy).toBeTruthy()
+    })
+    it("Should get a post with attachments", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied'
+            }],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user1, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toEqual({
+            id: postId!.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId.toHexString(),
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied',
+                othersCanEdit: false,
+                accessLink: undefined
+            }],
+            submissionTemplates: undefined,
+            studentAttachments: undefined,
+        })
+    })
+    it("Should get posts with submission templates", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456'
+            }],
+            studentAttachments: null
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user1, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toEqual({
+            id: postId!.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: undefined,
+            submissionTemplates: [{
+                id: attachmentId.toHexString(),
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'copied',
+                othersCanEdit: true,
+                accessLink: undefined
+            }],
+            studentAttachments: undefined,
+        })
+    })
+    it("Should get posts with student attachments", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456'
+                }]
+            }
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user1, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toEqual({
+            id: postId!.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user1.toHexString(),
+                name: 'User 1',
+                email: 'user1',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: undefined,
+            submissionTemplates: undefined,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId.toHexString(),
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456',
+                    shareMode: 'shared',
+                    othersCanEdit: false,
+                    accessLink: undefined
+                }]
+            },
+        })
+    })
+    it("Should not let students see each other's student attachments", async () => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456'
+                }]
+            }
+        }
+        const postId = await createPost(db, school, post)
+
+        const postFromDatabase = await getPost(db, school, user2, postId!, yearGroupId, courseId)
+        expect(postFromDatabase).toEqual({
+            id: postId!.toHexString(),
+            postDate: post.postDate.toISOString(),
+            poster: {
+                id: user2.toHexString(),
+                name: 'User 2',
+                email: 'user2',
+                picture: ''
+            },
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            classIds: undefined,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: undefined,
+            submissionTemplates: undefined,
+            studentAttachments: undefined,
+        })
     })
 })

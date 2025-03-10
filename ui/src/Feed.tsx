@@ -18,18 +18,19 @@ import { Link } from "react-router-dom"
 import { UserInfo } from "../../data/user"
 import { studentsWhoCanSeePost } from "./Post"
 
-export function AttachmentView({ schoolId, postId, attachment, students }: {
+export function AttachmentView({ schoolId, postId, attachment, students, selectedStudentId }: {
     schoolId: string
     postId: string
     attachment: AttachmentInfo
     students: UserInfo[]
+    selectedStudentId?: string
 }) {
     const { getAttachmentLink } = useData()
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const [opening, setOpening] = useState(false)
     const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
 
-    if (attachment.shareMode === 'copied' && isTeacherOrAdministrator) {
+    if (attachment.shareMode === 'copied' && isTeacherOrAdministrator && !selectedStudentId) {
         return <SimpleMenu
             buttonContents={attachment.title}
             buttonProps={{ disabled: opening }}
@@ -58,11 +59,13 @@ export function AttachmentView({ schoolId, postId, attachment, students }: {
                     window.open(attachment.accessLink, '_blank')
                 } else {
                     setOpening(true)
-                    const link = await getAttachmentLink(schoolId, postId, attachment.id)
+                    const link = await getAttachmentLink(schoolId, postId, attachment.id, selectedStudentId)
                     if (link) {
                         window.open(link, '_blank')
                     }
-                    attachment.accessLink = link ?? undefined
+                    if (attachment.shareMode === 'copied') {
+                        attachment.accessLink = link ?? undefined
+                    }
                     setOpening(false)
                 }
             }}

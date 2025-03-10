@@ -14,6 +14,9 @@ export interface PostInfo {
     content: string
     attachments: AttachmentInfo[]
 
+    submissionTemplates?: AttachmentInfo[]
+    studentAttachments?: { [studentId: string]: AttachmentInfo[] }
+
     markingCriteria?: MarkingCriterion[]
 }
 export interface AttachmentInfo {
@@ -41,6 +44,8 @@ export interface PostTemplate {
     title: string
     content: string
     attachments: AttachmentTemplate[]
+
+    submissionTemplates?: AttachmentTemplate[]
 
     markingCriteria?: MarkingCriterion[]
 }
