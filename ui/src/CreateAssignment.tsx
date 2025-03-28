@@ -125,7 +125,7 @@ export default function CreateAssignment() {
                         key={template.googleFileId}
                         disablePermissionsSettings
                         attachmentTemplate={template}
-                        onRemove={() => setAttachments(attachments => attachments.filter(a => a !== template))}
+                        onRemove={() => setSubmissionTemplates(templates => templates.filter(t => t !== template))}
                         update={newAttachment => setAttachments(attachments => attachments.map(a => a === template ? newAttachment : a))}
                     />
                 ))

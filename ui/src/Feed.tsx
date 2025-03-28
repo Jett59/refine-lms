@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandMore, Menu, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
+import { AttachFile, ExpandMore, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -270,8 +270,8 @@ function PostView({ post, schoolInfo, courseInfo }: { post: PostInfo, schoolInfo
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
             {isAssignment
-                ? <Typography variant="h6"><Link to={postLocation}>{post.title}</Link></Typography>
-                : <Typography variant="h6">{post.title}</Typography>
+                ? <Typography variant="h6"><Link to={postLocation}>{post.title || 'Untitled Assignment'}</Link></Typography>
+                : <Typography variant="h6">{post.title || 'Untitled Post'}</Typography>
             }
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} />
