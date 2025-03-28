@@ -123,13 +123,19 @@ export default function CreateAssignment() {
                 submissionTemplates.map(template => (
                     <CreatePostFormAttachmentView
                         key={template.googleFileId}
+                        disablePermissionsSettings
                         attachmentTemplate={template}
                         onRemove={() => setAttachments(attachments => attachments.filter(a => a !== template))}
                         update={newAttachment => setAttachments(attachments => attachments.map(a => a === template ? newAttachment : a))}
                     />
                 ))
             }
-            <CreatePostFormAddAttachmentButton disabled={disabled} addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])} />
+            <CreatePostFormAddAttachmentButton
+            disabled={disabled}
+            defaultShareMode="copied"
+            defaultOthersCanEdit
+            addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])}
+            />
         </Box>
         <Divider />
         <Stack direction="row" justifyContent="end">

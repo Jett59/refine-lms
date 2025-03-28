@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandMore, Menu, NoteAdd, PostAdd } from "@mui/icons-material"
+import { AttachFile, ExpandMore, Menu, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -74,8 +74,9 @@ export function AttachmentView({ schoolId, postId, attachment, students, selecte
     }
 }
 
-export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, update }: {
+export function CreatePostFormAttachmentView({ attachmentTemplate, disablePermissionsSettings, onRemove, update }: {
     attachmentTemplate: AttachmentTemplate
+    disablePermissionsSettings?: boolean
     onRemove: () => void
     update: (attachment: AttachmentTemplate) => void
 }) {
@@ -84,6 +85,7 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, upd
         <Typography variant="h6">{attachmentTemplate.title}</Typography>
         <SimpleMenu
             buttonContents={attachmentTemplate.shareMode === 'shared' ? 'Shared Resource' : 'Handout'}
+            buttonProps={{ disabled: disablePermissionsSettings }}
             childrenSupplier={close => [
                 <MenuItem onClick={() => {
                     update({ ...attachmentTemplate, shareMode: 'shared' })
@@ -97,6 +99,7 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, upd
         />
         <SimpleMenu
             buttonContents={attachmentTemplate.othersCanEdit ? 'Editable' : 'Read-only'}
+            buttonProps={{ disabled: disablePermissionsSettings }}
             childrenSupplier={close => [
                 <MenuItem onClick={() => {
                     update({ ...attachmentTemplate, othersCanEdit: false })
@@ -110,22 +113,17 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, onRemove, upd
                 }}>Editable</MenuItem>
             ]}
         />
-        <SimpleMenu
-            buttonContents={<Menu />}
-            buttonAriaLabel={`Attachment options for ${attachmentTemplate.title}`}
-            childrenSupplier={close => [
-                <MenuItem onClick={() => {
-                    onRemove()
-                    close()
-                }}>Remove</MenuItem>
-            ]}
-        />
+        <IconButton onClick={onRemove} aria-label="Remove attachment">
+            <Remove />
+        </IconButton>
     </Stack >
 }
 
-export function CreatePostFormAddAttachmentButton({ disabled, addAttachments }: {
+export function CreatePostFormAddAttachmentButton({ disabled, defaultShareMode, defaultOthersCanEdit, addAttachments }: {
     disabled?: boolean
     addAttachments: (attachments: AttachmentTemplate[]) => void
+    defaultShareMode?: 'shared' | 'copied'
+    defaultOthersCanEdit?: boolean
 }) {
     const [openPicker, _authResponse] = useDrivePicker()
     const { getGoogleAccessToken } = useUser()
@@ -141,8 +139,8 @@ export function CreatePostFormAddAttachmentButton({ disabled, addAttachments }: 
                     addAttachments(data.docs.map(doc => ({
                         title: doc.name,
                         mimeType: doc.mimeType,
-                        shareMode: 'shared' as 'shared',
-                        othersCanEdit: false,
+                        shareMode: defaultShareMode ?? 'shared' as 'shared',
+                        othersCanEdit: defaultOthersCanEdit ?? false,
                         host: 'google' as 'google',
                         googleFileId: doc.id,
                         thumbnail: doc.iconUrl,
