@@ -110,6 +110,19 @@ function Assignment({ assignment, school }: { assignment: PostInfo, school: Scho
             </TileContainer>}
         </>
         }
+        {!isTeacherOrAdministrator && <>
+            <Divider />
+            <Typography variant="h4">Your Work</Typography>
+            <TileContainer>
+                {assignment.submissionTemplates?.map(attachment => (
+                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
+                ))}
+                {assignment.studentAttachments?.[student?.id ?? '']?.map(attachment => (
+                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
+                ))}
+            </TileContainer>
+        </>
+        }
     </Stack>
 }
 
