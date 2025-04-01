@@ -12,7 +12,6 @@ import { GOOGLE_PROJECT_NUMBER, GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } f
 import { useUser } from "./UserContext"
 import { PickerCallback } from "react-google-drive-picker/dist/typeDefs"
 import { TileContainer } from "./Tile"
-import { useError } from "./ErrorContext"
 import { getLocation, useSwitchPage } from "./App"
 import { Link } from "react-router-dom"
 import { UserInfo } from "../../data/user"
@@ -296,8 +295,6 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     listType: 'feed' | 'work'
 }) {
     const { createPost, listPosts } = useData()
-    const { getGoogleAccessToken } = useUser()
-    const { addError } = useError()
 
     const [posts, setPosts] = useState<PostInfo[]>([])
     const [isEnd, setIsEnd] = useState(false)
@@ -420,14 +417,9 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
                 postType={postTypeForCreation ?? 'post'}
                 onClick={async (post) => {
                     setPosting(true)
-                    const googleAccessToken = await getGoogleAccessToken()
-                    if (googleAccessToken) {
-                        await createPost(post, googleAccessToken)
+                        await createPost(post)
                         setCreatingPost(false)
                         refreshPostsList()
-                    } else {
-                        addError('Could not authenticate to Google')
-                    }
                     setPosting(false)
                 }}
                 close={() => setCreatingPost(false)}

@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -1553,6 +1553,52 @@ describe("Posts", () => {
             markingCriteria: undefined,
             submissionTemplates: undefined,
             studentAttachments: undefined,
+        })
+    })
+    it("Should let students add attachments to their submissions", async () => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const attachment: Attachment = {
+            id: new ObjectId(),
+            title: 'Title',
+            thumbnail: '',
+            mimeType: 'text/plain',
+            shareMode: 'shared',
+            othersCanEdit: false,
+            host: 'google',
+            googleFileId: '123'
+        }
+
+        const result = await AddAttachmentToSubmission(db, user1, school, postId!, attachment)
+        expect(result).toBe(attachment.id)
+
+        const postFromDatabase = await db.collection('posts').find({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            studentAttachments: {
+                [user1.toHexString()]: attachment
+            }
         })
     })
 })

@@ -40,7 +40,7 @@ useEffect(() => {
     if (page) {
         text = page
     }else if (postId) {
-        text = postTitle
+        text = postTitle || 'Untitled'
     }else if (classId) {
         // All the classes are displayed on the same page, so we shouldn't put the class name in the breadcrumb
         text = 'Classes'

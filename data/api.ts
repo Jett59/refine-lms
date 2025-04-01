@@ -1,6 +1,6 @@
 import { SchoolInfo, SchoolStructure } from "./school"
 import { UserInfo } from "./user"
-import { PostInfo, PostTemplate, PostType } from "./post"
+import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "./post"
 
 export interface GoogleTokenResponse {
     accessToken: string
@@ -193,4 +193,14 @@ export interface GetPostRequest {
 }
 export interface GetPostResponse {
     post: PostInfo
+}
+
+export interface AddAttachmentToSubmissionRequest {
+    schoolId: string
+    postId: string
+    attachment: AttachmentTemplate
+    googleAccessToken: string
+}
+export interface AddAttachmentToSubmissionResponse {
+    attachmentId: string
 }

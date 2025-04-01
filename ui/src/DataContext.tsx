@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
-import { PostInfo, PostTemplate, PostType } from "../../data/post"
+import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -29,13 +29,14 @@ export interface DataContextValue {
     getSchoolStructure: (schoolId: string) => Promise<SchoolStructure | null>
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
 
-    createPost: (post: PostTemplate, googleAccessToken: string) => Promise<void>
+    createPost: (post: PostTemplate) => Promise<void>
     listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[], postTypes?: PostType[]) => Promise<{
         posts: PostInfo[]
         isEnd: boolean
     } | null>
     getAttachmentLink: (schoolId: string, postId: string, attachmentId: string, individualCopyOwnerId?: string) => Promise<string | null>
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
+    addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -57,11 +58,12 @@ const DataContext = createContext<DataContextValue>({
     createPost: async () => { },
     listPosts: async () => null,
     getAttachmentLink: async () => null,
-    getPost: async() => null,
+    getPost: async () => null,
+    addAttachmentToSubmission: async () => null,
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
-    const { addAPIError } = useError()
+    const { addAPIError, addError } = useError()
 
     const { loggedIn } = useUser()
 
@@ -111,6 +113,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }
         return relevantSchoolInfos[schoolId]
     }, [authenticatedAPIs, addAPIError, relevantSchoolInfos])
+
+    const { getGoogleAccessToken } = useUser()
 
     return <DataContext.Provider value={{
         joinedSchools,
@@ -216,10 +220,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        createPost: useCallback(async (post, googleAccessToken) => {
-            const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post, googleAccessToken })
-            if (!isSuccessfulAPIResponse(response)) {
-                addAPIError(response)
+        createPost: useCallback(async (post) => {
+            const googleAccessToken = await getGoogleAccessToken()
+            if (!googleAccessToken) {
+                addError('Google access token not found')
+            } else {
+                const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post, googleAccessToken })
+                if (!isSuccessfulAPIResponse(response)) {
+                    addAPIError(response)
+                }
             }
         }, [authenticatedAPIs]),
         listPosts: useCallback(async (beforeDate, limit, schoolId, yearGroupId, courseId, classIds, postTypes) => {
@@ -249,6 +258,20 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return null
             }
         }, [authenticatedAPIs]),
+        addAttachmentToSubmission: useCallback(async (schoolId, postId, attachment) => {
+            const googleAccessToken = await getGoogleAccessToken()
+            if (!googleAccessToken) {
+                addError('Google access token not found')
+                return null
+            }
+            const response = await authenticatedAPIs.call<AddAttachmentToSubmissionResponse, AddAttachmentToSubmissionRequest>('POST', 'add-attachment-to-submission', { schoolId, postId, attachment, googleAccessToken })
+            if (isSuccessfulAPIResponse(response)) {
+                return response.body.attachmentId
+            } else {
+                addAPIError(response)
+                return null
+            }
+        }, [authenticatedAPIs, getGoogleAccessToken, addError]),
     }}>
         {children}
     </DataContext.Provider>

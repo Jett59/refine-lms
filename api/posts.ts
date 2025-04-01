@@ -444,3 +444,34 @@ export async function getUsableAttachmentLink(db: Db, owningUserId: ObjectId, ow
         return null
     }
 }
+
+export async function AddAttachmentToSubmission(db: Db, userId: ObjectId, school: School, postId: ObjectId, attachment: Attachment): Promise<ObjectId | null> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return null
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return null
+    }
+    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return null
+    }
+    // First, update to make sure the studentAttachments field exists.
+    await getCollection(db).updateOne({
+        _id: postId,
+        studentAttachments: null
+    }, {
+        $set: {
+            studentAttachments: {},
+        }
+    })
+    // Then add it back
+    await getCollection(db).updateOne({
+        _id: postId
+    }, {
+        $push: {
+            [`studentAttachments.${userId.toHexString()}`]: attachment
+        }
+    })
+    return attachment.id
+}

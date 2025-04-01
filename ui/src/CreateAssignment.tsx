@@ -7,7 +7,6 @@ import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
 import { AttachmentTemplate, MarkingCriterion } from "../../data/post"
-import { useUser } from "./UserContext"
 
 function CriterionView({ criterion, update }: {
     criterion: MarkingCriterion
@@ -32,7 +31,6 @@ function CriterionView({ criterion, update }: {
 export default function CreateAssignment() {
     const { schoolId, yearGroupId, courseId } = useParams()
     const { createPost } = useData()
-    const { getGoogleAccessToken } = useUser()
     const school = useRelevantSchoolInfo(schoolId)
     const course = school?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
 
@@ -131,10 +129,10 @@ export default function CreateAssignment() {
                 ))
             }
             <CreatePostFormAddAttachmentButton
-            disabled={disabled}
-            defaultShareMode="copied"
-            defaultOthersCanEdit
-            addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])}
+                disabled={disabled}
+                defaultShareMode="copied"
+                defaultOthersCanEdit
+                addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])}
             />
         </Box>
         <Divider />
@@ -149,25 +147,20 @@ export default function CreateAssignment() {
                 disabled={disabled}
                 onClick={async () => {
                     setDisabled(true)
-                    const googleAccessToken = await getGoogleAccessToken()
-                    if (googleAccessToken) {
-                        await createPost({
-                            schoolId,
-                            yearGroupId,
-                            courseId,
-                            classIds: classId ? [classId] : undefined,
-                            type: 'assignment',
-                            private: false,
-                            title,
-                            content,
-                            attachments,
-                            submissionTemplates,
-                            markingCriteria
-                        }, googleAccessToken)
-                        navigate(-1)
-                    } else {
-                        setDisabled(false)
-                    }
+                    await createPost({
+                        schoolId,
+                        yearGroupId,
+                        courseId,
+                        classIds: classId ? [classId] : undefined,
+                        type: 'assignment',
+                        private: false,
+                        title,
+                        content,
+                        attachments,
+                        submissionTemplates,
+                        markingCriteria
+                    })
+                    navigate(-1)
                 }}
             >Assign</Button>
         </Stack>

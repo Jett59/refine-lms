@@ -1,14 +1,15 @@
 import { Box, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { getVisibleClassIds, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
-import { AttachmentView } from "./Feed"
+import { AttachmentView, CreatePostFormAddAttachmentButton } from "./Feed"
 import { TileContainer } from "./Tile"
 import { SchoolInfo } from "../../data/school"
 import { UserInfo } from "../../data/user"
 import SimpleMenu from "./SimpleMenu"
+import { useUser } from "./UserContext"
 
 export default function Post() {
     const { schoolId, yearGroupId, courseId, postId } = useParams()
@@ -16,22 +17,27 @@ export default function Post() {
     const school = useRelevantSchoolInfo(schoolId)
     const [postInfo, setPostInfo] = useState<PostInfo | null>(null)
 
-    useEffect(() => {
-        if (postId && schoolId && school && yearGroupId) {
+    const refreshPost = useCallback(async () => {
+        if (school && postId && yearGroupId && schoolId) {
             let classIds
             if (courseId) {
                 classIds = getVisibleClassIds(school, yearGroupId, courseId)
             }
-            setPostInfo(null)
-            getPost(postId, schoolId, yearGroupId, courseId, classIds).then(postInfo => {
-                if (postInfo) {
-                    setPostInfo(postInfo)
-                }
-            })
+            const postInfo = await getPost(postId, schoolId, yearGroupId, courseId, classIds)
+            if (postInfo) {
+                setPostInfo(postInfo)
+            }
         }
     }, [postId, getPost, school, schoolId, yearGroupId, courseId])
 
-    useSetPageTitle(postInfo?.title ?? '')
+    useEffect(() => {
+        if (postId && schoolId && school && yearGroupId) {
+            setPostInfo(null)
+            refreshPost()
+        }
+    }, [postId, getPost, school, schoolId, yearGroupId, courseId])
+
+    useSetPageTitle((postInfo?.title ?? '') || 'Untitled')
 
     if (!postId) {
         return <Typography variant="h4">No post selected</Typography>
@@ -41,20 +47,28 @@ export default function Post() {
     }
 
     if (postInfo.type === 'assignment') {
-        return <Assignment assignment={postInfo} school={school} />
+        return <Assignment assignment={postInfo} school={school} refreshPost={refreshPost} />
     } else {
         return <Typography>Not implemented</Typography>
     }
 }
 
-function Assignment({ assignment, school }: { assignment: PostInfo, school: SchoolInfo }) {
+function Assignment({ assignment, school, refreshPost }: {
+    assignment: PostInfo
+    school: SchoolInfo
+    refreshPost: () => Promise<void>
+}) {
     const theme = useTheme()
     const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
 
     const isTeacherOrAdministrator = useIsTeacherOrAdministrator(school)
+    const { userId } = useUser()
+    const { addAttachmentToSubmission } = useData()
 
-    const [currentStudentId, setCurrentStudentId] = useState<string | null>(null)
+    const [currentStudentId, setCurrentStudentId] = useState<string | null>(!isTeacherOrAdministrator ? userId ?? null : null)
     const student = currentStudentId ? school.students.find(student => student.id === currentStudentId) ?? null : null
+
+    const [addAttachmentDisabled, setAddAttachmentDisabled] = useState(false)
 
     return <Stack direction="column" spacing={2}>
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
@@ -120,6 +134,19 @@ function Assignment({ assignment, school }: { assignment: PostInfo, school: Scho
                 {assignment.studentAttachments?.[student?.id ?? '']?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
                 ))}
+                <CreatePostFormAddAttachmentButton
+                    defaultOthersCanEdit={false}
+                    defaultShareMode="shared"
+                    disabled={addAttachmentDisabled}
+                    addAttachments={async attachments => {
+                        setAddAttachmentDisabled(true)
+                        for (const attachment of attachments) {
+                            await addAttachmentToSubmission(school.id, assignment.id, attachment)
+                        }
+                        await refreshPost()
+                        setAddAttachmentDisabled(false)
+                    }}
+                />
             </TileContainer>
         </>
         }

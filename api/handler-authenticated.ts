@@ -3,9 +3,9 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
-import { createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
-import { isAttachmentPreparationError } from "./google-drive";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
+import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
+import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
 const CONNECTION_STRING = process.env.MONGO_CONNECTION_STRING ?? 'mongodb://127.0.0.1:27017'
@@ -512,6 +512,45 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(404, `Post not found or user does not have access`)
                 }
                 return successResponse<GetPostResponse>({ post })
+            }
+            case "/add-attachment-to-submission": {
+                const typedBody: AddAttachmentToSubmissionRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                if (!typedBody.attachment) {    
+                    return errorResponse(400, 'Missing attachment')
+                }
+                if (!typedBody.googleAccessToken) {
+                    return errorResponse(400, 'Missing Google access token')
+                }
+                let schoolObjectId: ObjectId
+                let postId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    postId = new ObjectId(typedBody.postId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school or post ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                if (isAttachmentPreparationError(await prepareAttachments(typedBody.googleAccessToken, [typedBody.attachment]))) {
+                    return errorResponse(400, 'Invalid attachment')
+                }
+                const result = await AddAttachmentToSubmission(db, user._id!, school, postId, {
+                    ...typedBody.attachment,
+                    id: new ObjectId(),
+                })
+                if (!result) {
+                    return errorResponse(400, 'Invalid post')
+                }else {
+                    return successResponse<AddAttachmentToSubmissionResponse>({ attachmentId: result.toHexString() })
+                }
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
