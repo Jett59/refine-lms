@@ -1593,12 +1593,68 @@ describe("Posts", () => {
         const result = await AddAttachmentToSubmission(db, user1, school, postId!, attachment)
         expect(result).toBe(attachment.id)
 
-        const postFromDatabase = await db.collection('posts').find({ _id: postId! })
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
         expect(postFromDatabase).toEqual({
             ...post,
+            _id: postId,
             studentAttachments: {
-                [user1.toHexString()]: attachment
+                [user1.toHexString()]: [attachment]
             }
         })
+    })
+    it("Should let students have edit access to their own attachments", async() => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456'
+                }]
+            }
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let called = false
+        let shouldHaveEditAccess = false
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, hasEditAccess, _createCopy) => {
+            called = true
+            shouldHaveEditAccess = hasEditAccess
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(shouldHaveEditAccess).toBe(true)
+
+        called = false
+        shouldHaveEditAccess = false
+        const link2 = await getUsableAttachmentLink(db, user1, 'user1', user2, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, hasEditAccess, _createCopy) => {
+            called = true
+            shouldHaveEditAccess = hasEditAccess
+            return { link: 'https://example.com/bleh', fileId: '' }
+        })
+        expect(link2).toBe('https://example.com/bleh')
+        expect(called).toBeTruthy()
+        expect(shouldHaveEditAccess).toBe(false)
     })
 })
