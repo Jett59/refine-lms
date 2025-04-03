@@ -1695,4 +1695,85 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
         expect(shouldHaveEditAccess).toBe(false)
     })
-})
+    it("Should not return the link for an attachment with the wrong school id", async() => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: new ObjectId(),
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'shared'
+            }],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let called = false
+        const link = await getUsableAttachmentLink(db, user2, 'user2', user1, 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBeNull()
+        expect(called).toBeFalsy()
+    })
+    it("Should not let students get attachment links from courses to which they do not have access", async() => {
+        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [{
+                id: attachmentId,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                shareMode: 'shared'
+            }],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let called = false
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async () => {
+            called = true
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBeNull()
+        expect(called).toBeFalsy()
+    })})
