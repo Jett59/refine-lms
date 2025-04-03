@@ -7,6 +7,9 @@ import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
 import { AttachmentTemplate, MarkingCriterion } from "../../data/post"
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Dayjs } from "dayjs"
 
 function CriterionView({ criterion, update }: {
     criterion: MarkingCriterion
@@ -44,6 +47,7 @@ export default function CreateAssignment() {
     const [disabled, setDisabled] = useState(false)
 
     const [title, setTitle] = useState('')
+    const [dueDate, setDueDate] = useState<Dayjs | null>(null)
     const [content, setContent] = useState('')
     const [classId, setClassId] = useState<string | undefined>(undefined)
     const classInfo = course?.classes.find(cls => cls.id === classId)
@@ -55,10 +59,22 @@ export default function CreateAssignment() {
         return <Typography>Not found</Typography>
     }
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
+        <Stack direction="column" alignItems="centre" spacing={2}>
+            <TextField autoFocus autoComplete="off" value={title} onChange={e => setTitle(e.target.value)} label="Title" />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DateTimePicker
+                    label="Due Date"
+                    value={dueDate}
+                    onChange={date => setDueDate(date ?? null)}
+                    ampm={false}
+                    format="DD/MM/YYYY HH:mm"
+                    enableAccessibleFieldDOMStructure
+                />
+            </LocalizationProvider>
+        </Stack>
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
             <Box flex={3}>
-                <TextField autoFocus autoComplete="off" value={title} onChange={e => setTitle(e.target.value)} label="Title" />
                 <Typography variant="h5">Instructions</Typography>
                 <TextField
                     multiline
@@ -73,7 +89,7 @@ export default function CreateAssignment() {
                         rounded
                         buttonProps={{ endIcon: <ExpandMore /> }}
                         childrenSupplier={close => [
-                            <MenuItem onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
+                            <MenuItem key="all" onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
                             ...course?.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>) ?? []
                         ]}
                     />
@@ -157,6 +173,7 @@ export default function CreateAssignment() {
                         title,
                         content,
                         attachments,
+                        isoDueDate: dueDate?.toISOString() ?? undefined,
                         submissionTemplates,
                         markingCriteria
                     })

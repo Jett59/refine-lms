@@ -103,11 +103,11 @@ export default function PageWrapper({ children }: {
     return <Box position="static">
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} bgcolor={theme.palette.primary.light} paddingTop={'32px'} paddingBottom={'48px'}>
             <Stack direction="column" spacing={2}>
+                {loggedIn && <PageWrapperBreadcrumbs />}
                 <Stack direction="row" spacing={2}>
                     <Typography aria-live="polite" variant="h4" align="center">{title}</Typography>
                     {titleButtons}
                 </Stack>
-                {loggedIn && <PageWrapperBreadcrumbs />}
             </Stack>
         </Box>
         <Box paddingLeft={paddingMargins} paddingRight={paddingMargins} position={'relative'} style={{ top: '-20px' }}>

@@ -20,6 +20,8 @@ export interface Post {
     content: string
     attachments: Attachment[]
 
+    // For assignments:
+    isoDueDate: string | null
     // All of these should be 'copied', othersCanEdit
     submissionTemplates: Attachment[] | null
     // All of these should be 'shared', !othersCanEdit
@@ -96,6 +98,7 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             host: attachment.host,
             googleFileId: attachment.googleFileId
         })),
+        isoDueDate: postTemplate.isoDueDate ?? null,
         submissionTemplates: postTemplate.submissionTemplates?.map(attachment => ({
             id: new ObjectId(),
             title: attachment.title,
@@ -173,6 +176,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                 googleFileId: attachment.googleFileId,
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
             })),
+            isoDueDate: post.isoDueDate?? undefined,
             submissionTemplates: post.submissionTemplates?.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,

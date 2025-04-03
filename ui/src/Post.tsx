@@ -10,6 +10,7 @@ import { SchoolInfo } from "../../data/school"
 import { UserInfo } from "../../data/user"
 import SimpleMenu from "./SimpleMenu"
 import { useUser } from "./UserContext"
+import { formatDate } from "./date"
 
 export default function Post() {
     const { schoolId, yearGroupId, courseId, postId } = useParams()
@@ -71,6 +72,13 @@ function Assignment({ assignment, school, refreshPost }: {
     const [addAttachmentDisabled, setAddAttachmentDisabled] = useState(false)
 
     return <Stack direction="column" spacing={2}>
+        <Stack direction="column" alignItems="center" spacing={2}>
+            {assignment.isoDueDate &&
+            <Typography>
+                Due {formatDate(new Date(assignment.isoDueDate))}
+            </Typography>
+            }
+        </Stack>
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
             <Box flex={3}>
                 <Typography variant="h4">Instructions</Typography>
@@ -86,13 +94,13 @@ function Assignment({ assignment, school, refreshPost }: {
             <Box flex={1}>
                 <Stack direction="row">
                     <Typography variant="h4">Marking Criteria</Typography>
-                    {assignment.markingCriteria &&
+                    {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                         <Typography>
                             {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
                         </Typography>
                     }
                 </Stack>
-                {assignment.markingCriteria
+                {assignment.markingCriteria && assignment.markingCriteria.length > 0
                     ? <Stack direction="column">
                         {assignment.markingCriteria.map((criterion, index) => (
                             <Stack key={index} direction="row" spacing={2}>
