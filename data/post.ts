@@ -18,6 +18,7 @@ export interface PostInfo {
     isoDueDate?: string
     submissionTemplates?: AttachmentInfo[]
     studentAttachments?: { [studentId: string]: AttachmentInfo[] }
+    isoSubmissionDates?: { [studentId: string]: string }
     markingCriteria?: MarkingCriterion[]
 }
 export interface AttachmentInfo {

@@ -1,9 +1,9 @@
-import { Db, Filter, ObjectId } from "mongodb"
+import { Db, Filter, MongoClient, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
 import { MarkingCriterion, PostInfo, PostTemplate, PostType } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
-import { AttachmentPreparationError, getFileLink, prepareAttachments } from "./google-drive"
+import { AttachmentPreparationError, createCopy, getFileLink, prepareAttachments } from "./google-drive"
 import { access } from "fs"
 
 export interface Post {
@@ -22,11 +22,9 @@ export interface Post {
 
     // For assignments:
     isoDueDate: string | null
-    // All of these should be 'copied', othersCanEdit
-    submissionTemplates: Attachment[] | null
-    // All of these should be 'shared', !othersCanEdit
-    studentAttachments: { [studentId: string]: Attachment[] } | null
-
+    submissionTemplates: Attachment[] | null // 'copied', othersCanEdit
+    studentAttachments: { [studentId: string]: Attachment[] } | null // 'shared', !othersCanEdit
+    isoSubmissionDates: { [studentId: string]: string } | null
     markingCriteria: MarkingCriterion[] | null
 }
 
@@ -110,6 +108,7 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             googleFileId: attachment.googleFileId
         })) ?? null,
         studentAttachments: null,
+        isoSubmissionDates: null,
         markingCriteria: postTemplate.markingCriteria ?? null
     }
 }
@@ -176,7 +175,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                 googleFileId: attachment.googleFileId,
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
             })),
-            isoDueDate: post.isoDueDate?? undefined,
+            isoDueDate: post.isoDueDate ?? undefined,
             submissionTemplates: post.submissionTemplates?.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,
@@ -400,14 +399,16 @@ export async function getUsableAttachmentLink(db: Db, owningUserId: ObjectId, ow
     if (!attachment) {
         return null
     }
+    const isSubmitted = Boolean(post.isoSubmissionDates?.[owningUserId.toHexString()])
     // The rules for edit access:
+    // - If the attachment is part of a submission, then it is not editable
     // - If the accessing user is the same as the owning user:
     //   * If individual copies are to be created, then the attachment is editable
     //   * If othersCanEdit, then the attachment is editable
     //   * If the user created the post, then it is editable
     //   * If the attachment is from studentAttachments[accessingUserId] (owningUserId === accessingUserId), then it is editable
     // - If the accessing user is not the owning user, then they can't edit
-    const hasEditAccess = owningUserId.equals(accessingUserId) && (
+    const hasEditAccess = !isSubmitted && owningUserId.equals(accessingUserId) && (
         attachment.shareMode === 'copied'
         || attachment?.othersCanEdit
         || post.posterId.equals(accessingUserId)
@@ -486,4 +487,116 @@ export async function AddAttachmentToSubmission(db: Db, userId: ObjectId, school
         }
     })
     return attachment.id
+}
+
+type FileCopier = (googleFileId: string, newFileName: string) => Promise<{ fileId: string } | null>
+/**
+ * Submits an assignment for a given user.
+ * - Copies submission templates and student attachments to remove the user's access
+ * - Registers the submission date
+ * 
+ * @param db 
+ * @param userId 
+ * @param school 
+ * @param postId 
+ * @param copyFile 
+ */
+export async function submitAssignment(client: MongoClient, db: Db, userId: ObjectId, school: School, postId: ObjectId, copyFile?: FileCopier): Promise<boolean> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return false
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return false
+    }
+    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return false
+    }
+    if (post.type !== 'assignment') {
+        return false
+    }
+    if (post.isoSubmissionDates && post.isoSubmissionDates[userId.toHexString()]) {
+        return false
+    }
+    const isoSubmissionDate = new Date().toISOString()
+    const realCopyFile = copyFile ?? createCopy
+    const transaction = client.startSession()
+    try {
+        await transaction.startTransaction()
+        // Get the post again from within the transaction, in case it changed or something
+        const post = await getCollection(db).findOne({ _id: postId }, { session: transaction })
+        if (!post) {
+            await transaction.abortTransaction()
+            return false
+        }
+        // For each submission template, we should copy the user's copy and replace the old file id and link
+        for (const attachment of post.submissionTemplates ?? []) {
+            const fileId = getPerUserFileId(attachment, userId)
+            if (fileId) {
+                const newFileId = await realCopyFile(fileId, attachment.title)
+                if (!newFileId) {
+                    await transaction.abortTransaction()
+                    return false
+                }
+                await getCollection(db).updateOne({
+                    _id: postId,
+                    [`submissionTemplates.id`]: attachment.id
+                }, {
+                    $set: {
+                        [`submissionTemplates.$.perUserFileIds.${userId.toHexString()}`]: newFileId.fileId,
+                        [`submissionTemplates.$.perUserUsersWithAccess.${userId.toHexString()}`]: []
+                    },
+                    $unset: {
+                        [`submissionTemplates.$.perUserLinks.${userId.toHexString()}`]: ""
+                    }
+                }, { session: transaction })
+            }
+        }
+        // For each student attachment, we should copy the user's copy and replace the old file id and link
+        for (const attachment of post.studentAttachments?.[userId.toHexString()] ?? []) {
+            const fileId = attachment.googleFileId
+            if (fileId) {
+                const newFileId = await realCopyFile(fileId, attachment.title)
+                if (!newFileId) {
+                    await transaction.abortTransaction()
+                    return false
+                }
+                await getCollection(db).updateOne({
+                    _id: postId,
+                    [`studentAttachments.${userId.toHexString()}.id`]: attachment.id
+                }, {
+                    // Remember that these are *not* individual copy attachments, so they don't have any of the perUser* fields
+                    $set: {
+                        [`studentAttachments.${userId.toHexString()}.$.googleFileId`]: newFileId.fileId,
+                        [`studentAttachments.${userId.toHexString()}.$.usersWithAccess`]: []
+                    },
+                    $unset: {
+                        [`studentAttachments.${userId.toHexString()}.$.cachedLink`]: ""
+                    }
+                }, { session: transaction })
+            }
+        }
+        // Then we should set the submission date
+        // First make sure the field exists
+        await getCollection(db).updateOne({
+            _id: postId,
+            isoSubmissionDates: null
+        }, {
+            $set: {
+                isoSubmissionDates: {}
+            }
+        }, { session: transaction })
+        await getCollection(db).updateOne({
+            _id: postId
+        }, {
+            $set: {
+                [`isoSubmissionDates.${userId.toHexString()}`]: isoSubmissionDate
+            }
+        }, { session: transaction })
+        await transaction.commitTransaction()
+    } catch (e) {
+        await transaction.abortTransaction()
+        throw e
+    }
+    return true
 }

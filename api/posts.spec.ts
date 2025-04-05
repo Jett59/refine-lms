@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -88,7 +88,8 @@ describe("Posts", () => {
             }],
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
 
         const postId = await createPost(db, school, post)
@@ -114,7 +115,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
 
         const postId = await createPost(db, school, post)
@@ -142,7 +144,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post2: Post = {
             postDate: date2,
@@ -159,7 +162,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -234,7 +238,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post2: Post = {
             postDate: date2,
@@ -251,7 +256,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -321,7 +327,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -348,7 +355,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -376,7 +384,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post2: Post = {
             postDate: date2,
@@ -393,7 +402,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -463,7 +473,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -509,7 +520,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -536,7 +548,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -565,7 +578,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -591,7 +605,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -615,7 +630,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -639,7 +655,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -676,7 +693,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
 
         let postId = await createPost(db, school, post)
@@ -715,7 +733,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -768,7 +787,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -816,7 +836,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -874,7 +895,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post2: Post = {
             postDate: date2,
@@ -891,7 +913,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -939,7 +962,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -963,7 +987,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1016,7 +1041,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1078,7 +1104,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1123,7 +1150,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1149,7 +1177,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1183,7 +1212,8 @@ describe("Posts", () => {
                 googleFileId: '123456'
             }],
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1238,7 +1268,8 @@ describe("Posts", () => {
                     googleFileId: '123456'
                 }]
             },
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1292,7 +1323,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1363,7 +1395,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1427,7 +1460,8 @@ describe("Posts", () => {
                 googleFileId: '123456'
             }],
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1494,7 +1528,8 @@ describe("Posts", () => {
                     googleFileId: '123456'
                 }]
             },
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1563,7 +1598,8 @@ describe("Posts", () => {
                     googleFileId: '123456'
                 }]
             },
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1611,7 +1647,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1639,7 +1676,7 @@ describe("Posts", () => {
             }
         })
     })
-    it("Should let students have edit access to their own attachments", async() => {
+    it("Should let students have edit access to their own attachments", async () => {
         const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -1668,7 +1705,8 @@ describe("Posts", () => {
                     googleFileId: '123456'
                 }]
             },
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1695,7 +1733,7 @@ describe("Posts", () => {
         expect(called).toBeTruthy()
         expect(shouldHaveEditAccess).toBe(false)
     })
-    it("Should not return the link for an attachment with the wrong school id", async() => {
+    it("Should not return the link for an attachment with the wrong school id", async () => {
         const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -1723,7 +1761,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1736,7 +1775,7 @@ describe("Posts", () => {
         expect(link).toBeNull()
         expect(called).toBeFalsy()
     })
-    it("Should not let students get attachment links from courses to which they do not have access", async() => {
+    it("Should not let students get attachment links from courses to which they do not have access", async () => {
         const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
@@ -1764,7 +1803,8 @@ describe("Posts", () => {
             markingCriteria: null,
             submissionTemplates: null,
             studentAttachments: null,
-            isoDueDate: null
+            isoDueDate: null,
+            isoSubmissionDates: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1776,4 +1816,258 @@ describe("Posts", () => {
         })
         expect(link).toBeNull()
         expect(called).toBeFalsy()
-    })})
+    })
+    it("Should not let users edit submitted assignments", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '123456'
+                }]
+            },
+            isoDueDate: null,
+            isoSubmissionDates: {
+                [user1.toHexString()]: date.toISOString()
+            }
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let called = false
+        let shouldHaveEditAccess = false
+        const link = await getUsableAttachmentLink(db, user1, 'user1', user1, 'email', school, postId!, attachmentId, async (_id, _fileName, _email, _userName, hasEditAccess, _createCopy) => {
+            called = true
+            shouldHaveEditAccess = hasEditAccess
+            return { link: 'https://example.com', fileId: '' }
+        })
+        expect(link).toBe('https://example.com')
+        expect(called).toBeTruthy()
+        expect(shouldHaveEditAccess).toBe(false)
+    })
+    it("Should change the google file ids for submission templates and student attachments when submitting", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId1 = new ObjectId()
+        const attachmentId2 = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: [{
+                id: attachmentId1,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                perUserFileIds: {
+                    [user1.toHexString()]: '234561'
+                }
+            }],
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId2,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '654321'
+                }]
+            },
+            isoDueDate: null,
+            isoSubmissionDates: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let calledCount = 0
+        const result = await submitAssignment(mongoClient, db, user1, school, postId!, async (oldFileId, _newFileName) => {
+            calledCount++
+            return { fileId: oldFileId + 'new' }
+        })
+        expect(result).toBe(true)
+        expect(calledCount).toBe(2)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId2,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '654321new',
+                    usersWithAccess: []
+                }]
+            },
+            submissionTemplates: [{
+                id: attachmentId1,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                perUserFileIds: {
+                    [user1.toHexString()]: '234561new'
+                },
+                perUserUsersWithAccess: {
+                    [user1.toHexString()]: []
+                }
+            }],
+            isoSubmissionDates: {
+                [user1.toHexString()]: expect.any(String)
+            }
+        })
+    })
+    it("Should not change file ids if the student hasn't created a copy already", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: [{
+                id: attachmentId,
+                title: 'Attachment',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                perUserFileIds: {
+                    [user2.toHexString()]: '234561'
+                }
+            }],
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let calledCount = 0
+        const result = await submitAssignment(mongoClient, db, user1, school, postId!, async (_oldFileId, _newFileName) => {
+            calledCount++
+            return { fileId: 'new' }
+        }
+        )
+        expect(result).toBe(true)
+        expect(calledCount).toBe(0)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            isoSubmissionDates: {
+                [user1.toHexString()]: expect.any(String)
+            },
+        })
+    })
+    it("Should revert any changes if a file copy fails", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId1 = new ObjectId()
+        const attachmentId2 = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: [{
+                id: attachmentId1,
+                title: 'Attachment 1',
+                mimeType: 'text/plain',
+                thumbnail: '',
+                host: 'google',
+                googleFileId: '123456',
+                perUserFileIds: {
+                    [user1.toHexString()]: '234561'
+                }
+            }],
+            studentAttachments: {
+                [user1.toHexString()]: [{
+                    id: attachmentId2,
+                    title: 'Attachment 1',
+                    mimeType: 'text/plain',
+                    thumbnail: '',
+                    host: 'google',
+                    googleFileId: '654321'
+                }]
+            },
+            isoDueDate: null,
+            isoSubmissionDates: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        let calledCount = 0
+        const result = await submitAssignment(mongoClient, db, user1, school, postId!, async (_oldFileId, _newFileName) => {
+            calledCount++
+            if (calledCount === 2) {
+                return null
+            }
+            return { fileId: 'new' }
+        })
+        expect(result).toBe(false)
+        expect(calledCount).toBe(2)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+})

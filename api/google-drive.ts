@@ -115,3 +115,21 @@ export async function createCopyAndGetLink(fileId: string, fileName: string, use
         return null
     }
 }
+
+export async function createCopy(fileId: string, newFileName: string): Promise<{ fileId: string } | null> {
+    const serviceAccountClient = await getServiceAccountClient()
+    try {
+        const copy = await serviceAccountClient.files.copy({
+            fileId,
+            fields: 'id',
+            requestBody: {
+                name: newFileName
+            }
+        })
+        const id = copy.data.id
+        return id ? { fileId: id } : null
+    } catch (e) {
+        console.error(e)
+        return null
+    }
+}
