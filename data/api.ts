@@ -204,3 +204,11 @@ export interface AddAttachmentToSubmissionRequest {
 export interface AddAttachmentToSubmissionResponse {
     attachmentId: string
 }
+
+export interface SubmitAssignmentRequest {
+    schoolId: string
+    postId: string
+}
+export interface SubmitAssignmentResponse {
+    success: boolean
+}
