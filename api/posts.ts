@@ -176,6 +176,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
             })),
             isoDueDate: post.isoDueDate ?? undefined,
+            isoSubmissionDates: post.isoSubmissionDates ?? undefined,
             submissionTemplates: post.submissionTemplates?.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,

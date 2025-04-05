@@ -1,4 +1,4 @@
-import { Box, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
 import { useCallback, useEffect, useState } from "react"
@@ -11,6 +11,43 @@ import { UserInfo } from "../../data/user"
 import SimpleMenu from "./SimpleMenu"
 import { useUser } from "./UserContext"
 import { formatDate } from "./date"
+
+function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost }: {
+    assignment: PostInfo
+    schoolId: string
+    isSubmitted: boolean
+    refreshPost: () => Promise<void>
+}) {
+    const { submitAssignment } = useData()
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
+
+    return <>
+        <Button variant="contained" color="primary" onClick={() => setConfirmDialogOpen(true)} disabled={isSubmitted}>
+            Submit Assignment
+        </Button>
+        <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+            <DialogTitle>Submit assignment</DialogTitle>
+            <DialogContent>
+                <Typography>Are you sure you want to submit {assignment.title || 'Untitled'}?</Typography>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setConfirmDialogOpen(false)} variant="outlined" disabled={submitting}>
+                    Cancel
+                </Button>
+                <Button onClick={async () => {
+                    setSubmitting(true)
+                    await submitAssignment(schoolId, assignment.id)
+                    await refreshPost()
+                    setSubmitting(false)
+                    setConfirmDialogOpen(false)
+                }} variant="contained" disabled={submitting}>
+                    Submit
+                </Button>
+            </DialogActions>
+        </Dialog>
+    </>
+}
 
 export default function Post() {
     const { schoolId, yearGroupId, courseId, postId } = useParams()
@@ -71,12 +108,14 @@ function Assignment({ assignment, school, refreshPost }: {
 
     const [addAttachmentDisabled, setAddAttachmentDisabled] = useState(false)
 
+    const isSubmitted = currentStudentId === null || currentStudentId in (assignment.isoSubmissionDates ?? {})
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
             {assignment.isoDueDate &&
-            <Typography>
-                Due {formatDate(new Date(assignment.isoDueDate))}
-            </Typography>
+                <Typography>
+                    Due {formatDate(new Date(assignment.isoDueDate))}
+                </Typography>
             }
         </Stack>
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
@@ -135,6 +174,9 @@ function Assignment({ assignment, school, refreshPost }: {
         {!isTeacherOrAdministrator && <>
             <Divider />
             <Typography variant="h4">Your Work</Typography>
+            {isSubmitted && <Typography>
+                Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
+            </Typography>}
             <TileContainer>
                 {assignment.submissionTemplates?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
@@ -142,7 +184,7 @@ function Assignment({ assignment, school, refreshPost }: {
                 {assignment.studentAttachments?.[student?.id ?? '']?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
                 ))}
-                <CreatePostFormAddAttachmentButton
+                {!isSubmitted && <CreatePostFormAddAttachmentButton
                     defaultOthersCanEdit={false}
                     defaultShareMode="shared"
                     disabled={addAttachmentDisabled}
@@ -154,8 +196,11 @@ function Assignment({ assignment, school, refreshPost }: {
                         await refreshPost()
                         setAddAttachmentDisabled(false)
                     }}
-                />
+                />}
             </TileContainer>
+            <Stack direction="row" spacing={2} justifyContent="end">
+                <SubmitAssignmentButton schoolId={school.id} assignment={assignment} isSubmitted={isSubmitted} refreshPost={refreshPost} />
+            </Stack>
         </>
         }
     </Stack>

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -37,6 +37,7 @@ export interface DataContextValue {
     getAttachmentLink: (schoolId: string, postId: string, attachmentId: string, individualCopyOwnerId?: string) => Promise<string | null>
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
+    submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -60,6 +61,7 @@ const DataContext = createContext<DataContextValue>({
     getAttachmentLink: async () => null,
     getPost: async () => null,
     addAttachmentToSubmission: async () => null,
+    submitAssignment: async () => false,
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -272,6 +274,15 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return null
             }
         }, [authenticatedAPIs, getGoogleAccessToken, addError]),
+        submitAssignment: useCallback(async (schoolId, postId) => {
+            const response = await authenticatedAPIs.call<SubmitAssignmentResponse, SubmitAssignmentRequest>('POST', 'submit-assignment', { schoolId, postId })
+            if (isSuccessfulAPIResponse(response) && response.body.success) {
+                return true
+            } else {
+                addAPIError(response)
+                return false
+            }
+        }, [authenticatedAPIs, addError]),
     }}>
         {children}
     </DataContext.Provider>
