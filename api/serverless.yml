@@ -163,3 +163,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/submit-assignment
+          method: post
+          authorizer:
+            name: google

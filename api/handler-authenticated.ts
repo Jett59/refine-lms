@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, VisibleSchoolsResponse } from "../data/api";
-import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate } from "./posts";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
+import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -551,6 +551,33 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }else {
                     return successResponse<AddAttachmentToSubmissionResponse>({ attachmentId: result.toHexString() })
                 }
+            }
+            case "/submit-assignment": {
+                const typedBody: SubmitAssignmentRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                let schoolObjectId: ObjectId
+                let postId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    postId = new ObjectId(typedBody.postId)
+                }
+                catch (e) {
+                    return errorResponse(400, 'Invalid school or post ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const result = await submitAssignment(mongoClient, db, user._id!, school, postId)
+                if (!result) {
+                    return errorResponse(400, 'Invalid post')
+                }
+                return successResponse<SubmitAssignmentResponse>({ success: true })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
