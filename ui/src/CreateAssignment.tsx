@@ -173,7 +173,7 @@ export default function CreateAssignment() {
                         title,
                         content,
                         attachments,
-                        isoDueDate: dueDate?.toISOString() ?? undefined,
+                        isoDueDate: dueDate?.isValid() ? dueDate?.toISOString() ?? undefined : undefined,
                         submissionTemplates,
                         markingCriteria
                     })
