@@ -533,7 +533,7 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
         // For each submission template, we should copy the user's copy and replace the old file id and link
         const submissionTemplates = post.submissionTemplates ?? []
         let failed = false
-        await Promise.all(submissionTemplates.map(async attachment => {
+        const submissionTemplatesPromises = submissionTemplates.map(async attachment => {
             const fileId = getPerUserFileId(attachment, userId)
             if (fileId) {
                 const newFileId = await realCopyFile(fileId, attachment.title)
@@ -554,14 +554,10 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
                     }
                 }, { session: transaction })
             }
-        }))
-        if (failed) {
-            await transaction.abortTransaction()
-            return false
-        }
+        })
         // For each student attachment, we should copy the user's copy and replace the old file id and link
         const studentAttachments = post.studentAttachments?.[userId.toHexString()] ?? []
-        await Promise.all(studentAttachments.map(async attachment => {
+        const studentAttachmentsPromises = studentAttachments.map(async attachment => {
             const fileId = attachment.googleFileId
             if (fileId) {
                 const newFileId = await realCopyFile(fileId, attachment.title)
@@ -583,7 +579,15 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
                     }
                 }, { session: transaction })
             }
-        }))
+        })
+        await Promise.all([
+            ...submissionTemplatesPromises,
+            ...studentAttachmentsPromises
+        ])
+        if (failed) {
+            await transaction.abortTransaction()
+            return false
+        }
         if (failed) {
             await transaction.abortTransaction()
             return false
