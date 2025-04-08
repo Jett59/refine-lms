@@ -212,3 +212,13 @@ export interface SubmitAssignmentRequest {
 export interface SubmitAssignmentResponse {
     success: boolean
 }
+
+export interface RecordMarksRequest {
+    schoolId: string
+    postId: string
+    studentUserId: string
+    marks: number[]
+}
+export interface RecordMarksResponse {
+    success: boolean
+}

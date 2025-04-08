@@ -26,6 +26,7 @@ export interface Post {
     studentAttachments: { [studentId: string]: Attachment[] } | null // 'shared', !othersCanEdit
     isoSubmissionDates: { [studentId: string]: string } | null
     markingCriteria: MarkingCriterion[] | null
+    marks: { [userId: string]: number[] } | null
 }
 
 export interface Attachment {
@@ -109,7 +110,8 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
         })) ?? null,
         studentAttachments: null,
         isoSubmissionDates: null,
-        markingCriteria: postTemplate.markingCriteria ?? null
+        markingCriteria: postTemplate.markingCriteria ?? null,
+        marks: null
     }
 }
 
@@ -202,7 +204,8 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                     accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, new ObjectId(studentId)) ?? undefined
                 }))
             ])) : undefined,
-            markingCriteria: post.markingCriteria ?? undefined
+            markingCriteria: post.markingCriteria ?? undefined,
+            marks: post.marks ?? undefined,
         }
     }).filter(post => post !== null)
 }
@@ -614,5 +617,46 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
         await transaction.abortTransaction()
         throw e
     }
+    return true
+}
+
+export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, marks: number[]): Promise<boolean> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return false
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return false
+    }
+    if (!canViewPosts(accessingUserId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return false
+    }
+    // Students can't mark assignments :(
+    if (school.studentIds.some(id => id.equals(accessingUserId))) {
+        return false
+    }
+    // But only students can receive marks
+    if (!school.studentIds.some(id => id.equals(studentUserId))) {
+        return false
+    }
+    if (post.type !== 'assignment') {
+        return false
+    }
+    // First make sure the marks field exists
+    await getCollection(db).updateOne({
+        _id: postId,
+        marks: null
+    }, {
+        $set: {
+            marks: {}
+        }
+    })
+    await getCollection(db).updateOne({
+        _id: postId
+    }, {
+        $set: {
+            [`marks.${studentUserId.toHexString()}`]: marks
+        }
+    })
     return true
 }

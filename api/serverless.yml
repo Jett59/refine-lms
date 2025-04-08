@@ -168,3 +168,8 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/record-marks
+          method: post
+          authorizer:
+            name: google

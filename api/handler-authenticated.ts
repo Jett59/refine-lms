@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
-import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, submitAssignment } from "./posts";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
+import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordMarks, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -457,17 +457,17 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 let ownerId: ObjectId
                 if (isTeacherOrAdministrator && individualCopyOwnerIdFromBody) {
                     ownerId = individualCopyOwnerIdFromBody
-                }else {
+                } else {
                     ownerId = user._id!
                 }
                 let ownerUserName: string
                 if (ownerId.equals(user._id!)) {
                     ownerUserName = user.name
-                }else {
+                } else {
                     const owner = await findUser(db, ownerId)
                     if (owner) {
-                    ownerUserName = owner?.name
-                    }else {
+                        ownerUserName = owner?.name
+                    } else {
                         return errorResponse(404, 'User for individual copies not found: ' + typedBody.individualCopyOwnerId)
                     }
                 }
@@ -521,7 +521,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.postId) {
                     return errorResponse(400, 'Missing post ID')
                 }
-                if (!typedBody.attachment) {    
+                if (!typedBody.attachment) {
                     return errorResponse(400, 'Missing attachment')
                 }
                 if (!typedBody.googleAccessToken) {
@@ -548,7 +548,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 })
                 if (!result) {
                     return errorResponse(400, 'Invalid post')
-                }else {
+                } else {
                     return successResponse<AddAttachmentToSubmissionResponse>({ attachmentId: result.toHexString() })
                 }
             }
@@ -565,8 +565,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 try {
                     schoolObjectId = new ObjectId(typedBody.schoolId)
                     postId = new ObjectId(typedBody.postId)
-                }
-                catch (e) {
+                } catch (e) {
                     return errorResponse(400, 'Invalid school or post ID')
                 }
                 const school = await getSchool(db, user._id!, schoolObjectId)
@@ -578,6 +577,41 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                     return errorResponse(400, 'Invalid post')
                 }
                 return successResponse<SubmitAssignmentResponse>({ success: true })
+            }
+            case "/record-marks": {
+                const typedBody: RecordMarksRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school id')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post id')
+                }
+                if (!typedBody.studentId) {
+                    return errorResponse(400, 'Missing student id')
+                }
+                if (!typedBody.marks) {
+                    return errorResponse(400, 'Missing marks')
+                }
+                let schoolObjectId: ObjectId
+                let postObjectId: ObjectId
+                let studentObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    postObjectId = new ObjectId(typedBody.postId)
+                    studentObjectId = new ObjectId(typedBody.studentUserId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school, post or student ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const result = await RecordMarks(db, user._id!, studentObjectId, school, postObjectId, typedBody.marks)
+                if (result) {
+                    return successResponse<RecordMarksResponse>({ success: true })
+                }else {
+                    return errorResponse(400, 'Invalid post')
+                }
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

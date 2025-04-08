@@ -1,9 +1,9 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
 import { useCallback, useEffect, useState } from "react"
 import { getVisibleClassIds, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
-import { useSetPageTitle } from "./PageWrapper"
+import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import { AttachmentView, CreatePostFormAddAttachmentButton } from "./Feed"
 import { TileContainer } from "./Tile"
 import { SchoolInfo } from "../../data/school"
@@ -46,6 +46,54 @@ function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost
                 </Button>
             </DialogActions>
         </Dialog>
+    </>
+}
+
+function MarkingInterface({ assignment }: {
+    assignment: PostInfo
+}) {
+    const [marks, setMarks] = useState<number[]>([])
+
+    useEffect(() => {
+        setMarks(new Array(assignment.markingCriteria?.length).fill(0))
+    }, [assignment.markingCriteria])
+
+    return <>
+        <Stack direction="row">
+            <Typography variant="h4">Marking Criteria</Typography>
+            {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
+                <Typography>
+                    {`${marks.reduce((a, b) => a + b, 0)}/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                </Typography>
+            }
+        </Stack>
+        {assignment.markingCriteria && assignment.markingCriteria.length > 0
+            ? <Stack direction="column">
+                {assignment.markingCriteria.map((criterion, index) => (
+                    <Stack key={index} direction="row" spacing={2}>
+                        <Typography>{criterion.title}</Typography>
+                        <TextField
+                            type="number"
+                            value={marks[index] ?? 0}
+                            onChange={e => {
+                                try {
+                                    const markValue = Number(e.target.value)
+                                    if (markValue >= 0 && markValue <= criterion.maximumMarks) {
+                                        setMarks(marks => [...marks.fill(markValue, index, index + 1)])
+                                    }
+                                } catch (e) {
+                                    console.error(e)
+                                }
+                            }}
+                        />
+                        <Typography>
+                            /{criterion.maximumMarks}
+                        </Typography>
+                    </Stack>
+                ))}
+            </Stack>
+            : <Typography>No marking criteria</Typography>
+        }
     </>
 }
 
@@ -110,6 +158,15 @@ function Assignment({ assignment, school, refreshPost }: {
 
     const isSubmitted = currentStudentId === null || currentStudentId in (assignment.isoSubmissionDates ?? {})
 
+    useSetPageTitleButtons(() => (
+        isTeacherOrAdministrator && <SimpleMenu
+            buttonContents={student?.name ?? 'Select a student...'}
+            childrenSupplier={close => studentsWhoCanSeePost(assignment, school).map(student => (
+                <MenuItem key={student.id} onClick={() => { setCurrentStudentId(student.id); close() }}>{student.name}</MenuItem>
+            ))}
+        />
+    ), [assignment, school, student])
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
             {assignment.isoDueDate &&
@@ -131,36 +188,35 @@ function Assignment({ assignment, school, refreshPost }: {
                 </TileContainer>
             </Box>
             <Box flex={1}>
-                <Stack direction="row">
-                    <Typography variant="h4">Marking Criteria</Typography>
-                    {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
-                        <Typography>
-                            {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
-                        </Typography>
-                    }
-                </Stack>
-                {assignment.markingCriteria && assignment.markingCriteria.length > 0
-                    ? <Stack direction="column">
-                        {assignment.markingCriteria.map((criterion, index) => (
-                            <Stack key={index} direction="row" spacing={2}>
-                                <Typography>{criterion.title}</Typography>
-                                <Typography>/{criterion.maximumMarks}</Typography>
+                {isTeacherOrAdministrator && student && isSubmitted
+                    ? <MarkingInterface assignment={assignment} />
+                    : <>
+                        <Stack direction="row">
+                            <Typography variant="h4">Marking Criteria</Typography>
+                            {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
+                                <Typography>
+                                    {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                                </Typography>
+                            }
+                        </Stack>
+                        {assignment.markingCriteria && assignment.markingCriteria.length > 0
+                            ? <Stack direction="column">
+                                {assignment.markingCriteria.map((criterion, index) => (
+                                    <Stack key={index} direction="row" spacing={2}>
+                                        <Typography>{criterion.title}</Typography>
+                                        <Typography>/{criterion.maximumMarks}</Typography>
+                                    </Stack>
+                                ))}
                             </Stack>
-                        ))}
-                    </Stack>
-                    : <Typography>No marking criteria</Typography>
+                            : <Typography>No marking criteria</Typography>
+                        }
+                    </>
                 }
             </Box>
         </Stack>
-        {isTeacherOrAdministrator && <>
+        {isTeacherOrAdministrator && student && <>
             <Divider />
-            <Typography variant="h4">Submissions</Typography>
-            <SimpleMenu
-                buttonContents={student?.name ?? 'Select a student...'}
-                childrenSupplier={close => studentsWhoCanSeePost(assignment, school).map(student => (
-                    <MenuItem key={student.id} onClick={() => { setCurrentStudentId(student.id); close() }}>{student.name}</MenuItem>
-                ))}
-            />
+            <Typography variant="h4">{student.name}'s Work</Typography>
             {student && <TileContainer>
                 {assignment.submissionTemplates?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
@@ -169,6 +225,9 @@ function Assignment({ assignment, school, refreshPost }: {
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
                 ))}
             </TileContainer>}
+            {(!assignment.submissionTemplates || assignment.submissionTemplates.length === 0) && (!assignment.studentAttachments?.[student.id] || assignment.studentAttachments?.[student.id].length === 0) &&
+                <Typography>No attachments</Typography>
+            }
         </>
         }
         {!isTeacherOrAdministrator && <>

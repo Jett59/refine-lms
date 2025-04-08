@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -89,7 +89,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
 
         const postId = await createPost(db, school, post)
@@ -116,7 +117,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
 
         const postId = await createPost(db, school, post)
@@ -145,7 +147,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post2: Post = {
             postDate: date2,
@@ -163,7 +166,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -239,7 +243,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post2: Post = {
             postDate: date2,
@@ -257,7 +262,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -328,7 +334,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -356,7 +363,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -385,7 +393,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post2: Post = {
             postDate: date2,
@@ -403,7 +412,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -474,7 +484,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -521,7 +532,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -549,7 +561,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -579,7 +592,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -606,7 +620,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -631,7 +646,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -656,7 +672,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -694,13 +711,14 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
 
         let postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
-    it("Should return an empty list for non-existant year groups", async () => {
+    it("Should return an empty list for non-existent year groups", async () => {
         const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
         const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined, undefined)
         expect(posts.posts).toEqual([])
@@ -734,7 +752,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -788,7 +807,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -837,7 +857,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -896,7 +917,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post2: Post = {
             postDate: date2,
@@ -914,7 +936,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -963,7 +986,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -988,7 +1012,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1042,7 +1067,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1105,7 +1131,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1151,7 +1178,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1178,7 +1206,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1213,7 +1242,8 @@ describe("Posts", () => {
             }],
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1269,7 +1299,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1324,7 +1355,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1396,7 +1428,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1461,7 +1494,8 @@ describe("Posts", () => {
             }],
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1529,7 +1563,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1599,7 +1634,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1648,7 +1684,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1706,7 +1743,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1762,7 +1800,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1804,7 +1843,8 @@ describe("Posts", () => {
             submissionTemplates: null,
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1849,7 +1889,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: {
                 [user1.toHexString()]: date.toISOString()
-            }
+            },
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1906,7 +1947,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1984,7 +2026,8 @@ describe("Posts", () => {
             }],
             studentAttachments: null,
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2048,7 +2091,8 @@ describe("Posts", () => {
                 }]
             },
             isoDueDate: null,
-            isoSubmissionDates: null
+            isoSubmissionDates: null,
+            marks: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2070,4 +2114,185 @@ describe("Posts", () => {
             _id: postId
         })
     })
-})
+    it("Should not submit a non-existent assignment", async() => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const result = await submitAssignment(mongoClient, db, user1, school, new ObjectId())
+        expect(result).toBe(false)
+    })
+    it("Should record marks against a student's assignment", async () => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            marks: {
+                [user2.toHexString()]: [2, 3]
+            }
+        })
+    })
+    it("Should not let students record marks", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+    it("Should not record marks against teachers", async () => {
+        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+    it("Should not mark a non-assignment", async () => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+    it("Should not mark a non-existent post", async() => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const result = await RecordMarks(db, user1, user2, school, new ObjectId(), [])
+        expect(result).toBe(false)
+    })
+    })
