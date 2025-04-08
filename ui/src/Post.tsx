@@ -67,7 +67,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
     useEffect(() => {
         if (previousMarks) {
             setMarks(previousMarks)
-        }else {
+        } else {
             setMarks(new Array(assignment.markingCriteria?.length ?? 0).fill(0))
         }
     }, [previousMarks])
@@ -115,9 +115,9 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                         setRecordingMarks(false)
                     }}>
                         {previousMarks
-                        ? 'Update marks'
-                        : 'Save and return marks'
-}
+                            ? 'Update marks'
+                            : 'Save and return marks'
+                        }
                     </Button>
                 </Stack>
             </Stack>
@@ -196,7 +196,7 @@ function Assignment({ assignment, school, refreshPost }: {
         />
     ), [assignment, school, student])
 
-const studentsMarks = assignment.marks?.[student?.id ?? '']
+    const studentsMarks = assignment.marks?.[student?.id ?? '']
 
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
@@ -226,7 +226,7 @@ const studentsMarks = assignment.marks?.[student?.id ?? '']
                             <Typography variant="h4">Marking Criteria</Typography>
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                                 <Typography>
-                                    {!isTeacherOrAdministrator && studentsMarks && studentsMarks.reduce((a, b) => a+b, 0)}
+                                    {!isTeacherOrAdministrator && studentsMarks && studentsMarks.reduce((a, b) => a + b, 0)}
                                     {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
                                 </Typography>
                             }
@@ -239,7 +239,7 @@ const studentsMarks = assignment.marks?.[student?.id ?? '']
                                         <Typography>
                                             {!isTeacherOrAdministrator && studentsMarks && studentsMarks[index]}
                                             /{criterion.maximumMarks}
-                                            </Typography>
+                                        </Typography>
                                     </Stack>
                                 ))}
                             </Stack>
@@ -252,14 +252,17 @@ const studentsMarks = assignment.marks?.[student?.id ?? '']
         {isTeacherOrAdministrator && student && <>
             <Divider />
             <Typography variant="h4">{student.name}'s Work</Typography>
-            {student && <TileContainer>
+            {isSubmitted && <Typography>
+                Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
+            </Typography>}
+            <TileContainer>
                 {assignment.submissionTemplates?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
                 ))}
                 {assignment.studentAttachments?.[student.id]?.map(attachment => (
                     <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
                 ))}
-            </TileContainer>}
+            </TileContainer>
             {(!assignment.submissionTemplates || assignment.submissionTemplates.length === 0) && (!assignment.studentAttachments?.[student.id] || assignment.studentAttachments?.[student.id].length === 0) &&
                 <Typography>No attachments</Typography>
             }
