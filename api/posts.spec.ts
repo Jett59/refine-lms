@@ -2114,7 +2114,7 @@ describe("Posts", () => {
             _id: postId
         })
     })
-    it("Should not submit a non-existent assignment", async() => {
+    it("Should not submit a non-existent assignment", async () => {
         const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
         const result = await submitAssignment(mongoClient, db, user1, school, new ObjectId())
         expect(result).toBe(false)
@@ -2251,7 +2251,6 @@ describe("Posts", () => {
     it("Should not mark a non-assignment", async () => {
         const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
-        const attachmentId = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2290,9 +2289,60 @@ describe("Posts", () => {
             _id: postId
         })
     })
-    it("Should not mark a non-existent post", async() => {
+    it("Should not mark a non-existent post", async () => {
         const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
         const result = await RecordMarks(db, user1, user2, school, new ObjectId(), [])
         expect(result).toBe(false)
     })
+    it("Should only set students see their own marks", async () => {
+        const school = createSchoolStructure(schoolId, [user2, user3], yearGroupId, courseId, classId, [user2, user3])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result1 = await RecordMarks(db, user1, user2, school, postId!, [1, 2])
+        expect(result1).toBe(true)
+        const result2 = await RecordMarks(db, user1, user3, school, postId!, [2, 3])
+        expect(result2).toBe(true)
+
+        const postForTeacher = await getPost(db, school, user1, postId!, yearGroupId, courseId)
+        expect(postForTeacher?.marks).toEqual({
+            [user2.toHexString()]: [1, 2],
+            [user3.toHexString()]: [2, 3]
+        })
+        const postForUser2 = await getPost(db, school, user2, postId!, yearGroupId, courseId)
+        expect(postForUser2?.marks).toEqual({
+            [user2.toHexString()]: [1, 2]
+        })
+        const postForUser3 = await getPost(db, school, user3, postId!, yearGroupId, courseId)
+        expect(postForUser3?.marks).toEqual({
+            [user3.toHexString()]: [2, 3]
+        })
     })
+})

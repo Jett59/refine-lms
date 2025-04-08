@@ -154,6 +154,15 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             visibleStudentAttachments = post.studentAttachments
         }
 
+        let visibleMarks: { [id: string]: number[] } | null = null
+        if (isStudent) {
+            if (post.marks?.[currentUserId.toHexString()]) {
+                visibleMarks = { [currentUserId.toHexString()]: post.marks?.[currentUserId.toHexString()] }
+            }
+        } else {
+            visibleMarks = post.marks
+        }
+
         return {
             id: post._id.toHexString(),
             postDate: post.postDate.toISOString(),
@@ -205,7 +214,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                 }))
             ])) : undefined,
             markingCriteria: post.markingCriteria ?? undefined,
-            marks: post.marks ?? undefined,
+            marks: visibleMarks ?? undefined,
         }
     }).filter(post => post !== null)
 }

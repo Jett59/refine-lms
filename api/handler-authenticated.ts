@@ -586,7 +586,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.postId) {
                     return errorResponse(400, 'Missing post id')
                 }
-                if (!typedBody.studentId) {
+                if (!typedBody.studentUserId) {
                     return errorResponse(400, 'Missing student id')
                 }
                 if (!typedBody.marks) {

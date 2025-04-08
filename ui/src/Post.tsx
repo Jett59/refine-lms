@@ -49,14 +49,28 @@ function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost
     </>
 }
 
-function MarkingInterface({ assignment }: {
+function MarkingInterface({ assignment, student, refreshAssignment }: {
     assignment: PostInfo
+    student: UserInfo
+    refreshAssignment: () => Promise<void>
 }) {
+    const { recordMarks } = useData()
     const [marks, setMarks] = useState<number[]>([])
+    const [recordingMarks, setRecordingMarks] = useState(false)
 
     useEffect(() => {
         setMarks(new Array(assignment.markingCriteria?.length).fill(0))
     }, [assignment.markingCriteria])
+
+    const previousMarks = assignment.marks?.[student.id]
+
+    useEffect(() => {
+        if (previousMarks) {
+            setMarks(previousMarks)
+        }else {
+            setMarks(new Array(assignment.markingCriteria?.length ?? 0).fill(0))
+        }
+    }, [previousMarks])
 
     return <>
         <Stack direction="row">
@@ -91,6 +105,21 @@ function MarkingInterface({ assignment }: {
                         </Typography>
                     </Stack>
                 ))}
+                <Stack direction="row" alignItems="end">
+                    <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
+                        setRecordingMarks(true)
+                        console.log('A')
+                        await recordMarks(assignment.schoolId, assignment.id, student.id, marks)
+                        await refreshAssignment()
+                        console.log('B')
+                        setRecordingMarks(false)
+                    }}>
+                        {previousMarks
+                        ? 'Update marks'
+                        : 'Save and return marks'
+}
+                    </Button>
+                </Stack>
             </Stack>
             : <Typography>No marking criteria</Typography>
         }
@@ -167,6 +196,8 @@ function Assignment({ assignment, school, refreshPost }: {
         />
     ), [assignment, school, student])
 
+const studentsMarks = assignment.marks?.[student?.id ?? '']
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
             {assignment.isoDueDate &&
@@ -189,12 +220,13 @@ function Assignment({ assignment, school, refreshPost }: {
             </Box>
             <Box flex={1}>
                 {isTeacherOrAdministrator && student && isSubmitted
-                    ? <MarkingInterface assignment={assignment} />
+                    ? <MarkingInterface assignment={assignment} student={student} refreshAssignment={refreshPost} />
                     : <>
                         <Stack direction="row">
                             <Typography variant="h4">Marking Criteria</Typography>
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                                 <Typography>
+                                    {!isTeacherOrAdministrator && studentsMarks && studentsMarks.reduce((a, b) => a+b, 0)}
                                     {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
                                 </Typography>
                             }
@@ -204,7 +236,10 @@ function Assignment({ assignment, school, refreshPost }: {
                                 {assignment.markingCriteria.map((criterion, index) => (
                                     <Stack key={index} direction="row" spacing={2}>
                                         <Typography>{criterion.title}</Typography>
-                                        <Typography>/{criterion.maximumMarks}</Typography>
+                                        <Typography>
+                                            {!isTeacherOrAdministrator && studentsMarks && studentsMarks[index]}
+                                            /{criterion.maximumMarks}
+                                            </Typography>
                                     </Stack>
                                 ))}
                             </Stack>
