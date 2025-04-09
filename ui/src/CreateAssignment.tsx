@@ -26,7 +26,9 @@ function CriterionView({ criterion, update }: {
         <TextField
             type="number"
             value={criterion.maximumMarks}
-            onChange={e => update({ ...criterion, maximumMarks: Number(e.target.value) })}
+            onChange={e => {
+                update({ ...criterion, maximumMarks: Math.max(0, Number(e.target.value)) })
+            }}
         />
     </Stack>
 }
