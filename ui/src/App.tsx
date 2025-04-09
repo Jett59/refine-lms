@@ -31,7 +31,7 @@ function App() {
           <Route path="/:schoolId/years/:yearGroupId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId" element={<Course />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
-          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/work" element={<Course tab="work" />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/syllabus" element={<Course tab="syllabus" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/create-assignment" element={<CreateAssignment />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId?" element={<Class />} />

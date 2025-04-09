@@ -8,11 +8,12 @@ import PostsList from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
 import { getHasNotifications } from "./Class"
 import { useEffect } from "react"
+import Syllabus from "./Syllabus"
 
 const PREFERED_TAB_LOCAL_STORAGE_PREFIX = 'course-prefered-tab-'
 
 export default function Course({ tab }: {
-    tab?: 'feed' | 'work',
+    tab?: 'feed' | 'syllabus',
 }) {
     const { schoolId, yearGroupId, courseId } = useParams()
     const switchPage = useSwitchPage()
@@ -36,7 +37,7 @@ export default function Course({ tab }: {
     }, [schoolId, yearGroupId, courseId, courseInfo])
 
     const preferredTab = localStorage.getItem(PREFERED_TAB_LOCAL_STORAGE_PREFIX + courseId)
-    const tabIndex = (tab ?? preferredTab) === 'work' ? 1 : 0
+    const tabIndex = (tab ?? preferredTab) === 'syllabus' ? 1 : 0
 
 useEffect(() => {
     if (tab && courseId) {
@@ -62,9 +63,9 @@ useEffect(() => {
                 value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="feed" />
             },
             {
-                label: 'Work',
-                onSelect: () => switchPage('work', schoolId, yearGroupId, courseId, undefined, undefined, true),
-                value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="work" />
+                label: 'Syllabus',
+                onSelect: () => switchPage('syllabus', schoolId, yearGroupId, courseId, undefined, undefined, true),
+                value: <Syllabus schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
             }
         ]} />
     </Stack>
