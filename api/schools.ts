@@ -477,6 +477,48 @@ export async function requestToJoinClass(db: Db, userId: ObjectId, schoolId: Obj
     })
 }
 
+export async function addSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, outcome: [string, string]) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId
+    }, {
+        $push: {
+            'yearGroups.$[i].courses.$[j].syllabusOutcomes': outcome
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId }
+        ]
+    })
+}
+
+export async function removeSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, outcome: [string, string]) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId
+    }, {
+        $pull: {
+            'yearGroups.$[i].courses.$[j].syllabusOutcomes': outcome
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId }
+        ]
+    })
+}
+
 export async function addSyllabusContent(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, content: string) {
     await getCollection(db).updateOne({
         _id: schoolId,

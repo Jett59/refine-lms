@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse, typedErrorResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { addSyllabusContent, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
+import { addSyllabusContent, addSyllabusOutcome, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeSyllabusOutcome, removeUser, requestToJoinClass } from "./schools";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
 import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordMarks, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
@@ -384,6 +384,60 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 await removeSyllabusContent(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.content)
                 return successResponse<RemoveSyllabusContentResponse>({ success: true })
+            }
+            case "/add-syllabus-outcome": {
+                const typedBody: AddSyllabusOutcomeRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school id')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group id')
+                }
+                if (!typedBody.courseId) {
+                    return errorResponse(400, 'Missing course id')
+                }
+                if (!typedBody.outcome) {
+                    return errorResponse(400, 'Missing outcome')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                    courseObjectId = new ObjectId(typedBody.courseId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school year group or course id')
+                }
+                await addSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.outcome)
+                return successResponse<AddSyllabusOutcomeResponse>({ success: true })
+            }
+            case "/remove-syllabus-outcome": {
+                const typedBody: RemoveSyllabusOutcomeRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school id')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group id')
+                }
+                if (!typedBody.courseId) {
+                    return errorResponse(400, 'Missing course id')
+                }
+                if (!typedBody.outcome) {
+                    return errorResponse(400, 'Missing outcome')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                    courseObjectId = new ObjectId(typedBody.courseId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school year group or course id')
+                }
+                await removeSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.outcome)
+                return successResponse<RemoveSyllabusOutcomeResponse>({ success: true })
             }
             case "/create-post": {
                 const typedBody: CreatePostRequest = body

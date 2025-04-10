@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -30,6 +30,8 @@ export interface DataContextValue {
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
     addSyllabusContent: (schoolId: string, yearGroupId: string, courseId: string, content: string) => Promise<void>
     removeSyllabusContent: (schoolId: string, yearGroupId: string, courseId: string, content: string) => Promise<void>
+    addSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, outcome: [string, string]) => Promise<void>
+    removeSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, outcome: [string, string]) => Promise<void>
 
     createPost: (post: PostTemplate) => Promise<void>
     listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[], postTypes?: PostType[]) => Promise<{
@@ -61,6 +63,8 @@ const DataContext = createContext<DataContextValue>({
     requestToJoinClass: async () => { },
     addSyllabusContent: async () => { },
     removeSyllabusContent: async () => { },
+    addSyllabusOutcome: async () => { },
+    removeSyllabusOutcome: async () => { },
     createPost: async () => { },
     listPosts: async () => null,
     getAttachmentLink: async () => null,
@@ -238,6 +242,22 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         removeSyllabusContent: useCallback(async (schoolId, yearGroupId, courseId, content) => {
             const response = await authenticatedAPIs.call<RemoveSyllabusContentResponse, RemoveSyllabusContentRequest>('POST', 'remove-syllabus-content', { schoolId, yearGroupId, courseId, content })
+            if (isSuccessfulAPIResponse(response)) {
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        addSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, outcome) => {
+            const response = await authenticatedAPIs.call<AddSyllabusOutcomeResponse, AddSyllabusOutcomeRequest>('POST', 'add-syllabus-outcome', { schoolId, yearGroupId, courseId, outcome })
+            if (isSuccessfulAPIResponse(response)) {
+                await getRelevantSchoolInfo(schoolId, true)
+            } else {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getRelevantSchoolInfo]),
+        removeSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, outcome) => {
+            const response = await authenticatedAPIs.call<RemoveSyllabusOutcomeResponse, RemoveSyllabusOutcomeRequest>('POST', 'remove-syllabus-outcome', { schoolId, yearGroupId, courseId, outcome })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
