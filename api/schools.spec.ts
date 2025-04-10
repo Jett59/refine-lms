@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass, School } from "./schools"
+import { addSyllabusContent, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass, School } from "./schools"
 import { createUser } from "./user"
 
 describe('Schools API', () => {
@@ -80,7 +80,9 @@ describe('Schools API', () => {
                         studentIds: [],
                         teacherIds: [],
                         requestingStudentIds: []
-                    }]
+                    }],
+                    syllabusContent: [],
+                    syllabusOutcomes: []
                 }]
             }],
             administratorIds: [user1],
@@ -126,7 +128,9 @@ describe('Schools API', () => {
                         studentIds: [],
                         teacherIds: [],
                         requestingStudentIds: []
-                    }]
+                    }],
+                    syllabusContent: [],
+                    syllabusOutcomes: []
                 }]
             }],
             administrators: [{ id: user1.toHexString(), name: 'User 1', email: 'user1', picture: '' }],
@@ -212,7 +216,9 @@ describe('Schools API', () => {
                     studentIds: [user2.toHexString()],
                     teacherIds: [],
                     requestingStudentIds: []
-                }]
+                }],
+                syllabusContent: [],
+                syllabusOutcomes: []
             }]
         }])
         await createClass(db, user1, school, yearGroup1, course1, 'Maths 2')
@@ -248,7 +254,9 @@ describe('Schools API', () => {
                         studentIds: [],
                         teacherIds: [],
                         requestingStudentIds: []
-                    }]
+                    }],
+                    syllabusContent: [],
+                    syllabusOutcomes: []
                 }]
             }],
             administrators: [{ id: user1.toHexString(), name: 'User 1', email: 'user1', picture: '' }],
@@ -338,5 +346,15 @@ describe('Schools API', () => {
         const schoolData = await schoolsCollection.findOne({ _id: school })
         expect(schoolData?.yearGroups[0].courses[0].classes[0].teacherIds).toEqual([])
         expect(schoolData?.yearGroups[0].courses[0].classes[0].studentIds).toEqual([])
+    })
+    it("Should add syllabus content", async() => {
+        const school = await createSchool(db, user1, 'School 1')
+        const yearGroup = await createYearGroup(db, user1, school, 'Year 1')
+        const course = await createCourse(db, user1, school, yearGroup, 'Maths')
+        const schoolData1 = await schoolsCollection.findOne({ _id: school })
+        expect(schoolData1?.yearGroups[0].courses[0].syllabusContent).toEqual([])
+        await addSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
+        const schoolData2 = await schoolsCollection.findOne({ _id: school })
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual(['Does the stuff'])
     })
 })

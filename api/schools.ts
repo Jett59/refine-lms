@@ -25,6 +25,9 @@ export interface Course {
     id: ObjectId
     name: string
     classes: Class[]
+
+    syllabusContent?: string[]
+    syllabusOutcomes?: [string, string][]
 }
 
 export interface Class {
@@ -51,7 +54,9 @@ function convertCourseForApi(course: Course): CourseInfo {
     return {
         id: course.id.toHexString(),
         name: course.name,
-        classes: course.classes.map(convertClassForApi)
+        classes: course.classes.map(convertClassForApi),
+        syllabusContent: course.syllabusContent ?? [],
+        syllabusOutcomes: course.syllabusOutcomes ?? []
     }
 }
 
@@ -171,6 +176,8 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
             courses: yearGroup.courses.map(course => ({
                 id: course.id,
                 name: course.name,
+                syllabusContent: course.syllabusContent,
+                syllabusOutcomes: course.syllabusOutcomes,
                 classes: course.classes.map(cls => ({
                     id: cls.id,
                     name: cls.name,
@@ -234,7 +241,9 @@ export async function createCourse(db: Db, userId: ObjectId, schoolId: ObjectId,
             'yearGroups.$.courses': {
                 id: courseId,
                 name,
-                classes: []
+                classes: [],
+                syllabusContent: [],
+                syllabusOutcomes: []
             }
         }
     })
@@ -464,6 +473,27 @@ export async function requestToJoinClass(db: Db, userId: ObjectId, schoolId: Obj
             { 'i.id': yearGroupId },
             { 'j.id': courseId },
             { 'k.id': classId }
+        ]
+    })
+}
+
+export async function addSyllabusContent(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, content: string) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId
+    }, {
+        $push: {
+            'yearGroups.$[i].courses.$[j].syllabusContent': content
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId }
         ]
     })
 }

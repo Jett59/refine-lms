@@ -141,6 +141,16 @@ export interface RequestToJoinClassResponse {
     success: boolean
 }
 
+export interface AddSyllabusContentRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    content: string
+}
+export interface AddSyllabusContentResponse {
+    success: boolean
+}
+
 export interface CreatePostRequest {
     post: PostTemplate,
     googleAccessToken: string

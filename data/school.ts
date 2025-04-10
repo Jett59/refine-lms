@@ -22,6 +22,9 @@ export interface CourseInfo {
     id: string
     name: string
     classes: ClassInfo[]
+
+    syllabusContent: string[]
+    syllabusOutcomes: [string, string][]
 }
 
 export interface ClassInfo {

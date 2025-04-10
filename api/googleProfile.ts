@@ -1,6 +1,6 @@
 import { User } from "./user"
 
- // This function probably already exists in googleapis. However, the only attempt to use googleapis for auth made the lambda init hang for some reason.
+ // This function probably already exists in googleapis. However, my first and only attempt to use googleapis for auth made the lambda init hang for some reason.
 export async function getGoogleProfileInformation(accessToken: string): Promise<User> {
     const openIdConfig = await fetch('https://accounts.google.com/.well-known/openid-configuration')
     const openIdConfigJson = await openIdConfig.json()

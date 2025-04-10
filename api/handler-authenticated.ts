@@ -2,8 +2,8 @@ import { APIGatewayProxyEventV2WithJWTAuthorizer, APIGatewayProxyStructuredResul
 import { errorResponse, getPath, raiseInternalServerError, successResponse, typedErrorResponse } from "./handlers";
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
-import { addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
+import { addSyllabusContent, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass } from "./schools";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
 import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordMarks, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
@@ -331,6 +331,33 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 await requestToJoinClass(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectId)
                 return successResponse<RequestToJoinClassResponse>({ success: true })
             }
+            case "/add-syllabus-content": {
+                const typedBody: AddSyllabusContentRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school id')
+                }
+                if (!typedBody.yearGroupId) {
+                    return errorResponse(400, 'Missing year group id')
+                }
+                if (!typedBody.courseId) {
+                    return errorResponse(400, 'Missing course id')
+                }
+                if (!typedBody.content) {
+                    return errorResponse(400, 'Missing content')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let courseObjectId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
+                    courseObjectId = new ObjectId(typedBody.courseId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school year group or course id')
+                }
+                await addSyllabusContent(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.content)
+                return successResponse<AddSyllabusContentResponse>({ success: true })
+            }
             case "/create-post": {
                 const typedBody: CreatePostRequest = body
                 const postTemplate = typedBody.post
@@ -609,7 +636,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 const result = await RecordMarks(db, user._id!, studentObjectId, school, postObjectId, typedBody.marks)
                 if (result) {
                     return successResponse<RecordMarksResponse>({ success: true })
-                }else {
+                } else {
                     return errorResponse(400, 'Invalid post')
                 }
             }
