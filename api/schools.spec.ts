@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { addSyllabusContent, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeUser, requestToJoinClass, School } from "./schools"
+import { addSyllabusContent, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeUser, requestToJoinClass, School } from "./schools"
 import { createUser } from "./user"
 
 describe('Schools API', () => {
@@ -356,5 +356,18 @@ describe('Schools API', () => {
         await addSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual(['Does the stuff'])
+    })
+    it("Should remove syllabus content", async () => {
+        const school = await createSchool(db, user1, 'School 1')
+        const yearGroup = await createYearGroup(db, user1, school, 'Year 1')
+        const course = await createCourse(db, user1, school, yearGroup, 'Maths')
+        const schoolData1 = await schoolsCollection.findOne({ _id: school })
+        expect(schoolData1?.yearGroups[0].courses[0].syllabusContent).toEqual([])
+        await addSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
+        const schoolData2 = await schoolsCollection.findOne({ _id: school })
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual(['Does the stuff'])
+        await removeSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
+        const schoolData3 = await schoolsCollection.findOne({ _id: school })
+        expect(schoolData3?.yearGroups[0].courses[0].syllabusContent).toEqual([])
     })
 })

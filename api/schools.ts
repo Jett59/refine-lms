@@ -497,3 +497,24 @@ export async function addSyllabusContent(db: Db, userId: ObjectId, schoolId: Obj
         ]
     })
 }
+
+export async function removeSyllabusContent(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, content: string) {
+    await getCollection(db).updateOne({
+        _id: schoolId,
+        $or: [
+            { administratorIds: userId },
+            { teacherIds: userId }
+        ],
+        'yearGroups.id': yearGroupId,
+        'yearGroups.courses.id': courseId
+    }, {
+        $pull: {
+            'yearGroups.$[i].courses.$[j].syllabusContent': content
+        }
+    }, {
+        arrayFilters: [
+            { 'i.id': yearGroupId },
+            { 'j.id': courseId }
+        ]
+    })
+}

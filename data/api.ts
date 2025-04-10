@@ -151,6 +151,16 @@ export interface AddSyllabusContentResponse {
     success: boolean
 }
 
+export interface RemoveSyllabusContentRequest {
+    schoolId: string
+    yearGroupId: string
+    courseId: string
+    content: string
+}
+export interface RemoveSyllabusContentResponse {
+    success: boolean
+}
+
 export interface CreatePostRequest {
     post: PostTemplate,
     googleAccessToken: string

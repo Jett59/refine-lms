@@ -144,6 +144,11 @@ functions:
           authorizer:
             name: google
       - httpApi:
+          path: /api/remove-syllabus-content
+          method: post
+          authorizer:
+            name: google
+      - httpApi:
           path: /api/create-post
           method: post
           authorizer:
