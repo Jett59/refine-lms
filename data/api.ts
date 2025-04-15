@@ -155,7 +155,7 @@ export interface RemoveSyllabusContentRequest {
     schoolId: string
     yearGroupId: string
     courseId: string
-    content: string
+    id: string
 }
 export interface RemoveSyllabusContentResponse {
     success: boolean
@@ -165,7 +165,8 @@ export interface AddSyllabusOutcomeRequest {
     schoolId: string
     yearGroupId: string
     courseId: string
-    outcome: [string, string]
+    name: string
+    description: string
 }
 export interface AddSyllabusOutcomeResponse {
     success: boolean
@@ -175,7 +176,7 @@ export interface RemoveSyllabusOutcomeRequest {
     schoolId: string
     yearGroupId: string
     courseId: string
-    outcome: [string, string]
+    id: string
 }
 export interface RemoveSyllabusOutcomeResponse {
     success: boolean

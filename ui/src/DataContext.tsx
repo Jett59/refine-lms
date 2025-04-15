@@ -29,9 +29,9 @@ export interface DataContextValue {
     getSchoolStructure: (schoolId: string) => Promise<SchoolStructure | null>
     requestToJoinClass: (schoolId: string, yearGroupId: string, courseId: string, classId: string) => Promise<void>
     addSyllabusContent: (schoolId: string, yearGroupId: string, courseId: string, content: string) => Promise<void>
-    removeSyllabusContent: (schoolId: string, yearGroupId: string, courseId: string, content: string) => Promise<void>
-    addSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, outcome: [string, string]) => Promise<void>
-    removeSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, outcome: [string, string]) => Promise<void>
+    removeSyllabusContent: (schoolId: string, yearGroupId: string, courseId: string, id: string) => Promise<void>
+    addSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, name: string, description: string) => Promise<void>
+    removeSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, id: string) => Promise<void>
 
     createPost: (post: PostTemplate) => Promise<void>
     listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[], postTypes?: PostType[]) => Promise<{
@@ -240,24 +240,24 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        removeSyllabusContent: useCallback(async (schoolId, yearGroupId, courseId, content) => {
-            const response = await authenticatedAPIs.call<RemoveSyllabusContentResponse, RemoveSyllabusContentRequest>('POST', 'remove-syllabus-content', { schoolId, yearGroupId, courseId, content })
+        removeSyllabusContent: useCallback(async (schoolId, yearGroupId, courseId, id) => {
+            const response = await authenticatedAPIs.call<RemoveSyllabusContentResponse, RemoveSyllabusContentRequest>('POST', 'remove-syllabus-content', { schoolId, yearGroupId, courseId, id })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        addSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, outcome) => {
-            const response = await authenticatedAPIs.call<AddSyllabusOutcomeResponse, AddSyllabusOutcomeRequest>('POST', 'add-syllabus-outcome', { schoolId, yearGroupId, courseId, outcome })
+        addSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, name, description) => {
+            const response = await authenticatedAPIs.call<AddSyllabusOutcomeResponse, AddSyllabusOutcomeRequest>('POST', 'add-syllabus-outcome', { schoolId, yearGroupId, courseId, name, description })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
                 addAPIError(response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
-        removeSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, outcome) => {
-            const response = await authenticatedAPIs.call<RemoveSyllabusOutcomeResponse, RemoveSyllabusOutcomeRequest>('POST', 'remove-syllabus-outcome', { schoolId, yearGroupId, courseId, outcome })
+        removeSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, id) => {
+            const response = await authenticatedAPIs.call<RemoveSyllabusOutcomeResponse, RemoveSyllabusOutcomeRequest>('POST', 'remove-syllabus-outcome', { schoolId, yearGroupId, courseId, id })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {

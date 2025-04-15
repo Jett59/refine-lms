@@ -26,8 +26,8 @@ export interface Course {
     name: string
     classes: Class[]
 
-    syllabusContent?: string[]
-    syllabusOutcomes?: [string, string][]
+    syllabusContent: SyllabusContent[] | null
+    syllabusOutcomes: SyllabusOutcome[] | null
 }
 
 export interface Class {
@@ -36,6 +36,16 @@ export interface Class {
     teacherIds: ObjectId[]
     studentIds: ObjectId[]
     requestingStudentIds: ObjectId[]
+}
+
+export interface SyllabusContent {
+    id: ObjectId
+    content: string
+}
+export interface SyllabusOutcome {
+    id: ObjectId
+    name: string
+    description: string
 }
 
 const COLLECTION_NAME = 'schools'
@@ -55,8 +65,15 @@ function convertCourseForApi(course: Course): CourseInfo {
         id: course.id.toHexString(),
         name: course.name,
         classes: course.classes.map(convertClassForApi),
-        syllabusContent: course.syllabusContent ?? [],
-        syllabusOutcomes: course.syllabusOutcomes ?? []
+        syllabusContent: course.syllabusContent?.map(content => ({
+            id: content.id.toHexString(),
+            content: content.content
+        })) ?? [],
+        syllabusOutcomes: course.syllabusOutcomes?.map(outcome => ({
+            id: outcome.id.toHexString(),
+            name: outcome.name,
+            description: outcome.description
+        })) ?? []
     }
 }
 
@@ -477,7 +494,7 @@ export async function requestToJoinClass(db: Db, userId: ObjectId, schoolId: Obj
     })
 }
 
-export async function addSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, outcome: [string, string]) {
+export async function addSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, name: string, description: string) {
     await getCollection(db).updateOne({
         _id: schoolId,
         $or: [
@@ -488,7 +505,11 @@ export async function addSyllabusOutcome(db: Db, userId: ObjectId, schoolId: Obj
         'yearGroups.courses.id': courseId
     }, {
         $push: {
-            'yearGroups.$[i].courses.$[j].syllabusOutcomes': outcome
+            'yearGroups.$[i].courses.$[j].syllabusOutcomes': {
+                id: new ObjectId(),
+                name,
+                description
+            }
         }
     }, {
         arrayFilters: [
@@ -498,7 +519,7 @@ export async function addSyllabusOutcome(db: Db, userId: ObjectId, schoolId: Obj
     })
 }
 
-export async function removeSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, outcome: [string, string]) {
+export async function removeSyllabusOutcome(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, id: ObjectId) {
     await getCollection(db).updateOne({
         _id: schoolId,
         $or: [
@@ -509,7 +530,9 @@ export async function removeSyllabusOutcome(db: Db, userId: ObjectId, schoolId: 
         'yearGroups.courses.id': courseId
     }, {
         $pull: {
-            'yearGroups.$[i].courses.$[j].syllabusOutcomes': outcome
+            'yearGroups.$[i].courses.$[j].syllabusOutcomes': {
+                id
+            }
         }
     }, {
         arrayFilters: [
@@ -530,7 +553,10 @@ export async function addSyllabusContent(db: Db, userId: ObjectId, schoolId: Obj
         'yearGroups.courses.id': courseId
     }, {
         $push: {
-            'yearGroups.$[i].courses.$[j].syllabusContent': content
+            'yearGroups.$[i].courses.$[j].syllabusContent': {
+                id: new ObjectId(),
+                content
+            }
         }
     }, {
         arrayFilters: [
@@ -540,7 +566,7 @@ export async function addSyllabusContent(db: Db, userId: ObjectId, schoolId: Obj
     })
 }
 
-export async function removeSyllabusContent(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, content: string) {
+export async function removeSyllabusContent(db: Db, userId: ObjectId, schoolId: ObjectId, yearGroupId: ObjectId, courseId: ObjectId, id: ObjectId) {
     await getCollection(db).updateOne({
         _id: schoolId,
         $or: [
@@ -551,7 +577,9 @@ export async function removeSyllabusContent(db: Db, userId: ObjectId, schoolId: 
         'yearGroups.courses.id': courseId
     }, {
         $pull: {
-            'yearGroups.$[i].courses.$[j].syllabusContent': content
+            'yearGroups.$[i].courses.$[j].syllabusContent': {
+                id
+            }
         }
     }, {
         arrayFilters: [

@@ -369,20 +369,22 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.courseId) {
                     return errorResponse(400, 'Missing course id')
                 }
-                if (!typedBody.content) {
-                    return errorResponse(400, 'Missing content')
+                if (!typedBody.id) {
+                    return errorResponse(400, 'Missing content id')
                 }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
                 let courseObjectId: ObjectId
+                let contentId: ObjectId
                 try {
                     schoolObjectId = new ObjectId(typedBody.schoolId)
                     yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
                     courseObjectId = new ObjectId(typedBody.courseId)
+                    contentId = new ObjectId(typedBody.id)
                 } catch (e) {
-                    return errorResponse(400, 'Invalid school year group or course id')
+                    return errorResponse(400, 'Invalid school year group, course or content id')
                 }
-                await removeSyllabusContent(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.content)
+                await removeSyllabusContent(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, contentId)
                 return successResponse<RemoveSyllabusContentResponse>({ success: true })
             }
             case "/add-syllabus-outcome": {
@@ -396,8 +398,11 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.courseId) {
                     return errorResponse(400, 'Missing course id')
                 }
-                if (!typedBody.outcome) {
+                if (!typedBody.name) {
                     return errorResponse(400, 'Missing outcome')
+                }
+                if (!typedBody.description) {
+                    return errorResponse(400, 'Missing description')
                 }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
@@ -409,7 +414,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 } catch (e) {
                     return errorResponse(400, 'Invalid school year group or course id')
                 }
-                await addSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.outcome)
+                await addSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.name, typedBody.description)
                 return successResponse<AddSyllabusOutcomeResponse>({ success: true })
             }
             case "/remove-syllabus-outcome": {
@@ -423,20 +428,22 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!typedBody.courseId) {
                     return errorResponse(400, 'Missing course id')
                 }
-                if (!typedBody.outcome) {
-                    return errorResponse(400, 'Missing outcome')
+                if (!typedBody.id) {
+                    return errorResponse(400, 'Missing outcome id')
                 }
                 let schoolObjectId: ObjectId
                 let yearGroupObjectId: ObjectId
                 let courseObjectId: ObjectId
+                let outcomeId: ObjectId
                 try {
                     schoolObjectId = new ObjectId(typedBody.schoolId)
                     yearGroupObjectId = new ObjectId(typedBody.yearGroupId)
                     courseObjectId = new ObjectId(typedBody.courseId)
+                    outcomeId = new ObjectId(typedBody.id)
                 } catch (e) {
-                    return errorResponse(400, 'Invalid school year group or course id')
+                    return errorResponse(400, 'Invalid school year group, course or outcome id')
                 }
-                await removeSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, typedBody.outcome)
+                await removeSyllabusOutcome(db, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, outcomeId)
                 return successResponse<RemoveSyllabusOutcomeResponse>({ success: true })
             }
             case "/create-post": {

@@ -20,6 +20,7 @@ function AddContentButton({ callback }: {
             <DialogContent >
                 <Box padding={1}>
                     <TextField
+                        autoComplete="off"
                         value={content}
                         onChange={e => setContent(e.target.value)}
                         label="Content"
@@ -46,7 +47,7 @@ function AddContentButton({ callback }: {
 }
 
 function AddOutcomeButton({ callback }: {
-    callback: (outcome: [string, string]) => Promise<void>
+    callback: (name: string, description: string) => Promise<void>
 }) {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [callingApi, setCallingApi] = useState(false)
@@ -64,12 +65,14 @@ function AddOutcomeButton({ callback }: {
                 <Box padding={1}>
                     <Stack direction="row" spacing={2}>
                         <TextField
+                            autoComplete="off"
                             value={name}
                             onChange={e => setName(e.target.value)}
                             label="Name"
                             disabled={callingApi}
                         />
                         <TextField
+                            autoComplete="off"
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             label="Description"
@@ -84,7 +87,7 @@ function AddOutcomeButton({ callback }: {
                 </Button>
                 <Button variant="contained" disabled={callingApi} onClick={async () => {
                     setCallingApi(true)
-                    await callback([name, description])
+                    await callback(name, description)
                     setCallingApi(false)
                     setName('')
                     setDescription('')
@@ -119,18 +122,18 @@ export default function Syllabus({ schoolId, yearGroupId, courseId }: {
                 <ListItem
                     key={index}
                     secondaryAction={isTeacherOrAdministrator && <IconButton
-                        aria-label={`Remove '${content}'`}
+                        aria-label={`Remove '${content.content}'`}
                         disabled={removingContent}
                         onClick={async () => {
                             setRemovingContent(true)
-                            await removeSyllabusContent(schoolId, yearGroupId, courseId, content)
-                            await setRemovingContent(false)
+                            await removeSyllabusContent(schoolId, yearGroupId, courseId, content.id)
+                            setRemovingContent(false)
                         }}
                     >
                         <Remove />
                     </IconButton>
                     }
-                >{content}</ListItem>
+                >{content.content}</ListItem>
             ))}
         </List>
         {isTeacherOrAdministrator &&
@@ -145,23 +148,23 @@ export default function Syllabus({ schoolId, yearGroupId, courseId }: {
                 <ListItem
                     key={index}
                     secondaryAction={isTeacherOrAdministrator && <IconButton
-                        aria-label={`Remove '${outcome[0]}'`}
+                        aria-label={`Remove '${outcome.name}'`}
                         disabled={removingOutcome}
                         onClick={async () => {
                             setRemovingOutcome(true)
-                            await removeSyllabusOutcome(schoolId, yearGroupId, courseId, outcome)
+                            await removeSyllabusOutcome(schoolId, yearGroupId, courseId, outcome.id)
                             setRemovingOutcome(false)
                         }}
                     >
                         <Remove />
                     </IconButton>
                     }
-                >{`${outcome[0]}: ${outcome[1]}`}</ListItem>
+                >{`${outcome.name}: ${outcome.description}`}</ListItem>
             ))}
         </List>
         {isTeacherOrAdministrator &&
-            <AddOutcomeButton callback={async outcome => {
-                await addSyllabusOutcome(schoolId, yearGroupId, courseId, outcome)
+            <AddOutcomeButton callback={async (name, description) => {
+                await addSyllabusOutcome(schoolId, yearGroupId, courseId, name, description)
             }} />
         }
     </Stack>

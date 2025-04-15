@@ -347,7 +347,7 @@ describe('Schools API', () => {
         expect(schoolData?.yearGroups[0].courses[0].classes[0].teacherIds).toEqual([])
         expect(schoolData?.yearGroups[0].courses[0].classes[0].studentIds).toEqual([])
     })
-    it("Should add syllabus content", async() => {
+    it("Should add syllabus content", async () => {
         const school = await createSchool(db, user1, 'School 1')
         const yearGroup = await createYearGroup(db, user1, school, 'Year 1')
         const course = await createCourse(db, user1, school, yearGroup, 'Maths')
@@ -355,7 +355,10 @@ describe('Schools API', () => {
         expect(schoolData1?.yearGroups[0].courses[0].syllabusContent).toEqual([])
         await addSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
-        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual(['Does the stuff'])
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual([{
+            id: expect.any(ObjectId),
+            content: 'Does the stuff'
+        }])
     })
     it("Should remove syllabus content", async () => {
         const school = await createSchool(db, user1, 'School 1')
@@ -365,8 +368,12 @@ describe('Schools API', () => {
         expect(schoolData1?.yearGroups[0].courses[0].syllabusContent).toEqual([])
         await addSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
-        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual(['Does the stuff'])
-        await removeSyllabusContent(db, user1, school, yearGroup, course, 'Does the stuff')
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusContent).toEqual([{
+            id: expect.any(ObjectId),
+            content: 'Does the stuff'
+        }])
+        const id = schoolData2!.yearGroups[0].courses[0].syllabusContent![0].id
+        await removeSyllabusContent(db, user1, school, yearGroup, course, id)
         const schoolData3 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData3?.yearGroups[0].courses[0].syllabusContent).toEqual([])
     })
@@ -376,9 +383,13 @@ describe('Schools API', () => {
         const course = await createCourse(db, user1, school, yearGroup, 'Maths')
         const schoolData1 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData1?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([])
-        await addSyllabusOutcome(db, user1, school, yearGroup, course, ['MEX2-P1', 'Does something mathy'])
+        await addSyllabusOutcome(db, user1, school, yearGroup, course, 'MEX2-P1', 'Does something mathy')
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
-        expect(schoolData2?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([['MEX2-P1', 'Does something mathy']])
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([{
+            id: expect.any(ObjectId),
+            name: 'MEX2-P1',
+            description: 'Does something mathy'
+        }])
     })
     it("Should remove syllabus content", async () => {
         const school = await createSchool(db, user1, 'School 1')
@@ -386,10 +397,15 @@ describe('Schools API', () => {
         const course = await createCourse(db, user1, school, yearGroup, 'Maths')
         const schoolData1 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData1?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([])
-        await addSyllabusOutcome(db, user1, school, yearGroup, course, ['MEX2-P1', 'Does something mathy'])
+        await addSyllabusOutcome(db, user1, school, yearGroup, course, 'MEX2-P1', 'Does something mathy')
         const schoolData2 = await schoolsCollection.findOne({ _id: school })
-        expect(schoolData2?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([['MEX2-P1', 'Does something mathy']])
-        await removeSyllabusOutcome(db, user1, school, yearGroup, course, ['MEX2-P1', 'Does something mathy'])
+        expect(schoolData2?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([{
+            id: expect.any(ObjectId),
+            name: 'MEX2-P1',
+            description: 'Does something mathy'
+        }])
+        const id = schoolData2!.yearGroups[0].courses[0].syllabusOutcomes![0].id
+        await removeSyllabusOutcome(db, user1, school, yearGroup, course, id)
         const schoolData3 = await schoolsCollection.findOne({ _id: school })
         expect(schoolData3?.yearGroups[0].courses[0].syllabusOutcomes).toEqual([])
     })

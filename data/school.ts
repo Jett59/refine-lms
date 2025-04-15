@@ -23,8 +23,8 @@ export interface CourseInfo {
     name: string
     classes: ClassInfo[]
 
-    syllabusContent: string[]
-    syllabusOutcomes: [string, string][]
+    syllabusContent: SyllabusContent[]
+    syllabusOutcomes: SyllabusOutcome[]
 }
 
 export interface ClassInfo {
@@ -33,6 +33,16 @@ export interface ClassInfo {
     teacherIds: string[]
     studentIds: string[]
     requestingStudentIds: string[]
+}
+
+export interface SyllabusContent {
+    id: string
+    content: string
+}
+export interface SyllabusOutcome {
+    id: string
+    name: string
+    description: string
 }
 
 export type Role = 'administrator' | 'teacher' | 'student'

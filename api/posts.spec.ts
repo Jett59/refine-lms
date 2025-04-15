@@ -20,7 +20,9 @@ function createSchoolStructure(schoolId: ObjectId, schoolStudentIds: ObjectId[],
                     teacherIds: [],
                     studentIds: classStudentIds,
                     requestingStudentIds: []
-                }]
+                }],
+                syllabusContent: [],
+                syllabusOutcomes: []
             }]
         }],
         administratorIds: [],
@@ -691,7 +693,9 @@ describe("Posts", () => {
                 teacherIds: [],
                 studentIds: [user1],
                 requestingStudentIds: []
-            }]
+            }],
+            syllabusContent: [],
+            syllabusOutcomes: []
         })
 
         const date = new Date('2025-01-14T23:22:43.157Z')
