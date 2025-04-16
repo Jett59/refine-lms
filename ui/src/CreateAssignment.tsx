@@ -174,6 +174,7 @@ export default function CreateAssignment() {
                         private: false,
                         title,
                         content,
+                        linkedSyllabusContentIds: [],
                         attachments,
                         isoDueDate: dueDate?.isValid() ? dueDate?.toISOString() ?? undefined : undefined,
                         submissionTemplates,
