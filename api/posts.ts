@@ -4,7 +4,7 @@ import { MarkingCriterion, PostInfo, PostTemplate, PostType } from "../data/post
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, createCopy, getFileLink, prepareAttachments } from "./google-drive"
-import { access } from "fs"
+import { access, link } from "fs"
 
 export interface Post {
     _id?: ObjectId
@@ -18,6 +18,7 @@ export interface Post {
     type: 'post' | 'assignment'
     title: string
     content: string
+    linkedSyllabusContentIds: ObjectId[] | null
     attachments: Attachment[]
 
     // For assignments:
@@ -76,6 +77,13 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             return templateStatus
         }
     }
+    const linkedSyllabusContentIds = postTemplate.linkedSyllabusContentIds.map(id => {
+        try {
+        return new ObjectId(id)
+    } catch (e) {
+        return null
+    }
+}).filter(id => id !== null) as ObjectId[]
     return {
         postDate: new Date(),
         posterId,
@@ -87,6 +95,7 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
         type: postTemplate.type,
         title: postTemplate.title,
         content: postTemplate.content,
+        linkedSyllabusContentIds,
         attachments: postTemplate.attachments.map(attachment => ({
             id: new ObjectId(),
             title: attachment.title,
@@ -175,6 +184,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             type: post.type,
             title: post.title,
             content: post.content,
+            linkedSyllabusContentIds: post.linkedSyllabusContentIds?.map(id => id.toHexString()) ?? [],
             attachments: post.attachments.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,

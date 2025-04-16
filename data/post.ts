@@ -12,6 +12,7 @@ export interface PostInfo {
     type: 'post' | 'assignment'
     title: string
     content: string
+    linkedSyllabusContentIds: string[]
     attachments: AttachmentInfo[]
 
     // For assignments:
@@ -46,6 +47,7 @@ export interface PostTemplate {
     type: PostType
     title: string
     content: string
+    linkedSyllabusContentIds: string[]
     attachments: AttachmentTemplate[]
 
     // For assignments:

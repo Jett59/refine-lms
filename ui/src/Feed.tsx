@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
-import { Avatar, Button, FormControlLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
+import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
 import { AttachFile, ExpandMore, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
-import { CourseInfo, SchoolInfo } from "../../data/school"
+import { CourseInfo, SchoolInfo, SyllabusContent } from "../../data/school"
 import SimpleMenu from "./SimpleMenu"
 import useDrivePicker from "react-google-drive-picker"
 import { GOOGLE_PROJECT_NUMBER, GOOGLE_CLIENT_ID, GOOGLE_DRIVE_DEVELOPER_KEY } from "./main"
@@ -159,6 +159,21 @@ export function CreatePostFormAddAttachmentButton({ disabled, defaultShareMode, 
     </Tooltip>
 }
 
+function AddSyllabusContentButton({ course, callback }: {
+    course: CourseInfo
+    callback: (content: SyllabusContent) => void
+}) {
+    return <SimpleMenu
+        buttonContents="Add Syllabus Content"
+        childrenSupplier={close => [
+            ...course.syllabusContent.map(content => <MenuItem key={content.id} onClick={() => {
+                callback(content)
+                close()
+            }}>{content.content}</MenuItem>)
+        ]}
+    />
+}
+
 function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInfo, postType, disabled, onClick, close }: {
     schoolId: string
     schoolInfo: SchoolInfo
@@ -191,6 +206,8 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         return () => clearTimeout(timeout)
     }, [])
 
+    const [linkedSyllabusContent, setLinkedSyllabusContent] = useState<SyllabusContent[]>([])
+
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
         <TextField
@@ -209,6 +226,25 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             // Set the default height to a certain number of lines
             inputProps={{ style: { lineHeight: '1.5em', minHeight: '6em' } }}
         />
+        {linkedSyllabusContent.length > 0 && <List>
+            {linkedSyllabusContent.map(content => (
+                <ListItem key={content.id} secondaryAction={(
+                    <IconButton aria-label={`Remove '${content.content}'`} onClick={() => setLinkedSyllabusContent(oldContents => oldContents.filter(c => c !== content))}>
+                        <Remove />
+                    </IconButton>
+                )}>
+                    <Typography>{content.content}</Typography>
+                </ListItem>
+            ))}
+        </List>}
+        {courseInfo && courseInfo.syllabusContent.length > 0 &&
+            <AddSyllabusContentButton
+                course={courseInfo}
+                callback={content => {
+                    setLinkedSyllabusContent(oldContents => [...oldContents, content])
+                }}
+            />
+        }
         <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
             {isStudent &&
                 <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
@@ -247,6 +283,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 private: isPrivate,
                 title,
                 content,
+                linkedSyllabusContentIds: linkedSyllabusContent.map(content => content.id),
                 attachments
             })} disabled={disabled}>Post</Button>
             <Button variant="outlined" onClick={close} disabled={disabled}>Cancel</Button>
@@ -279,6 +316,16 @@ function PostView({ post, schoolInfo, courseInfo }: { post: PostInfo, schoolInfo
             <Typography>Posted {formatDate(new Date(post.postDate))}{classNames ? ` to ${classNames}` : ''}</Typography>
             {!isAssignment && <>
                 <Typography variant="body1">{post.content}</Typography>
+                {courseInfo && post.linkedSyllabusContentIds.length > 0 &&
+                    <List>
+                        {post.linkedSyllabusContentIds.map(contentId => {
+                            const content = courseInfo.syllabusContent.find(c => c.id === contentId)
+                            return content ? <ListItem key={content.id}>
+                                <Typography>{content.content}</Typography>
+                            </ListItem> : null
+                        })}
+                    </List>
+                }
                 <TileContainer>
                     {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} students={students} />)}
                 </TileContainer>
@@ -417,9 +464,9 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
                 postType={postTypeForCreation ?? 'post'}
                 onClick={async (post) => {
                     setPosting(true)
-                        await createPost(post)
-                        setCreatingPost(false)
-                        refreshPostsList()
+                    await createPost(post)
+                    setCreatingPost(false)
+                    refreshPostsList()
                     setPosting(false)
                 }}
                 close={() => setCreatingPost(false)}

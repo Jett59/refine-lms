@@ -92,7 +92,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
 
         const postId = await createPost(db, school, post)
@@ -120,7 +121,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
 
         const postId = await createPost(db, school, post)
@@ -150,7 +152,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post2: Post = {
             postDate: date2,
@@ -169,7 +172,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -194,6 +198,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
@@ -216,6 +221,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
@@ -246,7 +252,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post2: Post = {
             postDate: date2,
@@ -265,7 +272,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -290,6 +298,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
@@ -312,6 +321,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
@@ -337,7 +347,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -366,7 +377,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -396,7 +408,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post2: Post = {
             postDate: date2,
@@ -415,7 +428,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -440,6 +454,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'World',
             content: 'World Hello',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
@@ -462,6 +477,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
@@ -487,7 +503,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -510,6 +527,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts.isEnd).toBe(true)
@@ -535,7 +553,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -564,7 +583,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -595,7 +615,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -623,7 +644,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -649,7 +671,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -675,7 +698,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -716,7 +740,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
 
         let postId = await createPost(db, school, post)
@@ -757,7 +782,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -812,7 +838,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -862,7 +889,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -922,7 +950,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post2: Post = {
             postDate: date2,
@@ -941,7 +970,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -966,6 +996,7 @@ describe("Posts", () => {
             type: 'assignment',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(true)
@@ -991,7 +1022,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -1017,7 +1049,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1039,6 +1072,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: []
         } as PostInfo)
     })
@@ -1072,7 +1106,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1136,7 +1171,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1183,7 +1219,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1211,7 +1248,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1247,7 +1285,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1304,7 +1343,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1360,7 +1400,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1433,7 +1474,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1455,6 +1497,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: [{
                 id: attachmentId.toHexString(),
                 title: 'Attachment 1',
@@ -1499,7 +1542,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1521,6 +1565,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: [],
             markingCriteria: undefined,
             submissionTemplates: [{
@@ -1568,7 +1613,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1590,6 +1636,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: [],
             markingCriteria: undefined,
             submissionTemplates: undefined,
@@ -1639,7 +1686,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1661,6 +1709,7 @@ describe("Posts", () => {
             type: 'post',
             title: 'Hello',
             content: 'Hello World',
+            linkedSyllabusContentIds: [],
             attachments: [],
             markingCriteria: undefined,
             submissionTemplates: undefined,
@@ -1689,7 +1738,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1748,7 +1798,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1805,7 +1856,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1848,7 +1900,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1894,7 +1947,8 @@ describe("Posts", () => {
             isoSubmissionDates: {
                 [user1.toHexString()]: date.toISOString()
             },
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1952,7 +2006,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2031,7 +2086,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2096,7 +2152,8 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2151,7 +2208,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2196,7 +2254,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2238,7 +2297,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2279,7 +2339,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2325,7 +2386,8 @@ describe("Posts", () => {
             studentAttachments: null,
             isoDueDate: null,
             isoSubmissionDates: null,
-            marks: null
+            marks: null,
+            linkedSyllabusContentIds: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
