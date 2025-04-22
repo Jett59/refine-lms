@@ -8,7 +8,7 @@ import PostsList from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
 import { getHasNotifications } from "./Class"
 import { useEffect } from "react"
-import Syllabus from "./Syllabus"
+// import Syllabus from "./Syllabus"
 
 const PREFERED_TAB_LOCAL_STORAGE_PREFIX = 'course-prefered-tab-'
 
@@ -62,11 +62,12 @@ useEffect(() => {
                 onSelect: () => switchPage('feed', schoolId, yearGroupId, courseId, undefined, undefined, true),
                 value: <PostsList schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} listType="feed" />
             },
-            {
-                label: 'Syllabus',
-                onSelect: () => switchPage('syllabus', schoolId, yearGroupId, courseId, undefined, undefined, true),
-                value: <Syllabus schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
-            }
+            // Uncomment to enable syllabus feature
+            // {
+            //     label: 'Syllabus',
+            //     onSelect: () => switchPage('syllabus', schoolId, yearGroupId, courseId, undefined, undefined, true),
+            //     value: <Syllabus schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} />
+            // }
         ]} />
     </Stack>
 }
