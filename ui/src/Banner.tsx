@@ -1,4 +1,4 @@
-import { AppBar, Avatar, Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, TextField, Typography } from "@mui/material"
+import { AppBar, Avatar, Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography } from "@mui/material"
 import { useUser } from "./UserContext"
 import { useData } from "./DataContext"
 import { useError } from "./ErrorContext"
@@ -7,6 +7,7 @@ import { useSwitchSchool } from "./App"
 import SimpleMenu from "./SimpleMenu"
 import { Add, Email, ExpandMore, House, NotificationImportant } from "@mui/icons-material"
 import RefineLogo from "./RefineLogo"
+import { CreateSchoolDialog } from "./Schools"
 
 function ErrorButton() {
     const { errors } = useError()
@@ -42,11 +43,10 @@ function ErrorButton() {
 }
 
 function SchoolSwitcher() {
-    const { joinedSchools, invitedSchools, createSchool, declineInvitation, joinSchool } = useData()
+    const { joinedSchools, invitedSchools, declineInvitation, joinSchool } = useData()
     const switchSchool = useSwitchSchool()
 
     const [nameSelectorOpen, setNameSelectorOpen] = useState(false)
-    const [name, setName] = useState('')
 
     const [invitedSchool, setInvitedSchool] = useState<{ name: string, id: string } | null>(null)
 
@@ -84,7 +84,6 @@ function SchoolSwitcher() {
                         </MenuItem>),
                         <Divider key='Divider' />,
                         <MenuItem key="Add" onClick={() => {
-                            setName('')
                             setNameSelectorOpen(true)
                             close()
                         }}
@@ -98,32 +97,7 @@ function SchoolSwitcher() {
                     ]} />
             </Box>
         </Badge>
-        <Dialog open={nameSelectorOpen} onClose={() => setNameSelectorOpen(false)}>
-            <DialogTitle>Create a new school</DialogTitle>
-            <DialogContent>
-                <Box padding={1}>
-                    <TextField
-                        autoComplete="off"
-                        label="School name"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                    />
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button variant="outlined" disabled={loading} onClick={() => setNameSelectorOpen(false)}>Cancel</Button>
-                <Button variant="contained" disabled={loading} onClick={() => {
-                    setLoading(true)
-                    createSchool(name).then(id => {
-                        setNameSelectorOpen(false)
-                        setLoading(false)
-                        if (id) {
-                            switchSchool(id)
-                        }
-                    })
-                }}>Create</Button>
-            </DialogActions>
-        </Dialog>
+        <CreateSchoolDialog open={nameSelectorOpen} setOpen={setNameSelectorOpen} switchOnOpen />
         <Dialog open={invitedSchool !== null} onClose={() => setInvitedSchool(null)}>
             <DialogTitle>Join {invitedSchool?.name}</DialogTitle>
             <DialogContent>
