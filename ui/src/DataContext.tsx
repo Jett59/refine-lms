@@ -15,6 +15,7 @@ export interface DataContextValue {
         name: string
         id: string
     }[],
+    loadingInitialSchoolsList: boolean,
     getRelevantSchoolInfo(schoolId: string, refreshCache?: boolean): Promise<SchoolInfo | null>
     createSchool: (name: string) => Promise<string | null>
     createYearGroup: (schoolId: string, name: string) => Promise<void>
@@ -48,6 +49,7 @@ export interface DataContextValue {
 const DataContext = createContext<DataContextValue>({
     joinedSchools: [],
     invitedSchools: [],
+    loadingInitialSchoolsList: true,
     getRelevantSchoolInfo: async () => null,
     createSchool: async () => '',
     createYearGroup: async () => { },
@@ -83,12 +85,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
 
     const [joinedSchools, setJoinedSchools] = useState<DataContextValue['joinedSchools']>([])
     const [invitedSchools, setInvitedSchools] = useState<DataContextValue['invitedSchools']>([])
+    const [loadingInitialSchoolsList, setLoadingInitialSchoolsList] = useState(true)
 
     const updateVisibleSchoolList = useCallback(async () => {
         const response = await authenticatedAPIs.call<VisibleSchoolsResponse>('GET', 'visible-schools', undefined)
         if (isSuccessfulAPIResponse(response)) {
             setJoinedSchools(response.body.joinedSchools)
             setInvitedSchools(response.body.invitedSchools)
+            setLoadingInitialSchoolsList(false) // Only changes the value after the first fetch
         } else {
             addAPIError(response)
         }
@@ -131,6 +135,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
     return <DataContext.Provider value={{
         joinedSchools,
         invitedSchools,
+        loadingInitialSchoolsList,
         getRelevantSchoolInfo,
         createSchool: useCallback(async (name) => {
             const response = await authenticatedAPIs.call<CreateSchoolResponse, CreateSchoolRequest>('POST', 'create-school', { name })

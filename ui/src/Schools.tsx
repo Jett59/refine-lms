@@ -54,12 +54,13 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
 
 export default function Schools() {
     const switchSchool = useSwitchSchool()
-    const { joinedSchools, invitedSchools, joinSchool, declineInvitation } = useData()
-    useSetPageTitle('Schools')
+    const { joinedSchools, invitedSchools, loadingInitialSchoolsList, joinSchool, declineInvitation } = useData()
+    useSetPageTitle(!loadingInitialSchoolsList ? 'Schools' : '')
 
 const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
 
     if (joinedSchools.length === 0 && invitedSchools.length === 0) {
+        if (!loadingInitialSchoolsList) {
         return <Stack direction="column" spacing={2} alignItems="center">
             <Typography>
                 Wait for an invitation to a school or create your own.
@@ -67,6 +68,9 @@ const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
             <Button variant="outlined" onClick={() => setCreateSchoolOpen(true)}>Create school</Button>
             <CreateSchoolDialog open={createSchoolOpen} setOpen={setCreateSchoolOpen} switchOnOpen />
         </Stack>
+        }else {
+            return <Typography>Loading...</Typography>
+        }
     }
 
 return <TileContainer centre>
