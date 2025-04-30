@@ -84,7 +84,7 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, disablePermis
         <Typography variant="h6">{attachmentTemplate.title}</Typography>
         <SimpleMenu
             rounded
-            buttonContents={attachmentTemplate.shareMode === 'copied' ? 'Handout' : attachmentTemplate.othersCanEdit ? 'Groupwork' : 'Resource'}
+            buttonContents={attachmentTemplate.shareMode === 'copied' ? 'Handout' : attachmentTemplate.othersCanEdit ? 'Group Work' : 'Resource'}
             buttonProps={{ endIcon: <ExpandMore />, disabled: disablePermissionsSettings }}
             childrenSupplier={close => [
                 <MenuItem onClick={() => {
@@ -98,7 +98,7 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, disablePermis
                 <MenuItem onClick={() => {
                     update({ ...attachmentTemplate, shareMode: 'shared', othersCanEdit: true })
                     close()
-                }}>Groupwork (one editable copy for all students)</MenuItem>,
+                }}>Group Work (one editable copy for all students)</MenuItem>,
             ]}
         />
         <IconButton onClick={onRemove} aria-label="Remove attachment">
