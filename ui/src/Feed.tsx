@@ -83,33 +83,22 @@ export function CreatePostFormAttachmentView({ attachmentTemplate, disablePermis
         <img src={attachmentTemplate.thumbnail} aria-hidden />
         <Typography variant="h6">{attachmentTemplate.title}</Typography>
         <SimpleMenu
-            buttonContents={attachmentTemplate.shareMode === 'shared' ? 'Shared Resource' : 'Handout'}
-            buttonProps={{ disabled: disablePermissionsSettings }}
+            rounded
+            buttonContents={attachmentTemplate.shareMode === 'copied' ? 'Handout' : attachmentTemplate.othersCanEdit ? 'Groupwork' : 'Resource'}
+            buttonProps={{ endIcon: <ExpandMore />, disabled: disablePermissionsSettings }}
             childrenSupplier={close => [
                 <MenuItem onClick={() => {
-                    update({ ...attachmentTemplate, shareMode: 'shared' })
+                    update({ ...attachmentTemplate, shareMode: 'shared', othersCanEdit: false })
                     close()
-                }}>Shared Resource (one copy for everyone)</MenuItem>,
+                }}>Resource (one read-only copy for all students)</MenuItem>,
                 <MenuItem onClick={() => {
                     update({ ...attachmentTemplate, shareMode: 'copied', othersCanEdit: true })
                     close()
-                }}>Handout (personal copies)</MenuItem>
-            ]}
-        />
-        <SimpleMenu
-            buttonContents={attachmentTemplate.othersCanEdit ? 'Editable' : 'Read-only'}
-            buttonProps={{ disabled: disablePermissionsSettings }}
-            childrenSupplier={close => [
+                }}>Handout (individual editable copies for each student)</MenuItem>,
                 <MenuItem onClick={() => {
-                    update({ ...attachmentTemplate, othersCanEdit: false })
+                    update({ ...attachmentTemplate, shareMode: 'shared', othersCanEdit: true })
                     close()
-                }}
-                    disabled={attachmentTemplate.shareMode === 'copied'}
-                >Read-only</MenuItem>,
-                < MenuItem onClick={() => {
-                    update({ ...attachmentTemplate, othersCanEdit: true })
-                    close()
-                }}>Editable</MenuItem>
+                }}>Groupwork (one editable copy for all students)</MenuItem>,
             ]}
         />
         <IconButton onClick={onRemove} aria-label="Remove attachment">
