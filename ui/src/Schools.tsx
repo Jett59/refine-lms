@@ -3,7 +3,7 @@ import { useData } from "./DataContext";
 import { useSwitchSchool } from "./App";
 import { TileButton, TileCard, TileContainer } from "./Tile";
 import { Box, Button, CardActions, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
     open: boolean,
@@ -52,12 +52,25 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
     </Dialog>
 }
 
+export const LAST_ACTIVE_SCHOOL_ID_KEY = 'last-active-school-id'
+
 export default function Schools() {
     const switchSchool = useSwitchSchool()
     const { joinedSchools, invitedSchools, loadingInitialSchoolsList, joinSchool, declineInvitation } = useData()
     useSetPageTitle(!loadingInitialSchoolsList ? 'Schools' : '')
 
 const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
+
+useEffect(() => {
+    if (joinedSchools.length > 0) {
+        const lastActiveSchoolId = localStorage.getItem(LAST_ACTIVE_SCHOOL_ID_KEY)
+        if (lastActiveSchoolId) {
+            switchSchool(lastActiveSchoolId)
+        }else {
+            switchSchool(joinedSchools[0].id)
+        }
+    }
+}, [joinedSchools])
 
     if (joinedSchools.length === 0 && invitedSchools.length === 0) {
         if (!loadingInitialSchoolsList) {

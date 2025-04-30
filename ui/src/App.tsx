@@ -3,7 +3,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Banner from './Banner';
 import { useUser } from './UserContext';
 import Welcome from './Welcome';
-import Schools from './Schools';
+import Schools, { LAST_ACTIVE_SCHOOL_ID_KEY } from './Schools';
 import School from './School';
 import { useCallback } from 'react';
 import { SchoolPeoplePage } from './People';
@@ -97,7 +97,11 @@ export function useLocationParts() {
 export function useSwitchSchool() {
   const navigate = useNavigate()
 
-  return useCallback((schoolId: string) => navigate(`/${schoolId}`), [navigate])
+  return useCallback((schoolId: string) => {
+    // NOTE: Should this go in schools.tsx? How would this work?
+    localStorage.setItem(LAST_ACTIVE_SCHOOL_ID_KEY, schoolId)
+    navigate(`/${schoolId}`)
+  }, [navigate])
 }
 
 export function getLocation(page: string, schoolId?: string, yearGroupId?: string, courseId?: string, classId?: string, postId?: string) {
