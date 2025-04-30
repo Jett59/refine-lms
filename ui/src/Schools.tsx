@@ -96,6 +96,5 @@ return <TileContainer centre>
             </CardActions>
         </TileCard>
     ))}
-    {joinedSchools.map(school => <TileButton key={school.id} text={school.name} onClick={() => switchSchool(school.id)} />)}
 </TileContainer>
 }

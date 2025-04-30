@@ -65,12 +65,11 @@ useEffect(() => {
 function PageWrapperBreadcrumbs() {
     const { schoolId, yearGroupId, courseId, classId, postId, page } = useLocationParts()
 
-    if (!schoolId) {
+    if (!yearGroupId) {
         return null
     }
 
     return <Breadcrumbs aria-label="Breadcrumb">
-        <PageWrapperBreadcrumb isLast={!schoolId && !postId && !page} />
         {schoolId && <PageWrapperBreadcrumb schoolId={schoolId} isLast={!yearGroupId && !postId && !page} />}
         {yearGroupId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} isLast={!courseId && !postId && !page} />}
         {courseId && <PageWrapperBreadcrumb schoolId={schoolId} yearGroupId={yearGroupId} courseId={courseId} isLast={!classId && !postId && !page} />}
