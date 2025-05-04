@@ -10,6 +10,7 @@ import { AttachmentTemplate, MarkingCriterion } from "../../data/post"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Dayjs } from "dayjs"
+import { useConfirmationDialog } from "./ConfirmationDialog"
 
 function CriterionView({ criterion, update }: {
     criterion: MarkingCriterion
@@ -56,6 +57,9 @@ export default function CreateAssignment() {
     const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
     const [submissionTemplates, setSubmissionTemplates] = useState<AttachmentTemplate[]>([])
     const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterion[]>([])
+
+    const isEmpty = !title && !content && attachments.length === 0 && submissionTemplates.length === 0 && markingCriteria.length === 0
+    const createConfirmationDialog = useConfirmationDialog()
 
     if (!schoolId || !yearGroupId || !courseId) {
         return <Typography>Not found</Typography>
@@ -158,8 +162,13 @@ export default function CreateAssignment() {
             <Button
                 variant="outlined"
                 disabled={disabled}
-                onClick={() => navigate(-1)}
-            >Discard</Button>
+                onClick={() => {
+                    if (isEmpty) {
+                        navigate(-1)
+                    } else {
+                        createConfirmationDialog('Discard Assignment', 'Discard', () => navigate(-1))
+                    }
+                }}>Discard</Button>
             <Button
                 variant="contained"
                 disabled={disabled}

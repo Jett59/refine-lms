@@ -1,7 +1,7 @@
 import { useSetPageTitle } from "./PageWrapper";
 import { useData } from "./DataContext";
 import { useSwitchSchool } from "./App";
-import { TileButton, TileCard, TileContainer } from "./Tile";
+import { TileCard, TileContainer } from "./Tile";
 import { Box, Button, CardActions, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 
@@ -65,9 +65,9 @@ useEffect(() => {
     if (joinedSchools.length > 0) {
         const lastActiveSchoolId = localStorage.getItem(LAST_ACTIVE_SCHOOL_ID_KEY)
         if (lastActiveSchoolId) {
-            switchSchool(lastActiveSchoolId)
+            switchSchool(lastActiveSchoolId, true)
         }else {
-            switchSchool(joinedSchools[0].id)
+            switchSchool(joinedSchools[0].id, true)
         }
     }
 }, [joinedSchools])

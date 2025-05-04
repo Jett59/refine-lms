@@ -97,10 +97,10 @@ export function useLocationParts() {
 export function useSwitchSchool() {
   const navigate = useNavigate()
 
-  return useCallback((schoolId: string) => {
-    // NOTE: Should this go in schools.tsx? How would this work?
+  return useCallback((schoolId: string, replace?: boolean) => {
+    // TODO: Should this line go in schools.tsx? How would this work?
     localStorage.setItem(LAST_ACTIVE_SCHOOL_ID_KEY, schoolId)
-    navigate(`/${schoolId}`)
+    navigate(`/${schoolId}`, { replace })
   }, [navigate])
 }
 

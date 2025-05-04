@@ -25,7 +25,7 @@ function RemoveUserButton({ schoolInfo, userInfo }: { schoolInfo: SchoolInfo, us
     const createConfirmationDialog = useConfirmationDialog()
 
     return <Button startIcon={<Remove />} onClick={async () => {
-        await createConfirmationDialog(`Remove ${userInfo.name}`, '', () => {
+        createConfirmationDialog(`Remove ${userInfo.name}`, 'Remove', () => {
             removeUser(schoolInfo.id, userInfo.id)
         })
     }}>Remove</Button>

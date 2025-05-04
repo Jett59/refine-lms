@@ -1,12 +1,12 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import { createContext, ReactNode, useContext, useState } from "react";
 
-const ConfirmationDialogContext = createContext<(title: string, question: string, success: () => void, error?: () => void) => void>((_title, _question, _success, error) => error?.())
+const ConfirmationDialogContext = createContext<(title: string, okText: string, success: () => void, error?: () => void) => void>((_title, _question, _success, error) => error?.())
 
 export function ConfirmationDialogContextProvider({ children }: { children: ReactNode }) {
     interface ConfirmationQueueItem {
         title: string
-        question: string
+        okText: string
         success: () => void,
         error?: () => void,
     }
@@ -24,8 +24,8 @@ export function ConfirmationDialogContextProvider({ children }: { children: Reac
     }
 
     return <ConfirmationDialogContext.Provider
-        value={(title, question, success, error) => {
-            setConfirmationQueue(confirmationQueue => [...confirmationQueue, { title, question, success, error }])
+        value={(title, okText, success, error) => {
+            setConfirmationQueue(confirmationQueue => [...confirmationQueue, { title, okText, success, error }])
         }}
     >
         {children}
@@ -33,14 +33,9 @@ export function ConfirmationDialogContextProvider({ children }: { children: Reac
             <DialogTitle>
                 {confirmationQueue[0]?.title}
             </DialogTitle>
-            <DialogContent>
-                <Typography>
-                    {confirmationQueue[0]?.question}
-                </Typography>
-            </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={failFirst}>Cancel</Button>
-                <Button variant="contained" onClick={succeedFirst}>Ok</Button>
+                <Button variant="contained" onClick={succeedFirst}>{confirmationQueue[0]?.okText}</Button>
             </DialogActions>
         </Dialog>
     </ConfirmationDialogContext.Provider>

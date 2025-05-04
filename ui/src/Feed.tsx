@@ -187,7 +187,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     const titleRef = useRef<HTMLInputElement>(null)
 
-    // The autoFocus prop doesn't always work, so we use a ref to focus the title field
+    // The autoFocus prop doesn't always work, so we use a ref to focus the title field on component mount
     useEffect(() => {
         // Add a delay to ensure all other focus events have finished
         const timeout = setTimeout(() => {
@@ -198,6 +198,9 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     const [linkedSyllabusContent, setLinkedSyllabusContent] = useState<SyllabusContent[]>([])
 
+    const isEmpty = !title && !content && attachments.length === 0 && linkedSyllabusContent.length === 0
+
+    const createConfirmationDialog = useConfirmationDialog()
 
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
@@ -277,7 +280,13 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 linkedSyllabusContentIds: linkedSyllabusContent.map(content => content.id),
                 attachments
             })} disabled={disabled}>Post</Button>
-            <Button variant="outlined" onClick={close} disabled={disabled}>Discard</Button>
+            <Button variant="outlined" onClick={() => {
+                if (isEmpty) {
+                    close()
+                } else {
+                    createConfirmationDialog('Discard Post', 'Discard', close)
+                }
+            }} disabled={disabled}>Discard</Button>
         </Stack>
     </Stack>
 }
