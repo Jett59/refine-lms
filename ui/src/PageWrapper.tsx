@@ -65,7 +65,7 @@ useEffect(() => {
 function PageWrapperBreadcrumbs() {
     const { schoolId, yearGroupId, courseId, classId, postId, page } = useLocationParts()
 
-    if (!yearGroupId) {
+    if (!yearGroupId && !page && !postId) {
         return null
     }
 

@@ -11,6 +11,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import ErrorContextProvider from './ErrorContext.tsx';
 import { UserContextProvider } from './UserContext.tsx';
 import { DataContextProvider } from './DataContext.tsx';
+import { ConfirmationDialogContextProvider } from './ConfirmationDialog.tsx';
 
 export const GOOGLE_CLIENT_ID = '440807713733-li6c8t0f1pmjrlaceen6afndskghlrrm.apps.googleusercontent.com'
 // This is apparently ok (https://stackoverflow.com/a/61652187)
@@ -21,13 +22,15 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <ErrorContextProvider>
-        <UserContextProvider>
-          <DataContextProvider>
-            <HashRouter>
-              <App />
-            </HashRouter>
-          </DataContextProvider>
-        </UserContextProvider>
+        <ConfirmationDialogContextProvider>
+          <UserContextProvider>
+            <DataContextProvider>
+              <HashRouter>
+                <App />
+              </HashRouter>
+            </DataContextProvider>
+          </UserContextProvider>
+        </ConfirmationDialogContextProvider>
       </ErrorContextProvider>
     </GoogleOAuthProvider>
   </StrictMode>

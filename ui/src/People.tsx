@@ -1,14 +1,14 @@
 import { useParams } from "react-router-dom";
-import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, MenuItem, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, TextField, Tooltip, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
-import { Add, Menu, PersonAdd, Remove } from "@mui/icons-material";
+import { Add, PersonAdd, Remove } from "@mui/icons-material";
 import { ClassInfo, Role, SchoolInfo } from "../../data/school";
 import { ReactNode, useRef, useState } from "react";
-import SimpleMenu from "./SimpleMenu";
 import { useUser } from "./UserContext";
 import AccessibleAutocomplete from "./Autocomplete";
 import { useSetPageTitle } from "./PageWrapper";
+import { useConfirmationDialog } from "./ConfirmationDialog";
 
 // REF: https://stackoverflow.com/a/46181
 const validateEmail = (email: string) => {
@@ -19,13 +19,16 @@ const validateEmail = (email: string) => {
         );
 };
 
-function RemoveUserMenuItem({ schoolInfo, userId, closeMenu }: { schoolInfo: SchoolInfo, userId: string, closeMenu: () => void }) {
+function RemoveUserButton({ schoolInfo, userInfo }: { schoolInfo: SchoolInfo, userInfo: UserInfo }) {
     const { removeUser } = useData()
 
-    return <MenuItem onClick={() => {
-        removeUser(schoolInfo.id, userId)
-        closeMenu()
-    }}>Remove</MenuItem>
+    const createConfirmationDialog = useConfirmationDialog()
+
+    return <Button startIcon={<Remove />} onClick={async () => {
+        await createConfirmationDialog(`Remove ${userInfo.name}`, '', () => {
+            removeUser(schoolInfo.id, userInfo.id)
+        })
+    }}>Remove</Button>
 }
 
 function RemoveUserFromClassMenuItem({ schoolInfo, yearGroupId, courseId, classId, userId, closeMenu }: {
@@ -38,20 +41,24 @@ function RemoveUserFromClassMenuItem({ schoolInfo, yearGroupId, courseId, classI
 }) {
     const { removeFromClass } = useData()
 
-    return <MenuItem onClick={() => {
+    return <Button startIcon={<Remove />} onClick={() => {
         removeFromClass(schoolInfo.id, yearGroupId, courseId, classId, userId)
         closeMenu()
-    }}>Remove from class</MenuItem>
+    }}>Remove</Button>
 }
 
-function Person({ userInfo, options }: {
+function Person({ userInfo, schoolInfo, showRemove, removeButton }: {
     userInfo: UserInfo
-    options: (close: () => void) => ReactNode[]
+    schoolInfo: SchoolInfo
+    showRemove: boolean
+    removeButton?: ReactNode // Defaults to RemoveUserMenuItem
 }) {
     return <Stack direction="row" spacing={2}>
         <Avatar aria-hidden src={userInfo.picture} />
         <Typography>{userInfo.name} (<a href={`mailto:${userInfo.email}`}>{userInfo.email}</a>)</Typography>
-        {options(() => { }).length !== 0 && <SimpleMenu buttonAriaLabel={`Options for ${userInfo.name}`} buttonContents={<Menu />} childrenSupplier={options} />}
+        {showRemove && (
+            removeButton ?? <RemoveUserButton key="remove" schoolInfo={schoolInfo} userInfo={userInfo} />
+        )}
     </Stack>
 }
 
@@ -214,9 +221,7 @@ export function SchoolPeoplePage() {
             <CategoryHeading category="administrator" button={showInviteButton && <InviteToSchoolButton category="administrator" schoolInfo={schoolInfo} />} />
             <List>
                 {schoolInfo.administrators.map(admin =>
-                    <Person key={admin.id} userInfo={admin} options={close => showRemoveOptionInGeneral && admin.id !== ourId ? [
-                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={admin.id} closeMenu={close} />
-                    ] : []} />
+                    <Person key={admin.id} userInfo={admin} schoolInfo={schoolInfo} showRemove={showRemoveOptionInGeneral && admin.id !== ourId} />
                 )}
                 {schoolInfo.invitedAdministratorEmails.map(email => <PendingPerson key={email} email={email} />)}
             </List>
@@ -225,10 +230,8 @@ export function SchoolPeoplePage() {
             <CategoryHeading category="teacher" button={showInviteButton && <InviteToSchoolButton category="teacher" schoolInfo={schoolInfo} />} />
             <List>
                 {schoolInfo.teachers.map(teacher =>
-                    // Although the second condition in the following line is redundant, it is kept for consistency and in case the condition changes in the future
-                    <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOptionInGeneral && teacher.id !== ourId ? [
-                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={teacher.id} closeMenu={close} />
-                    ] : []} />
+                    // Although the second condition in the following line is redundant, it is kept for consistency and in case teachers can remove people in the future
+                    <Person key={teacher.id} userInfo={teacher} schoolInfo={schoolInfo} showRemove={showRemoveOptionInGeneral && teacher.id !== ourId} />
                 )}
                 {schoolInfo.invitedTeacherEmails.map(email => <PendingPerson key={email} email={email} />)}
             </List>
@@ -237,9 +240,7 @@ export function SchoolPeoplePage() {
             <CategoryHeading category="student" button={showInviteButton && <InviteToSchoolButton category="student" schoolInfo={schoolInfo} />} />
             <List>
                 {schoolInfo.students.map(student =>
-                    <Person key={student.id} userInfo={student} options={close => showRemoveOptionInGeneral && student.id !== ourId ? [
-                        <RemoveUserMenuItem key="remove" schoolInfo={schoolInfo} userId={student.id} closeMenu={close} />
-                    ] : []} />
+                    <Person key={student.id} userInfo={student} schoolInfo={schoolInfo} showRemove={showRemoveOptionInGeneral && student.id !== ourId} />
                 )}
                 {schoolInfo.invitedStudentEmails.map(email => <PendingPerson key={email} email={email} />)}
             </List>
@@ -274,7 +275,7 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                         const student = lookupUser(schoolInfo, studentId)
                         if (student) {
                             return <Stack direction="row" spacing={2}>
-                                <Person key={student.id} userInfo={student} options={() => []} />
+                                <Person key={student.id} userInfo={student} schoolInfo={schoolInfo} showRemove={false} />
                                 <Tooltip title={`Add ${student.name}`}>
                                     <IconButton onClick={() => {
                                         addToClass(schoolInfo.id, yearGroupId, courseId, classId, 'student', student.id)
@@ -298,9 +299,9 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                 {cls.teacherIds.map(teacherId => {
                     const teacher = lookupUser(schoolInfo, teacherId)
                     if (teacher) {
-                        return <Person key={teacher.id} userInfo={teacher} options={close => showRemoveOption ? [
+                        return <Person key={teacher.id} userInfo={teacher} schoolInfo={schoolInfo} showRemove={showRemoveOption} removeButton={
                             <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={teacher.id} closeMenu={close} />
-                        ] : []} />
+                        } />
                     }
                 }
                 )}
@@ -312,9 +313,9 @@ export function ClassPeopleView({ schoolInfo, yearGroupId, courseId, classId }: 
                 {cls.studentIds.map(studentId => {
                     const student = lookupUser(schoolInfo, studentId)
                     if (student) {
-                        return <Person key={student.id} userInfo={student} options={close => showRemoveOption ? [
+                        return <Person key={student.id} userInfo={student} schoolInfo={schoolInfo} showRemove={showRemoveOption} removeButton={
                             <RemoveUserFromClassMenuItem key="remove" schoolInfo={schoolInfo} yearGroupId={yearGroupId} courseId={courseId} classId={classId} userId={student.id} closeMenu={close} />
-                        ] : []} />
+                        } />
                     }
                 }
                 )}

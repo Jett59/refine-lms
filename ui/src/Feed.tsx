@@ -16,6 +16,7 @@ import { getLocation, useSwitchPage } from "./App"
 import { Link } from "react-router-dom"
 import { UserInfo } from "../../data/user"
 import { studentsWhoCanSeePost } from "./Post"
+import { useConfirmationDialog } from "./ConfirmationDialog"
 
 export function AttachmentView({ schoolId, postId, attachment, students, selectedStudentId }: {
     schoolId: string
@@ -197,6 +198,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     const [linkedSyllabusContent, setLinkedSyllabusContent] = useState<SyllabusContent[]>([])
 
+
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
         <TextField
@@ -275,7 +277,7 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
                 linkedSyllabusContentIds: linkedSyllabusContent.map(content => content.id),
                 attachments
             })} disabled={disabled}>Post</Button>
-            <Button variant="outlined" onClick={close} disabled={disabled}>Cancel</Button>
+            <Button variant="outlined" onClick={close} disabled={disabled}>Discard</Button>
         </Stack>
     </Stack>
 }

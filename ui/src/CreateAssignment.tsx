@@ -159,7 +159,7 @@ export default function CreateAssignment() {
                 variant="outlined"
                 disabled={disabled}
                 onClick={() => navigate(-1)}
-            >Cancel</Button>
+            >Discard</Button>
             <Button
                 variant="contained"
                 disabled={disabled}
