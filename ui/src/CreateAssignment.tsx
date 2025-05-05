@@ -1,4 +1,4 @@
-import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Divider, MenuItem, Paper, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
 import { useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -89,7 +89,7 @@ export default function CreateAssignment() {
                     onChange={e => setContent(e.target.value)}
                     inputProps={{ style: { lineHeight: '1.5em', minHeight: '18em' } }}
                 />
-                <Stack direction="row">
+                <Stack direction="row" spacing={2}>
                     <SimpleMenu
                         buttonContents={classInfo?.name ?? 'All classes'}
                         rounded
@@ -111,13 +111,13 @@ export default function CreateAssignment() {
                 ))}
             </Box>
             <Box flex={1}>
-                <Stack direction="row">
+                <Stack direction="row" spacing={2}>
                     <Typography variant="h5">Marking Criteria</Typography>
                     <Typography>
                         {`/${markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
                     </Typography>
                 </Stack>
-                <Stack direction="column">
+                <Stack direction="column" spacing={2}>
                     {markingCriteria.map((criterion, index) => (
                         <CriterionView
                             key={index}
@@ -158,7 +158,7 @@ export default function CreateAssignment() {
             />
         </Box>
         <Divider />
-        <Stack direction="row" justifyContent="end">
+        <Stack direction="row" justifyContent="end" spacing={2}>
             <Button
                 variant="outlined"
                 disabled={disabled}
