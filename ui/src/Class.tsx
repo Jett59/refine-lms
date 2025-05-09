@@ -9,12 +9,19 @@ import TabPanel from "./TabPanel"
 import { useState } from "react"
 import { NotificationImportant } from "@mui/icons-material"
 
-function getClassHasNotifications(cls: ClassInfo) {
+function getClassHasRequestingStudents(cls: ClassInfo) {
     return cls.requestingStudentIds.length > 0
 }
 
-export function getHasNotifications(course: CourseInfo) {
-    return course.classes.map(getClassHasNotifications).some(count => count)
+const REQUESTING_STUDENTS_NOTIFICATION_MESSAGE = 'Student(s) requesting to join'
+
+export function getCourseNotifications(course: CourseInfo): string[] {
+    const hasRequestingStudents = course.classes.map(getClassHasRequestingStudents).some(count => count)
+    if (hasRequestingStudents) {
+        return [REQUESTING_STUDENTS_NOTIFICATION_MESSAGE]
+    }else {
+        return []
+    }
 }
 
 function AddClassButton({ onClick }: {
@@ -78,8 +85,8 @@ export default function Class() {
     return <TabPanel
         index={tabIndex}
         tabs={course.classes.map(cls => ({
-            label: <Badge badgeContent={getClassHasNotifications(cls) ? <NotificationImportant /> : undefined}><Typography padding={1}>{cls.name}</Typography></Badge>,
-            ariaLabel: getClassHasNotifications(cls) ? `${cls.name} (has notifications)` : cls.name,
+            label: <Badge badgeContent={getClassHasRequestingStudents(cls) ? <NotificationImportant /> : undefined}><Typography padding={1}>{cls.name}</Typography></Badge>,
+            ariaLabel: getClassHasRequestingStudents(cls) ? `${cls.name} (${REQUESTING_STUDENTS_NOTIFICATION_MESSAGE})` : cls.name,
             onSelect: () => {
                 switchPage('', schoolId, yearGroupId, courseId, cls.id, undefined, true)
             },

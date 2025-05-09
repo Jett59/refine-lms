@@ -6,7 +6,7 @@ import { useSwitchPage } from "./App"
 import { Badge, Box, IconButton, Tooltip, Typography } from "@mui/material"
 import PostsList from "./Feed"
 import { NotificationImportant, People } from "@mui/icons-material"
-import { getHasNotifications } from "./Class"
+import { getCourseNotifications } from "./Class"
 import { useEffect } from "react"
 import Syllabus from "./Syllabus"
 // import Syllabus from "./Syllabus"
@@ -21,15 +21,17 @@ export default function Course({ tab }: {
     const schoolInfo = useRelevantSchoolInfo(schoolId)
     const courseInfo = schoolInfo?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
 
+    const notificationText = courseInfo ? getCourseNotifications(courseInfo).join(', ') : ''
+
     useSetPageTitle(courseInfo?.name ?? '')
 
     useSetPageTitleButtons(() => {
         if (schoolId && yearGroupId && courseId && courseInfo) {
-            return <Tooltip title={"Classes" + (getHasNotifications(courseInfo) ? ' (has notifications)' : '')}>
+            return <Tooltip title={notificationText || 'Classes'}>
                 <IconButton
                     onClick={() => switchPage('classes', schoolId, yearGroupId, courseId)}
                 >
-                    <Badge badgeContent={getHasNotifications(courseInfo) ? <NotificationImportant /> : undefined}>
+                    <Badge badgeContent={getCourseNotifications(courseInfo).length > 0 ? <NotificationImportant /> : undefined}>
                         <Box padding={1}><People /></Box>
                     </Badge>
                 </IconButton>
