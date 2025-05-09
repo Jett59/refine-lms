@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, Tab, Tabs, TextField, Tooltip, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, Tab, Table, TableBody, TableCell, TableRow, Tabs, TextField, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
@@ -117,6 +117,28 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
                 </Box>
                 <Divider />
                 <Box padding={1}>
+                    <Stack direction="row" spacing={2} justifyContent="center">
+                        <People />
+                        <Typography variant="h4">Classes</Typography>
+                    </Stack>
+                    <Table>
+                        <TableBody>
+                            {classNames.map((className, index) => (
+                                <TableRow key={index}>
+                                    <TableCell>
+                                        <Typography>{className}</Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton edge="end" onClick={() => {
+                                            setClassNames(classNames.filter(cn => cn !== className))
+                                        }} aria-label={`Remove ${className}`}>
+                                            <Remove />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                     <TextField
                         autoComplete="off"
                         label="Class name"
@@ -139,19 +161,6 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
                         setNewClassName('')
                     }
                 }}>Add class</Button>
-                <List>
-                    {classNames.map(className =>
-                        <ListItem key={className} secondaryAction={
-                            <IconButton edge="end" onClick={() => {
-                                setClassNames(classNames.filter(cn => cn !== className))
-                            }} aria-label={`Remove ${className}`}>
-                                <Remove />
-                            </IconButton>
-                        }>
-                            <Typography>{className}</Typography>
-                        </ListItem>
-                    )}
-                </List>
                 <Typography aria-live="polite" color={classNames.length === 0 ? 'error' : 'inherit'} sx={classNames.length !== 0 ? {
                     // Hide the message visually, but leave it visible to screen readers
                     position: 'absolute',
