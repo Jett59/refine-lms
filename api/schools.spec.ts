@@ -138,7 +138,8 @@ describe('Schools API', () => {
             students: [],
             invitedAdministratorEmails: [],
             invitedTeacherEmails: [],
-            invitedStudentEmails: []
+            invitedStudentEmails: [],
+            pendingClassJoinRequests: []
         })
     })
     it("Should let people join a school", async () => {
@@ -264,7 +265,8 @@ describe('Schools API', () => {
             students: [],
             invitedAdministratorEmails: [],
             invitedTeacherEmails: [],
-            invitedStudentEmails: []
+            invitedStudentEmails: [],
+            pendingClassJoinRequests: []
         })
     })
     it("Should support adding teachers to classes", async () => {
