@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, Stack, Tab, Table, TableBody, TableCell, TableRow, Tabs, TextField, Tooltip, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemIcon, Stack, Tab, Table, TableBody, TableCell, TableRow, Tabs, TextField, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
-import { People, PersonAdd, Remove } from "@mui/icons-material"
+import { Pending, People, PersonAdd, Remove } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
@@ -268,7 +268,9 @@ export default function School() {
                 <CreateYearGroupButton onCreate={name => createYearGroup(schoolId, name)} buttonText="Create a year group to get started" buttonProps={{ variant: "contained" }} />
             </Box>
         }
-        return <Typography>You are not currently a member of a class</Typography>
+        if (schoolInfo.pendingClassJoinRequests.length === 0) {
+            return <Typography>You are not currently a member of a class</Typography>
+        }
     }
 
     const currentYearGroup = schoolInfo.yearGroups[selectedYearGroupIndex]
@@ -285,6 +287,36 @@ export default function School() {
     }))
 
     return <Stack direction="column" spacing={2}>
+        {schoolInfo.pendingClassJoinRequests.length > 0 && <Stack direction="column" justifyContent="center" alignItems="center">
+            <Typography variant="h5">Pending Join Requests</Typography>
+            <List>
+                <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" useFlexGap flexWrap="wrap">
+                    {schoolInfo.pendingClassJoinRequests.map((request, index) => <Box key={index} padding={1}>
+                        <ListItem >
+                            <ListItemIcon><Pending /></ListItemIcon>
+                            <Tooltip title={`${request.yearGroupName} ${request.courseName}`}>
+                                <Typography>
+                                    {request.className}
+                                    {/* Visually hidden, intended for screen readers */}
+                                    <span style={{
+                                        position: 'absolute',
+                                        width: '1px',
+                                        margin: '-1px',
+                                        overflow: 'hidden',
+                                        clip: 'rect(0 0 0 0)'
+                                    }}>
+                                        &nbsp;{`(${request.yearGroupName} ${request.courseName})`}
+                                    </span>
+                                </Typography>
+                            </Tooltip>
+                        </ListItem>
+                    </Box>
+                    )
+                    }
+                </Stack>
+            </List>
+        </Stack>
+        }
         <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
             switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, undefined, true)
         }} aria-label="Year groups">

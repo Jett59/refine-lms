@@ -10,6 +10,8 @@ export interface SchoolInfo {
     invitedAdministratorEmails: string[],
     invitedTeacherEmails: string[],
     invitedStudentEmails: string[]
+
+    pendingClassJoinRequests: PendingClassJoinRequestInfo[]
 }
 
 export interface YearGroupInfo {
@@ -43,6 +45,12 @@ export interface SyllabusOutcome {
     id: string
     name: string
     description: string
+}
+
+export interface PendingClassJoinRequestInfo {
+    className: string
+    courseName: string
+    yearGroupName: string
 }
 
 export type Role = 'administrator' | 'teacher' | 'student'

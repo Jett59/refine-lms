@@ -85,7 +85,7 @@ function convertYearGroupForApi(yearGroup: YearGroup): YearGroupInfo {
     }
 }
 
-async function convertSchoolForApi(db: Db, school: School): Promise<SchoolInfo> {
+async function convertSchoolForApi(db: Db, school: School, userId: ObjectId): Promise<SchoolInfo> {
     return {
         id: school._id.toHexString(),
         name: school.name,
@@ -95,7 +95,13 @@ async function convertSchoolForApi(db: Db, school: School): Promise<SchoolInfo> 
         students: await findUserInfos(db, school.studentIds),
         invitedAdministratorEmails: school.invitedAdministratorEmails,
         invitedTeacherEmails: school.invitedTeacherEmails,
-        invitedStudentEmails: school.invitedStudentEmails
+        invitedStudentEmails: school.invitedStudentEmails,
+
+        pendingClassJoinRequests: school.yearGroups.flatMap(yearGroup => yearGroup.courses.flatMap(course => course.classes.filter(cls => cls.requestingStudentIds.some(id => id.equals(userId))).map(cls => ({
+            className: cls.name,
+            courseName: course.name,
+            yearGroupName: yearGroup.name
+        }))))
     }
 }
 
@@ -182,8 +188,14 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
         return null
     }
     if (wholeSchool.administratorIds.some(id => id.equals(userId)) || wholeSchool.teacherIds.some(id => id.equals(userId))) {
-        return convertSchoolForApi(db, wholeSchool)
+        return convertSchoolForApi(db, wholeSchool, userId)
     }
+    // We have to extract the list of pending join requests, since these are necessarily not 'relevant' to the student (i.e. they are not in the class yet)
+    const pendingJoinRequests = wholeSchool.yearGroups.flatMap(yearGroup => yearGroup.courses.flatMap(course => course.classes.filter(cls => cls.requestingStudentIds.some(id => id.equals(userId))).map(cls => ({
+        className: cls.name,
+        courseName: course.name,
+        yearGroupName: yearGroup.name
+    }))))
     let relevantSchool: School = {
         _id: wholeSchool._id,
         name: wholeSchool.name,
@@ -221,7 +233,9 @@ export async function getRelevantSchoolInfo(db: Db, userId: ObjectId, schoolId: 
             ))
         ))
     ))
-    return convertSchoolForApi(db, relevantSchool)
+    let convertedSchool = await convertSchoolForApi(db, relevantSchool, userId)
+    convertedSchool.pendingClassJoinRequests = pendingJoinRequests
+    return convertedSchool
 }
 
 export async function createYearGroup(db: Db, userId: ObjectId, schoolId: ObjectId, name: string): Promise<ObjectId> {
