@@ -28,6 +28,7 @@ export interface Post {
     isoSubmissionDates: { [studentId: string]: string } | null
     markingCriteria: MarkingCriterion[] | null
     marks: { [userId: string]: number[] } | null
+    feedback: { [userId: string]: string } | null
 }
 
 export interface Attachment {
@@ -120,7 +121,8 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
         studentAttachments: null,
         isoSubmissionDates: null,
         markingCriteria: postTemplate.markingCriteria ?? null,
-        marks: null
+        marks: null,
+        feedback: null,
     }
 }
 
@@ -170,6 +172,15 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             }
         } else {
             visibleMarks = post.marks
+        }
+
+let visibleFeedback: { [id: string]: string } | null = null
+        if (isStudent) {
+            if (post.feedback?.[currentUserId.toHexString()]) {
+                visibleFeedback = { [currentUserId.toHexString()]: post.feedback?.[currentUserId.toHexString()] }
+            }
+        } else {
+            visibleFeedback = post.feedback
         }
 
         return {
@@ -225,6 +236,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             ])) : undefined,
             markingCriteria: post.markingCriteria ?? undefined,
             marks: visibleMarks ?? undefined,
+            feedback: visibleFeedback ?? undefined,
         }
     }).filter(post => post !== null)
 }
@@ -675,6 +687,47 @@ export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUser
     }, {
         $set: {
             [`marks.${studentUserId.toHexString()}`]: marks
+        }
+    })
+    return true
+}
+
+export async function RecordFeedback(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, feedback: string): Promise<boolean> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return false
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return false
+    }
+    if (!canViewPosts(accessingUserId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return false
+    }
+    // Students can't give themselves feedback
+    if (school.studentIds.some(id => id.equals(accessingUserId))) {
+        return false
+    }
+    // But no feedback for teachers
+    if (!school.studentIds.some(id => id.equals(studentUserId))) {
+        return false
+    }
+    if (post.type !== 'assignment') {
+        return false
+    }
+    // First make sure the feedback field exists
+    await getCollection(db).updateOne({
+        _id: postId,
+        feedback: null
+    }, {
+        $set: {
+            feedback: {}
+        }
+    })
+    await getCollection(db).updateOne({
+        _id: postId
+    }, {
+        $set: {
+            [`feedback.${studentUserId.toHexString()}`]: feedback
         }
     })
     return true

@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -93,7 +93,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
 
         const postId = await createPost(db, school, post)
@@ -122,7 +123,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
 
         const postId = await createPost(db, school, post)
@@ -153,7 +155,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post2: Post = {
             postDate: date2,
@@ -173,7 +176,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -253,7 +257,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post2: Post = {
             postDate: date2,
@@ -273,7 +278,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -348,7 +354,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -378,7 +385,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -409,7 +417,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post2: Post = {
             postDate: date2,
@@ -429,7 +438,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -504,7 +514,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -554,7 +565,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -584,7 +596,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -616,7 +629,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -645,7 +659,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -672,7 +687,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -699,7 +715,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -741,7 +758,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
 
         let postId = await createPost(db, school, post)
@@ -783,7 +801,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -839,7 +858,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -890,7 +910,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -951,7 +972,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post2: Post = {
             postDate: date2,
@@ -971,7 +993,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -1023,7 +1046,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
@@ -1050,7 +1074,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1107,7 +1132,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1172,7 +1198,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1220,7 +1247,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1249,7 +1277,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1286,7 +1315,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1344,7 +1374,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1401,7 +1432,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1475,7 +1507,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1543,7 +1576,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1614,7 +1648,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1687,7 +1722,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1739,7 +1775,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1799,7 +1836,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1857,7 +1895,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1901,7 +1940,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1948,7 +1988,8 @@ describe("Posts", () => {
                 [user1.toHexString()]: date.toISOString()
             },
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2007,7 +2048,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2087,7 +2129,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2153,7 +2196,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2209,7 +2253,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2255,7 +2300,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2298,7 +2344,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2340,7 +2387,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2387,7 +2435,8 @@ describe("Posts", () => {
             isoDueDate: null,
             isoSubmissionDates: null,
             marks: null,
-            linkedSyllabusContentIds: null
+            linkedSyllabusContentIds: null,
+            feedback: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2409,6 +2458,138 @@ describe("Posts", () => {
         const postForUser3 = await getPost(db, school, user3, postId!, yearGroupId, courseId)
         expect(postForUser3?.marks).toEqual({
             [user3.toHexString()]: [2, 3]
+        })
+    })
+    it("Should record feedback on assignments", async () => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordFeedback(db, user1, user2, school, postId!, "Great work!")
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            feedback: {
+                [user2.toHexString()]: "Great work!"
+            }
+        })
+    })
+    it("Should not let students submit feedback", async () => {
+        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordFeedback(db, user1, user2, school, postId!, "Great work!")
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            feedback: null
+        })
+    })
+    it("Should not record feedback on non-assignments", async() => {
+        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordFeedback(db, user1, user2, school, postId!, "Great work!")
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
         })
     })
 })
