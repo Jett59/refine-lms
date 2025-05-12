@@ -11,6 +11,7 @@ import { UserInfo } from "../../data/user"
 import SimpleMenu from "./SimpleMenu"
 import { useUser } from "./UserContext"
 import { formatDate } from "./date"
+import NumericalTextBox from "./NumericalTextBox"
 
 function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost }: {
     assignment: PostInfo
@@ -93,18 +94,12 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                 {assignment.markingCriteria.map((criterion, index) => (
                     <Stack key={index} direction="row" spacing={2}>
                         <Typography>{criterion.title}</Typography>
-                        <TextField
-                            type="number"
+                        <NumericalTextBox
                             value={marks[index] ?? 0}
-                            onChange={e => {
-                                try {
-                                    const markValue = Number(e.target.value)
+                            onChange={markValue => {
                                     if (markValue >= 0 && markValue <= criterion.maximumMarks) {
                                         setMarks(marks => [...marks.fill(markValue, index, index + 1)])
                                     }
-                                } catch (e) {
-                                    console.error(e)
-                                }
                             }}
                         />
                         <Typography>

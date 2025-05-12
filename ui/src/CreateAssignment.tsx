@@ -11,6 +11,7 @@ import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Dayjs } from "dayjs"
 import { useConfirmationDialog } from "./ConfirmationDialog"
+import NumericalTextBox from "./NumericalTextBox"
 
 function CriterionView({ criterion, update }: {
     criterion: MarkingCriterion
@@ -24,11 +25,10 @@ function CriterionView({ criterion, update }: {
             label="title"
         />
         <Typography>/</Typography>
-        <TextField
-            type="number"
+        <NumericalTextBox
             value={criterion.maximumMarks}
-            onChange={e => {
-                update({ ...criterion, maximumMarks: Math.max(0, Number(e.target.value)) })
+            onChange={newValue => {
+                update({ ...criterion, maximumMarks: Math.max(0, newValue) })
             }}
         />
     </Stack>
