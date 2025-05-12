@@ -56,6 +56,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
 }) {
     const { recordMarks } = useData()
     const [marks, setMarks] = useState<number[]>([])
+    const [feedback, setFeedback] = useState<string>('')
     const [recordingMarks, setRecordingMarks] = useState(false)
 
     useEffect(() => {
@@ -63,6 +64,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
     }, [assignment.markingCriteria])
 
     const previousMarks = assignment.marks?.[student.id]
+    const previousFeedback = assignment.feedback?.[student.id]
 
     useEffect(() => {
         if (previousMarks) {
@@ -70,9 +72,14 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         } else {
             setMarks(new Array(assignment.markingCriteria?.length ?? 0).fill(0))
         }
-    }, [previousMarks])
+        if (previousFeedback) {
+            setFeedback(previousFeedback)
+        } else {
+            setFeedback('')
+        }
+    }, [previousMarks, previousFeedback])
 
-    return <>
+    return <Stack direction="column" spacing={2}>
         <Stack direction="row">
             <Typography variant="h4">Marking Criteria</Typography>
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
@@ -105,11 +112,20 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                         </Typography>
                     </Stack>
                 ))}
+                <TextField
+                    label="Feedback"
+                    multiline
+                    rows={4}
+                    value={feedback}
+                    onChange={e => setFeedback(e.target.value)}
+                    fullWidth
+                    variant="outlined"
+                />
                 <Stack direction="row" alignItems="end">
                     <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
                         setRecordingMarks(true)
                         console.log('A')
-                        await recordMarks(assignment.schoolId, assignment.id, student.id, marks)
+                        await recordMarks(assignment.schoolId, assignment.id, student.id, marks, feedback)
                         await refreshAssignment()
                         console.log('B')
                         setRecordingMarks(false)
@@ -123,7 +139,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
             </Stack>
             : <Typography>No marking criteria</Typography>
         }
-    </>
+    </Stack>
 }
 
 export default function Post() {
@@ -197,6 +213,7 @@ function Assignment({ assignment, school, refreshPost }: {
     ), [assignment, school, student])
 
     const studentsMarks = assignment.marks?.[student?.id ?? '']
+    const studentsFeedback = assignment.feedback?.[student?.id ?? '']
 
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
@@ -242,6 +259,13 @@ function Assignment({ assignment, school, refreshPost }: {
                                         </Typography>
                                     </Stack>
                                 ))}
+                                {!isTeacherOrAdministrator && studentsFeedback && <>
+                                    <Typography variant="h4">Feedback</Typography>
+                                    <Typography>
+                                        {studentsFeedback}
+                                    </Typography>
+                                </>
+                                }
                             </Stack>
                             : <Typography>No marking criteria</Typography>
                         }

@@ -22,6 +22,7 @@ export interface PostInfo {
     isoSubmissionDates?: { [studentId: string]: string }
     markingCriteria?: MarkingCriterion[]
     marks?: { [userId: string]: number[] }
+    feedback?: { [userId: string]: string }
 }
 export interface AttachmentInfo {
     id: string

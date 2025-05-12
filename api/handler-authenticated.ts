@@ -4,7 +4,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addSyllabusContent, addSyllabusOutcome, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeSyllabusOutcome, removeUser, requestToJoinClass } from "./schools";
 import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
-import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordMarks, submitAssignment } from "./posts";
+import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -721,9 +721,18 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 if (!school) {
                     return errorResponse(404, `School not found or user does not have access`)
                 }
-                const result = await RecordMarks(db, user._id!, studentObjectId, school, postObjectId, typedBody.marks)
-                if (result) {
-                    return successResponse<RecordMarksResponse>({ success: true })
+                const marksResult = await RecordMarks(db, user._id!, studentObjectId, school, postObjectId, typedBody.marks)
+                if (marksResult) {
+                    if (typedBody.feedback) {
+                        const feedbackResult = await RecordFeedback(db, user._id!, studentObjectId, school, postObjectId, typedBody.feedback)
+                        if (feedbackResult) {
+                            return successResponse<RecordMarksResponse>({ success: true })
+                        }else {
+                            return errorResponse(400, 'Invalid post')
+                        }
+                    }else {
+                        return successResponse<RecordMarksResponse>({ success: true })
+                    }
                 } else {
                     return errorResponse(400, 'Invalid post')
                 }

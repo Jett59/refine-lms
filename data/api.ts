@@ -259,6 +259,7 @@ export interface RecordMarksRequest {
     postId: string
     studentUserId: string
     marks: number[]
+    feedback?: string
 }
 export interface RecordMarksResponse {
     success: boolean

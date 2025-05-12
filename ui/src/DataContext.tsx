@@ -43,7 +43,7 @@ export interface DataContextValue {
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
     submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
-    recordMarks: (schoolId: string, postId: string, studentId: string, marks: number[]) => Promise<boolean>
+    recordMarks: (schoolId: string, postId: string, studentId: string, marks: number[], feedback?: string) => Promise<boolean>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -330,8 +330,8 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return false
             }
         }, [authenticatedAPIs, addError]),
-        recordMarks: useCallback(async (schoolId, postId, studentId, marks) => {
-            const response = await authenticatedAPIs.call<RecordMarksResponse, RecordMarksRequest>('POST', 'record-marks', { schoolId, postId, studentUserId: studentId, marks })
+        recordMarks: useCallback(async (schoolId, postId, studentId, marks, feedback) => {
+            const response = await authenticatedAPIs.call<RecordMarksResponse, RecordMarksRequest>('POST', 'record-marks', { schoolId, postId, studentUserId: studentId, marks, feedback })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 return true
             } else {
