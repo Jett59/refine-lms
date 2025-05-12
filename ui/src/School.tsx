@@ -292,7 +292,9 @@ export default function School() {
             <List>
                 <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" useFlexGap flexWrap="wrap">
                     {schoolInfo.pendingClassJoinRequests.map((request, index) => <Box key={index} padding={1}>
-                        <ListItem >
+                        <ListItem sx={{
+                            backgroundColor: '#d0d0d0',
+                        }}>
                             <ListItemIcon><Pending /></ListItemIcon>
                             <Tooltip title={`${request.yearGroupName} ${request.courseName}`}>
                                 <Typography>
