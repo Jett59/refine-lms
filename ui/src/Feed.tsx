@@ -202,6 +202,9 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     const createConfirmationDialog = useConfirmationDialog()
 
+    // Randomly generated to create unique HTML ids
+    const uniqueId = useMemo(() => Math.random().toString(36).substring(2, 15), [])
+
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
         <TextField
@@ -242,8 +245,26 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
         <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
             {isStudent &&
                 <RadioGroup row value={isPrivate ? "private" : "public"} onChange={e => setIsPrivate(e.target.value === "private")}>
-                    <FormControlLabel value="public" control={<Radio />} label="Public" />
-                    <FormControlLabel value="private" control={<Radio />} label="Private" />
+                    <Tooltip title="Anyone in this group can view">
+                        <FormControlLabel value="public" control={<Radio />} label="Public" aria-describedby={`public-${uniqueId}`} aria-label="Public" />
+                    </Tooltip>
+                    <span id={`public-${uniqueId}`} style={{
+                        position: 'absolute',
+                        margin: '-1px',
+                        width: '1px',
+                        height: '1px',
+                        overflow: 'hidden'
+                    }}>Anyone in this group can view</span>
+                    <Tooltip title="Only teachers can view">
+                        <FormControlLabel value="private" control={<Radio />} label="Private" aria-describedby={`private-${uniqueId}`} aria-label="Private" />
+                    </Tooltip>
+                    <span id={`private-${uniqueId}`} style={{
+                        position: 'absolute',
+                        margin: '-1px',
+                        width: '1px',
+                        height: '1px',
+                        overflow: 'hidden'
+                    }}>Only teachers can view</span>
                 </RadioGroup>
             }
             {courseInfo &&
