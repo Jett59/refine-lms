@@ -124,6 +124,29 @@ function SchoolSwitcher() {
     </>
 }
 
+function ProfileMenu() {
+    const { logOut, name, profile_picture_url } = useUser()
+
+    const [loggingOut, setLoggingOut] = useState(false)
+
+    return <SimpleMenu
+        buttonContents={<Avatar src={profile_picture_url} alt={name} />}
+        buttonProps={{ color: 'inherit', endIcon: <ExpandMore /> }}
+        childrenSupplier={close => [
+            <MenuItem key="Logout" onClick={async () => {
+                setLoggingOut(true)
+                await logOut()
+                setLoggingOut(false)
+                close()
+            }}
+                aria-label="Logout"
+                disabled={loggingOut}
+            >
+                {'Log Out'}
+            </MenuItem>
+        ]} />
+}
+
 export default function Banner() {
     const { login, loggedIn, loggingIn, name, profile_picture_url } = useUser()
 
@@ -136,9 +159,7 @@ export default function Banner() {
             {loggedIn ?
                 <Stack direction="row" spacing={2} padding={1}>
                     <SchoolSwitcher />
-                    <Box>
-                        <Avatar src={profile_picture_url} alt={name} />
-                    </Box>
+                    <ProfileMenu />
                 </Stack>
                 :
                 <Button disabled={loggingIn} onClick={() => login()}><Typography color="textPrimary">Login</Typography></Button>

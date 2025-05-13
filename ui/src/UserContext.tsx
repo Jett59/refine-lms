@@ -1,12 +1,13 @@
 import { useGoogleLogin } from "@react-oauth/google";
 import React, { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { APIResponse, callUnauthenticatedApi, isSuccessfulAPIResponse } from "./api";
-import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleTokenResponse } from "../../data/api"
+import { GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleRevokeRequest, GoogleRevokeResponse, GoogleTokenResponse } from "../../data/api"
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import { useError } from "./ErrorContext";
 
 export interface UserContextValue {
     login: () => void
+    logOut: () => void
     getIdToken: () => Promise<string | null>
     getGoogleAccessToken: () => Promise<string | null>
     loggedIn: boolean
@@ -18,6 +19,7 @@ export interface UserContextValue {
 
 const USER_CONTEXT: React.Context<UserContextValue> = React.createContext({
     login: () => { },
+    logOut: () => { },
     getIdToken: async () => null as string | null, // Why?
     getGoogleAccessToken: async () => null as string | null,
     loggedIn: false as boolean,
@@ -118,6 +120,20 @@ export function UserContextProvider({ children }: {
             if (!loggingIn) {
                 setLoggingIn(true)
                 login()
+            }
+        },
+        logOut: async () => {
+            const tokens = await getTokens()
+            if (tokens) {
+                const response = await callUnauthenticatedApi<GoogleRevokeResponse, GoogleRevokeRequest>("POST", 'google-revoke', {
+                    accessToken: tokens.accessToken,
+                    refreshToken: tokens.refreshToken
+                })
+                if (isSuccessfulAPIResponse(response) && response.body.success) {
+                    removeTokens()
+                } else {
+                    addAPIError(response)
+                }
             }
         },
         getIdToken: useCallback(async () => {

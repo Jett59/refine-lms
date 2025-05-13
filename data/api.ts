@@ -18,6 +18,14 @@ export interface GoogleRefreshRequest {
     refreshToken: string
 }
 
+export interface GoogleRevokeRequest {
+    accessToken: string
+    refreshToken: string
+}
+export interface GoogleRevokeResponse {
+    success: boolean
+}
+
 export interface VisibleSchoolsResponse {
     joinedSchools: {
         id: string

@@ -64,6 +64,9 @@ functions:
       - httpApi:
           path: /api/google-refresh
           method: post
+      - httpApi:
+          path: /api/google-revoke
+          method: post
   authenticated:
     handler: handler-authenticated.handler
     timeout: 10

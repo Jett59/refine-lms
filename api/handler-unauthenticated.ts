@@ -1,7 +1,7 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2, Context } from "aws-lambda"
 import { OAuth2Client, UserRefreshClient } from "google-auth-library"
 import { errorResponse, getPath, raiseInternalServerError, successResponse } from "./handlers"
-import { GoogleTokenResponse, GoogleAuthenticateRequest, GoogleRefreshRequest } from "../data/api"
+import { GoogleTokenResponse, GoogleAuthenticateRequest, GoogleRefreshRequest, GoogleRevokeRequest, GoogleRevokeResponse } from "../data/api"
 import { getGoogleProfileInformation } from "./googleProfile"
 import { ensureUserExists } from "./user"
 import { MongoClient } from "mongodb"
@@ -83,6 +83,14 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                     refreshToken: tokens.refresh_token,
                     expiryDate: tokens.expiry_date
                 })
+            }
+            case "/google-revoke": {
+                const typedBody: GoogleRevokeRequest = body
+                const user = new UserRefreshClient(googleClientId, googleClientSecret)
+                await user.revokeToken(typedBody.accessToken)
+                // We don't appear to need to do anything with the refresh token, as it is automatically revoked with the access token
+                // await user.revokeToken(typedBody.refreshToken)
+                return successResponse<GoogleRevokeResponse>({ success: true })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)
