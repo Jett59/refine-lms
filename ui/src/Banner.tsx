@@ -148,7 +148,7 @@ function ProfileMenu() {
 }
 
 export default function Banner() {
-    const { login, loggedIn, loggingIn, name, profile_picture_url } = useUser()
+    const { login, loggedIn, loggingIn } = useUser()
 
     return <AppBar position="static">
         <Box display="flex" justifyContent="space-between" alignItems="center">

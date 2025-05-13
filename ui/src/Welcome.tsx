@@ -1,3 +1,6 @@
+import { useSetPageTitle } from "./PageWrapper"
+
 export default function Welcome() {
-    return <h1>Welcome</h1>
+    useSetPageTitle('Welcome')
+    return <h1>Here we are!</h1>
 }
