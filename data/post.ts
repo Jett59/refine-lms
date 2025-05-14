@@ -14,6 +14,7 @@ export interface PostInfo {
     content: string
     linkedSyllabusContentIds: string[]
     attachments: AttachmentInfo[]
+    comments: CommentInfo[]
 
     // For assignments:
     isoDueDate?: string
@@ -35,6 +36,12 @@ export interface AttachmentInfo {
     othersCanEdit: boolean
 
     accessLink?: string
+}
+export interface CommentInfo {
+    id: string
+    date: string
+    user: UserInfo
+    content: string
 }
 
 export type PostType = 'post' | 'assignment'

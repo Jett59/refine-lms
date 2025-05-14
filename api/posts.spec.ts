@@ -209,7 +209,8 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
@@ -232,7 +233,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
 
@@ -313,7 +315,8 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
@@ -336,7 +339,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
     })
@@ -477,7 +481,8 @@ describe("Posts", () => {
             title: 'World',
             content: 'World Hello',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(false)
 
@@ -500,7 +505,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts2.isEnd).toBe(true)
     })
@@ -552,7 +558,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts.isEnd).toBe(true)
     })
@@ -1045,7 +1052,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: []
         } as PostInfo])
         expect(posts1.isEnd).toBe(true)
     })
@@ -1125,7 +1133,8 @@ describe("Posts", () => {
             title: 'Hello',
             content: 'Hello World',
             linkedSyllabusContentIds: [],
-            attachments: []
+            attachments: [],
+            comments: [],
         } as PostInfo)
     })
     it("Should re-share per-user files for different accessors", async () => {

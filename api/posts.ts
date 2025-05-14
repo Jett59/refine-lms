@@ -153,8 +153,11 @@ function getCachedAttachmentLinkIfAvailable(attachment: Attachment, owningUserId
 }
 
 export async function convertPostsForApi(db: Db, isStudent: boolean, currentUserId: ObjectId, posts: Post[]): Promise<PostInfo[]> {
-    const posterIds = posts.map(post => post.posterId).filter(id => id !== undefined)
-    const userInfos = await findUserInfos(db, posterIds)
+    const userIds = posts.map(post => post.posterId).filter(id => id !== undefined)
+        .concat(posts.flatMap(post => post.comments?.map(comment => comment.userId) ?? []))
+        // Distinct: remove all elements where the ID has been seen previously
+        .filter((id, index, self) => self.findIndex(id2 => id2.equals(id)) === index)
+    const userInfos = await findUserInfos(db, userIds)
 
     return posts.map(post => {
         if (!post._id) {
@@ -216,6 +219,18 @@ let visibleFeedback: { [id: string]: string } | null = null
                 googleFileId: attachment.googleFileId,
                 accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, currentUserId) ?? undefined
             })),
+            comments: post.comments?.map(comment => {
+                const userInfo = userInfos.find(userInfo => userInfo.id === comment.userId.toHexString())
+                if (!userInfo) {
+                    return null
+                }
+                return {
+                    id: comment.id.toHexString(),
+                    date: comment.date.toISOString(),
+                    content: comment.content,
+                    user: userInfo
+                }
+            }).filter(comment => comment !== null) ?? [],
             isoDueDate: post.isoDueDate ?? undefined,
             isoSubmissionDates: post.isoSubmissionDates ?? undefined,
             submissionTemplates: post.submissionTemplates?.map(attachment => ({
