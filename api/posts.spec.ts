@@ -1,10 +1,10 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback, addComment, deleteComment } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
 
-function createSchoolStructure(schoolId: ObjectId, schoolStudentIds: ObjectId[], yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId, classStudentIds: ObjectId[]): School {
+function createSchoolStructure(schoolId: ObjectId, schoolMemberIds: ObjectId[], schoolStudentIds: ObjectId[], yearGroupId: ObjectId, courseId: ObjectId, classId: ObjectId, classStudentIds: ObjectId[]): School {
     return {
         _id: schoolId,
         name: 'School 1',
@@ -25,7 +25,7 @@ function createSchoolStructure(schoolId: ObjectId, schoolStudentIds: ObjectId[],
                 syllabusOutcomes: []
             }]
         }],
-        administratorIds: [],
+        administratorIds: schoolMemberIds.filter(id => !schoolStudentIds.some(otherId => otherId.equals(id))),
         teacherIds: [],
         studentIds: schoolStudentIds,
         invitedAdministratorEmails: [],
@@ -42,6 +42,7 @@ describe("Posts", () => {
     let user1: ObjectId
     let user2: ObjectId
     let user3: ObjectId
+    let schoolMemberIds: ObjectId[]
 
     let schoolId: ObjectId
     let yearGroupId: ObjectId
@@ -62,6 +63,7 @@ describe("Posts", () => {
         user1 = await createUser(db, { name: 'User 1', jwtUserId: 'abc123', email: 'user1', picture: '' })
         user2 = await createUser(db, { name: 'User 2', jwtUserId: 'bcd234', email: 'user2', picture: '' })
         user3 = await createUser(db, { name: 'User 3', jwtUserId: 'cde345', email: 'user3', picture: '' })
+        schoolMemberIds = [user1, user2, user3]
 
         schoolId = new ObjectId()
         yearGroupId = new ObjectId()
@@ -70,7 +72,7 @@ describe("Posts", () => {
     })
 
     it("Should create a post", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
 
         const post: Post = {
             postDate: new Date(),
@@ -94,7 +96,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
 
         const postId = await createPost(db, school, post)
@@ -104,7 +107,7 @@ describe("Posts", () => {
         expect(postFromDatabase).toEqual({ _id: postId, ...post })
     })
     it("Should filter the class list for students", async () => {
-        const school: School = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const post: Post = {
             postDate: new Date(),
             posterId: user1,
@@ -124,7 +127,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
 
         const postId = await createPost(db, school, post)
@@ -133,7 +137,7 @@ describe("Posts", () => {
         expect(postFromDatabase).toEqual({ _id: postId, ...post, classIds: [classId] })
     })
     it("Should list posts to a year group", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
 
@@ -156,7 +160,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -177,7 +182,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -235,7 +241,7 @@ describe("Posts", () => {
         expect(posts3.isEnd).toBe(true)
     })
     it("Should list posts to course pages", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
 
@@ -258,7 +264,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -279,7 +286,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -333,7 +341,7 @@ describe("Posts", () => {
         expect(posts2.isEnd).toBe(true)
     })
     it("Should not show year group posts on the course page", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -355,7 +363,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -364,7 +373,7 @@ describe("Posts", () => {
         expect(posts.isEnd).toBe(true)
     })
     it("Should not show course posts on the year group page", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -386,7 +395,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -395,7 +405,7 @@ describe("Posts", () => {
         expect(posts.isEnd).toBe(true)
     })
     it("Should list posts to classes", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [user1])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
 
@@ -418,7 +428,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -439,7 +450,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -493,7 +505,7 @@ describe("Posts", () => {
         expect(posts2.isEnd).toBe(true)
     })
     it("Should show course posts on class lists", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -515,7 +527,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -544,7 +557,7 @@ describe("Posts", () => {
         expect(posts.isEnd).toBe(true)
     })
     it("Should not show class posts on the course page", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [user1])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -566,7 +579,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -575,7 +589,7 @@ describe("Posts", () => {
         expect(posts.isEnd).toBe(true)
     })
     it("Should not show studens private posts from others", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -597,7 +611,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -608,7 +623,7 @@ describe("Posts", () => {
         expect(posts2.posts.length).toBe(0)
     })
     it("Should let non-students view private posts", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -630,7 +645,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -638,7 +654,7 @@ describe("Posts", () => {
         expect(posts.posts.length).toBe(1)
     })
     it("Should not create posts for non-existent year groups", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -660,13 +676,14 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
     it("Should not create posts for non-existent courses", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -688,13 +705,14 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
     it("Should not let students post to year groups which they are not members of", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -716,13 +734,14 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
     it("Should not let students post to courses which they are not members of", async () => {
-        let school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [])
+        let school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [])
         // We have to create another course to avoid hitting the year group branch
         const courseId2 = new ObjectId()
         school.yearGroups[0].courses.push({
@@ -759,20 +778,21 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
 
         let postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
     it("Should return an empty list for non-existent year groups", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const posts = await listPosts(db, school, user1, null, 1, new ObjectId(), undefined, undefined, undefined)
         expect(posts.posts).toEqual([])
         expect(posts.isEnd).toBe(true)
     })
     it("Should get attachment links (minus the google drive part)", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -802,7 +822,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -829,7 +850,7 @@ describe("Posts", () => {
         expect(shouldCreateCopy).toBe(false)
     })
     it("Should cache links", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -859,7 +880,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -880,7 +902,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
     })
     it("Should cache per-user links", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -911,7 +933,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -950,7 +973,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
     })
     it("Should filter based on post type", async () => {
-        const school: School = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school: School = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date1 = new Date('2025-01-14T23:22:43.157Z')
         const date2 = new Date('2025-01-15T23:22:43.157Z')
 
@@ -973,7 +996,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post2: Post = {
             postDate: date2,
@@ -994,7 +1018,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const post1Id = await createPost(db, school, post1)
         const post2Id = await createPost(db, school, post2)
@@ -1025,7 +1050,7 @@ describe("Posts", () => {
         expect(posts1.isEnd).toBe(true)
     })
     it("Should not let students create assignments", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-03-02T04:21:17.490Z')
 
         const post: Post = {
@@ -1047,13 +1072,14 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).toBeNull()
     })
     it("Should get an individual post by id", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-03-03T06:00:51.510Z')
 
         const post: Post = {
@@ -1075,7 +1101,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1102,7 +1129,7 @@ describe("Posts", () => {
         } as PostInfo)
     })
     it("Should re-share per-user files for different accessors", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1133,7 +1160,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1168,7 +1196,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
     })
     it("Should not let non-owners edit individual copies", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1199,7 +1227,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1226,7 +1255,7 @@ describe("Posts", () => {
         expect(editable).toBeFalsy()
     })
     it("Should not let students get posts from classes which they cannot access", async () => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -1248,7 +1277,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1256,7 +1286,7 @@ describe("Posts", () => {
         expect(postFromDatabase).toBeNull()
     })
     it("Should not let students get private posts which they did not create", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -1278,7 +1308,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1286,7 +1317,7 @@ describe("Posts", () => {
         expect(postFromDatabase).toBeNull()
     })
     it("Should find submission templates as attachments", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1316,7 +1347,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1343,7 +1375,7 @@ describe("Posts", () => {
         expect(shouldCreateCopy).toBe(false)
     })
     it("Should find attachment in student submissions", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1375,7 +1407,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1402,7 +1435,7 @@ describe("Posts", () => {
         expect(shouldCreateCopy).toBe(false)
     })
     it("Should not create a new copy for non-owners accessing existing per-user files", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1433,7 +1466,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1477,7 +1511,7 @@ describe("Posts", () => {
         expect(shouldCreateCopy).toBeTruthy()
     })
     it("Should get a post with attachments", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1508,7 +1542,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1547,7 +1582,7 @@ describe("Posts", () => {
         })
     })
     it("Should get posts with submission templates", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1577,7 +1612,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1617,7 +1653,7 @@ describe("Posts", () => {
         })
     })
     it("Should get posts with student attachments", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1649,7 +1685,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1691,7 +1728,7 @@ describe("Posts", () => {
         })
     })
     it("Should not let students see each other's student attachments", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1723,7 +1760,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
 
@@ -1753,7 +1791,7 @@ describe("Posts", () => {
         })
     })
     it("Should let students add attachments to their submissions", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1776,7 +1814,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1805,7 +1844,7 @@ describe("Posts", () => {
         })
     })
     it("Should let students have edit access to their own attachments", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1837,7 +1876,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1865,7 +1905,7 @@ describe("Posts", () => {
         expect(shouldHaveEditAccess).toBe(false)
     })
     it("Should not return the link for an attachment with the wrong school id", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1, user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1896,7 +1936,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1910,7 +1951,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
     })
     it("Should not let students get attachment links from courses to which they do not have access", async () => {
-        const school = createSchoolStructure(schoolId, [user1, user2], yearGroupId, courseId, classId, [user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1941,7 +1982,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -1955,7 +1997,7 @@ describe("Posts", () => {
         expect(called).toBeFalsy()
     })
     it("Should not let users edit submitted assignments", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -1989,7 +2031,8 @@ describe("Posts", () => {
             },
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2006,7 +2049,7 @@ describe("Posts", () => {
         expect(shouldHaveEditAccess).toBe(false)
     })
     it("Should change the google file ids for submission templates and student attachments when submitting", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId1 = new ObjectId()
         const attachmentId2 = new ObjectId()
@@ -2049,7 +2092,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2097,7 +2141,7 @@ describe("Posts", () => {
         })
     })
     it("Should not change file ids if the student hasn't created a copy already", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -2130,7 +2174,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2154,7 +2199,7 @@ describe("Posts", () => {
         })
     })
     it("Should revert any changes if a file copy fails", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId1 = new ObjectId()
         const attachmentId2 = new ObjectId()
@@ -2197,7 +2242,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2220,12 +2266,12 @@ describe("Posts", () => {
         })
     })
     it("Should not submit a non-existent assignment", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const result = await submitAssignment(mongoClient, db, user1, school, new ObjectId())
         expect(result).toBe(false)
     })
     it("Should record marks against a student's assignment", async () => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -2254,7 +2300,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2272,7 +2319,7 @@ describe("Posts", () => {
         })
     })
     it("Should not let students record marks", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -2301,7 +2348,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2316,7 +2364,7 @@ describe("Posts", () => {
         })
     })
     it("Should not record marks against teachers", async () => {
-        const school = createSchoolStructure(schoolId, [], yearGroupId, courseId, classId, [])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
 
@@ -2345,7 +2393,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2360,7 +2409,7 @@ describe("Posts", () => {
         })
     })
     it("Should not mark a non-assignment", async () => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -2388,7 +2437,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2403,12 +2453,12 @@ describe("Posts", () => {
         })
     })
     it("Should not mark a non-existent post", async () => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const result = await RecordMarks(db, user1, user2, school, new ObjectId(), [])
         expect(result).toBe(false)
     })
     it("Should only set students see their own marks", async () => {
-        const school = createSchoolStructure(schoolId, [user2, user3], yearGroupId, courseId, classId, [user2, user3])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2, user3], yearGroupId, courseId, classId, [user2, user3])
         const date = new Date('2025-01-14T23:22:43.157Z')
 
         const post: Post = {
@@ -2436,7 +2486,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2461,7 +2512,7 @@ describe("Posts", () => {
         })
     })
     it("Should record feedback on assignments", async () => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-05-12T08:21:31.891Z')
 
         const post: Post = {
@@ -2489,7 +2540,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2507,7 +2559,7 @@ describe("Posts", () => {
         })
     })
     it("Should not let students submit feedback", async () => {
-        const school = createSchoolStructure(schoolId, [user1], yearGroupId, courseId, classId, [user1])
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-05-12T08:21:31.891Z')
         const post: Post = {
             postDate: date,
@@ -2534,7 +2586,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2549,8 +2602,8 @@ describe("Posts", () => {
             feedback: null
         })
     })
-    it("Should not record feedback on non-assignments", async() => {
-        const school = createSchoolStructure(schoolId, [user2], yearGroupId, courseId, classId, [user2])
+    it("Should not record feedback on non-assignments", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-05-12T08:21:31.891Z')
 
         const post: Post = {
@@ -2578,7 +2631,8 @@ describe("Posts", () => {
             isoSubmissionDates: null,
             marks: null,
             linkedSyllabusContentIds: null,
-            feedback: null
+            feedback: null,
+            comments: null
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
@@ -2590,6 +2644,300 @@ describe("Posts", () => {
         expect(postFromDatabase).toEqual({
             ...post,
             _id: postId
+        })
+    })
+    it("Should add comments", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const commentId = await addComment(db, user2, school, postId!, "Great work!")
+
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: [{
+                id: commentId,
+                userId: user2,
+                date: expect.any(Date),
+                content: "Great work!"
+            }]
+        })
+    })
+    it("Should delete comments", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const commentId = await addComment(db, user2, school, postId!, "Great work!")
+        expect(commentId).not.toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: [{
+                id: commentId,
+                userId: user2,
+                date: expect.any(Date),
+                content: "Great work!"
+            }]
+        })
+        const result = await deleteComment(db, user2, school, postId!, commentId!)
+        expect(result).toBe(true)
+
+        const postFromDatabase2 = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase2).toEqual({
+            ...post,
+            _id: postId,
+            comments: []
+        })
+    })
+    it("Should not let students comment on posts which they do not have access to", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const commentId = await addComment(db, user2, school, postId!, "Great work!")
+        expect(commentId).toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: null
+        })
+    })
+    it("Should not let people delete comments which they did not create", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const commentId = await addComment(db, user2, school, postId!, "Great work!")
+        expect(commentId).not.toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: [{
+                id: commentId,
+                userId: user2,
+                date: expect.any(Date),
+                content: "Great work!"
+            }]
+        })
+
+        const result = await deleteComment(db, user1, school, postId!, commentId!)
+        expect(result).toBe(false)
+        const postFromDatabase2 = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase2).toEqual(postFromDatabase)
+    })
+    it("Should not let students delete comments on posts which are not visible to them", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1, user2], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-14T07:59:21.347Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const commentId = await addComment(db, user1, school, postId!, "Great work!")
+        expect(commentId).not.toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: [{
+                id: commentId,
+                userId: user1,
+                date: expect.any(Date),
+                content: "Great work!"
+            }]
+        })
+
+        const result = await deleteComment(db, user2, school, postId!, commentId!)
+        expect(result).toBe(false)
+        const postFromDatabase2 = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase2).toEqual(postFromDatabase)
+    })
+    it("Should not let non-school-members comment on posts", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const commentId = await addComment(db, new ObjectId(), school, postId!, "Great work!")
+        expect(commentId).toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: null
+        })
+    })
+    it("Should not let users post comments with forged school IDs", async() => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-12T08:21:31.891Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const fakeSchool  = createSchoolStructure(new ObjectId(), schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const commentId = await addComment(db, user1, fakeSchool, postId!, "Great work!")
+        expect(commentId).toBeNull()
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            comments: null
         })
     })
 })

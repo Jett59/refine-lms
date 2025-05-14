@@ -20,6 +20,7 @@ export interface Post {
     content: string
     linkedSyllabusContentIds: ObjectId[] | null
     attachments: Attachment[]
+    comments: Comment[] | null
 
     // For assignments:
     isoDueDate: string | null
@@ -47,6 +48,13 @@ export interface Attachment {
     perUserLinks?: { [userId: string]: string }
     perUserFileIds?: { [userId: string]: string }
     perUserUsersWithAccess?: { [userId: string]: ObjectId[] }
+}
+
+export interface Comment {
+    id: ObjectId
+    userId: ObjectId
+    date: Date
+    content: string
 }
 
 const COLLECTION_NAME = 'posts'
@@ -107,6 +115,7 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             host: attachment.host,
             googleFileId: attachment.googleFileId
         })),
+        comments: null,
         isoDueDate: postTemplate.isoDueDate ?? null,
         submissionTemplates: postTemplate.submissionTemplates?.map(attachment => ({
             id: new ObjectId(),
@@ -243,6 +252,8 @@ let visibleFeedback: { [id: string]: string } | null = null
 
 function canViewPosts(userId: ObjectId, school: School, yearGroupId: ObjectId, courseId?: ObjectId) {
     const isStudent = school.studentIds.some(studentId => studentId.equals(userId))
+    const isTeacher = school.teacherIds.some(teacherId => teacherId.equals(userId))
+    const isAdministrator = school.administratorIds.some(adminId => adminId.equals(userId))
     if (isStudent) {
         // Students have to be in the year group
         const yearGroup = school.yearGroups.find(yg => yg.id.equals(yearGroupId))
@@ -267,8 +278,8 @@ function canViewPosts(userId: ObjectId, school: School, yearGroupId: ObjectId, c
         } else {
             return true
         }
-    } else {
-        // Teachers can view everything, but we should check that everything exists
+    } else if (isTeacher || isAdministrator) {
+        // Teachers and administrators can view everything, but we should check that everything exists
         const yearGroup = school.yearGroups.find(yg => yg.id.equals(yearGroupId))
         if (!yearGroup) {
             return false
@@ -282,6 +293,9 @@ function canViewPosts(userId: ObjectId, school: School, yearGroupId: ObjectId, c
         } else {
             return true
         }
+    }else {
+        // If the user isn't in the school at all, they can't view anything
+        return false
     }
 }
 
@@ -728,6 +742,72 @@ export async function RecordFeedback(db: Db, accessingUserId: ObjectId, studentU
     }, {
         $set: {
             [`feedback.${studentUserId.toHexString()}`]: feedback
+        }
+    })
+    return true
+}
+
+export async function addComment(db: Db, userId: ObjectId, school: School, postId: ObjectId, comment: string): Promise<ObjectId | null> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return null
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return null
+    }
+    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return null
+    }
+    const commentId = new ObjectId()
+    // First make sure the comments field exists
+    await getCollection(db).updateOne({
+        _id: postId,
+        comments: null
+    }, {
+        $set: {
+            comments: []
+        }
+    })
+    await getCollection(db).updateOne({
+        _id: postId
+    }, {
+        $push: {
+            comments: {
+                id: commentId,
+                userId,
+                date: new Date(),
+                content: comment
+            }
+        }
+    })
+    return commentId
+}
+
+export async function deleteComment(db: Db, userId: ObjectId, school: School, postId: ObjectId, commentId: ObjectId): Promise<boolean> {
+    const post = await getCollection(db).findOne({ _id: postId })
+    if (!post) {
+        return false
+    }
+    if (!post.schoolId.equals(school._id)) {
+        return false
+    }
+    if (!canViewPosts(userId, school, post.yearGroupId, post.courseId ?? undefined)) {
+        return false
+    }
+    const comment = post.comments?.find(comment => comment.id.equals(commentId))
+    if (!comment) {
+        return false
+    }
+    if (!comment.userId.equals(userId)) {
+        return false
+    }
+    await getCollection(db).updateOne({
+        _id: postId
+    }, {
+        $pull: {
+            comments: {
+                id: commentId
+            }
         }
     })
     return true
