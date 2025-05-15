@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addSyllabusContent, addSyllabusOutcome, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeSyllabusOutcome, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
-import { AddAttachmentToSubmission, createPost, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment } from "./posts";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
+import { AddAttachmentToSubmission, addComment, createPost, deleteComment, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -736,6 +736,67 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 } else {
                     return errorResponse(400, 'Invalid post')
                 }
+            }
+            case "/add-comment": {
+                const typedBody: AddCommentRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                if (!typedBody.comment) {
+                    return errorResponse(400, 'Missing comment')
+                }
+                let schoolObjectId: ObjectId
+                let postId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    postId = new ObjectId(typedBody.postId)
+                }
+                catch (e) {
+                    return errorResponse(400, 'Invalid school or post ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const result = await addComment(db, user._id!, school, postId, typedBody.comment)
+                if (!result) {
+                    return errorResponse(400, 'Invalid post')
+                }
+                return successResponse<AddCommentResponse>({ id: result.toHexString() })
+            }
+            case "/delete-comment": {
+                const typedBody: DeleteCommentRequest = body
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                if (!typedBody.commentId) {
+                    return errorResponse(400, 'Missing comment ID')
+                }
+                let schoolObjectId: ObjectId
+                let postId: ObjectId
+                let commentId: ObjectId
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    postId = new ObjectId(typedBody.postId)
+                    commentId = new ObjectId(typedBody.commentId)
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school, post or comment ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const result = await deleteComment(db, user._id!, school, postId, commentId)
+                if (!result) {
+                    return errorResponse(400, 'Invalid post')
+                }
+                return successResponse<DeleteCommentResponse>({ success: true })
             }
             default:
                 return errorResponse(404, `Unknown path '${path}'`)

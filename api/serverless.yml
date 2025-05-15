@@ -196,3 +196,13 @@ functions:
           method: post
           authorizer:
             name: google
+      - httpApi:
+          path: /api/add-comment
+          method: post
+          authorizer:
+            name: google
+      - httpApi:
+          path: /api/remove-comment
+          method: post
+          authorizer:
+            name: google

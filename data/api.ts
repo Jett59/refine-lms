@@ -272,3 +272,21 @@ export interface RecordMarksRequest {
 export interface RecordMarksResponse {
     success: boolean
 }
+
+export interface AddCommentRequest {
+    schoolId: string
+    postId: string
+    comment: string
+}
+export interface AddCommentResponse {
+    id: string
+}
+
+export interface DeleteCommentRequest {
+    schoolId: string
+    postId: string
+    commentId: string
+}
+export interface DeleteCommentResponse {
+    success: boolean
+}
