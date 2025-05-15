@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -44,6 +44,8 @@ export interface DataContextValue {
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
     submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
     recordMarks: (schoolId: string, postId: string, studentId: string, marks: number[], feedback?: string) => Promise<boolean>
+    addComment: (schoolId: string, postId: string, comment: string) => Promise<string | null>
+    deleteComment: (schoolId: string, postId: string, commentId: string) => Promise<void>
 }
 
 const DataContext = createContext<DataContextValue>({
@@ -74,6 +76,8 @@ const DataContext = createContext<DataContextValue>({
     addAttachmentToSubmission: async () => null,
     submitAssignment: async () => false,
     recordMarks: async () => false,
+    addComment: async () => null,
+    deleteComment: async () => { },
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
@@ -339,6 +343,21 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return false
             }
         }, [authenticatedAPIs, addError]),
+        addComment: useCallback(async (schoolId, postId, comment) => {
+            const response = await authenticatedAPIs.call<AddCommentResponse, AddCommentRequest>('POST', 'add-comment', { schoolId, postId, comment })
+            if (isSuccessfulAPIResponse(response)) {
+                return response.body.id
+            } else {
+                addAPIError(response)
+                return null
+            }
+        }, [authenticatedAPIs]),
+        deleteComment: useCallback(async (schoolId, postId, commentId) => {
+            const response = await authenticatedAPIs.call<DeleteCommentResponse, DeleteCommentRequest>('POST', 'remove-comment', { schoolId, postId, commentId })
+            if (!isSuccessfulAPIResponse(response)) {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs]),
     }}>
         {children}
     </DataContext.Provider>

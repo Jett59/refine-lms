@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandMore, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
-import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType } from "../../data/post"
+import { AttachFile, ExpandLess, ExpandMore, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
+import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType, CommentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
 import { CourseInfo, SchoolInfo, SyllabusContent } from "../../data/school"
@@ -312,11 +312,49 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
     </Stack>
 }
 
-function PostView({ post, schoolInfo, courseInfo }: { post: PostInfo, schoolInfo: SchoolInfo, courseInfo?: CourseInfo }) {
+function CreateCommentForm({ onClick }: {
+    onClick: (content: string) => Promise<void>
+}) {
+    const [content, setContent] = useState("")
+    const [posting, setPosting] = useState(false)
+
+    return <Stack direction="row" spacing={2} padding={2}>
+        <TextField
+            multiline
+            label="Comment"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            disabled={posting}
+        />
+        <Button variant="contained" onClick={async () => {
+            setPosting(true)
+            await onClick(content)
+            setContent("")
+            setPosting(false)
+        }} disabled={posting}>Post Comment</Button>
+    </Stack>
+}
+
+function CommentView({comment}: {comment: CommentInfo}) {
+    return <Stack key={comment.id} direction="column" spacing={1} padding={2} borderRadius={2}>
+        <Stack direction="row" alignItems="center" spacing={2}>
+            <Avatar aria-hidden src={comment.user.picture} />
+            <Typography>{comment.user.name}</Typography>
+        </Stack>
+        <Typography>Commented {formatDate(new Date(comment.date))}</Typography>
+        <Typography>{comment.content}</Typography>
+    </Stack>
+}
+
+function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo, schoolInfo: SchoolInfo, courseInfo?: CourseInfo, updatePost: () => void }) {
     const classes = courseInfo?.classes.filter(c => post.classIds?.includes(c.id))
     const classNames = classes?.map(c => c.name).join(', ')
 
     const students = studentsWhoCanSeePost(post, schoolInfo)
+
+    const { addComment } = useData()
+
+const [showingComments, setShowingComments] = useState(false)
 
     // Assignments are shown differently:
     // - The title is a link to the assignment
@@ -350,6 +388,27 @@ function PostView({ post, schoolInfo, courseInfo }: { post: PostInfo, schoolInfo
                 <TileContainer>
                     {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} students={students} />)}
                 </TileContainer>
+                {post.comments.length === 1 &&
+                <CommentView comment={post.comments[0]} />
+                }
+                {post.comments.length > 1 && <>
+                <Button
+                aria-expanded={showingComments}
+                onClick={() => setShowingComments(!showingComments)}
+                endIcon={showingComments ? <ExpandLess /> : <ExpandMore />}
+                >
+                    {`${post.comments.length} comments`}
+                    </Button>
+                <CommentView comment={post.comments[0]} />
+                {showingComments && post.comments.map((comment, index) => index !== 0 && (
+                    <CommentView key={comment.id} comment={comment} />
+                ))}
+                </>}
+                <CreateCommentForm onClick={async (content) => {
+                    await addComment(post.schoolId, post.id, content)
+                    await updatePost()
+                }
+                } />
             </>
             }
         </Stack>
@@ -362,7 +421,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     courseId?: string
     listType: 'feed' | 'work'
 }) {
-    const { createPost, listPosts } = useData()
+    const { createPost, listPosts, getPost } = useData()
 
     const [posts, setPosts] = useState<PostInfo[]>([])
     const [isEnd, setIsEnd] = useState(false)
@@ -426,6 +485,13 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     }
 
     const switchPage = useSwitchPage()
+
+    const updatePost = async (postId: string) => {
+        const post = await getPost(postId, schoolId, yearGroupId, courseId, classIds)
+        if (post) {
+            setPosts(posts => posts.map(p => p.id === postId ? post : p))
+        }
+    }
 
     if (!schoolInfo) {
         return <Typography>Loading...</Typography>
@@ -509,7 +575,9 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
             hasMore={!isEnd}
             loader={<Typography>Loading...</Typography>}
         >
-            {posts.map(post => <PostView key={post.id} post={post} schoolInfo={schoolInfo} courseInfo={course} />)}
+            {posts.map(post => (
+                <PostView key={post.id} post={post} schoolInfo={schoolInfo} courseInfo={course} updatePost={() => updatePost(post.id)} />
+            ))}
         </InfiniteScroll>
     </Stack>
 }
