@@ -1586,6 +1586,7 @@ describe("Posts", () => {
                 othersCanEdit: false,
                 accessLink: undefined
             }],
+            comments: [],
             submissionTemplates: undefined,
             studentAttachments: undefined,
         })
@@ -1658,6 +1659,7 @@ describe("Posts", () => {
                 othersCanEdit: true,
                 accessLink: undefined
             }],
+            comments: [],
             studentAttachments: undefined,
         })
     })
@@ -1719,6 +1721,7 @@ describe("Posts", () => {
             content: 'Hello World',
             linkedSyllabusContentIds: [],
             attachments: [],
+            comments: [],
             markingCriteria: undefined,
             submissionTemplates: undefined,
             studentAttachments: {
@@ -1794,6 +1797,7 @@ describe("Posts", () => {
             content: 'Hello World',
             linkedSyllabusContentIds: [],
             attachments: [],
+            comments: [],
             markingCriteria: undefined,
             submissionTemplates: undefined,
             studentAttachments: undefined,
@@ -2949,4 +2953,46 @@ describe("Posts", () => {
             comments: null
         })
     })
+    it("Should not let non-school-members record marks", async() => {
+        const school = createSchoolStructure(schoolId, [user1], [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-05-15T01:50:18.902Z')
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+        const result = await RecordMarks(db, user2, user1, school, postId!, [])
+        expect(result).toBe(false)
+        const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+        })
+    })
+    it("Should not record feedback on non-existent posts", async() => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const result = await RecordFeedback(db, user1, user2, school, new ObjectId(), "Great work!")
+        expect(result).toBe(false)
+        const postFromDatabase = await db.collection('posts').findOne({ _id: new ObjectId() })
+        expect(postFromDatabase).toBeNull()
+})
 })
