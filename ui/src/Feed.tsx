@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandLess, ExpandMore, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
+import { AttachFile, ExpandLess, ExpandMore, MoreVert, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType, CommentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -331,15 +331,36 @@ function CreateCommentForm({ onClick }: {
             await onClick(content)
             setContent("")
             setPosting(false)
-        }} disabled={posting}>Post Comment</Button>
+        }} disabled={posting || !content}>Post Comment</Button>
     </Stack>
 }
 
-function CommentView({comment}: {comment: CommentInfo}) {
+function CommentView({ comment, deleteComment }: {
+    comment: CommentInfo
+    deleteComment: () => Promise<void> // Never called if the current user did not post the comment
+}) {
+    const { userId } = useUser()
+    const [deleting, setDeleting] = useState(false)
+
     return <Stack key={comment.id} direction="column" spacing={1} padding={2} borderRadius={2}>
         <Stack direction="row" alignItems="center" spacing={2}>
             <Avatar aria-hidden src={comment.user.picture} />
             <Typography>{comment.user.name}</Typography>
+            {comment.user.id === userId &&
+                <SimpleMenu
+                    buttonContents={<MoreVert />}
+                    buttonAriaLabel="More options"
+                    buttonProps={{ disabled: deleting }}
+                    childrenSupplier={close => [
+                        <MenuItem onClick={async () => {
+                            setDeleting(true)
+                            await deleteComment()
+                            close()
+                            setDeleting(false)
+                        }}>Delete</MenuItem>
+                    ]}
+                />
+            }
         </Stack>
         <Typography>Commented {formatDate(new Date(comment.date))}</Typography>
         <Typography>{comment.content}</Typography>
@@ -352,9 +373,14 @@ function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo
 
     const students = studentsWhoCanSeePost(post, schoolInfo)
 
-    const { addComment } = useData()
+    const { addComment, deleteComment } = useData()
 
-const [showingComments, setShowingComments] = useState(false)
+    const [showingComments, setShowingComments] = useState(false)
+
+    const deleteCommentCallback = async (commentId: string) => {
+        await deleteComment(post.schoolId, post.id, commentId)
+        await updatePost()
+    }
 
     // Assignments are shown differently:
     // - The title is a link to the assignment
@@ -388,21 +414,24 @@ const [showingComments, setShowingComments] = useState(false)
                 <TileContainer>
                     {post.attachments.map(attachment => <AttachmentView key={attachment.id} schoolId={post.schoolId} postId={post.id} attachment={attachment} students={students} />)}
                 </TileContainer>
-                {post.comments.length === 1 &&
-                <CommentView comment={post.comments[0]} />
+                {post.comments.length === 1 && <>
+                    <Button>1 comment</Button>
+                    <CommentView comment={post.comments[0]} deleteComment={() => deleteCommentCallback(post.comments[0].id)} />
+                </>
                 }
                 {post.comments.length > 1 && <>
-                <Button
-                aria-expanded={showingComments}
-                onClick={() => setShowingComments(!showingComments)}
-                endIcon={showingComments ? <ExpandLess /> : <ExpandMore />}
-                >
-                    {`${post.comments.length} comments`}
+                    <Button
+                        aria-expanded={showingComments}
+                        onClick={() => setShowingComments(!showingComments)}
+                        endIcon={showingComments ? <ExpandLess /> : <ExpandMore />}
+                    >
+                        {`${post.comments.length} comments`}
                     </Button>
-                <CommentView comment={post.comments[0]} />
-                {showingComments && post.comments.map((comment, index) => index !== 0 && (
-                    <CommentView key={comment.id} comment={comment} />
-                ))}
+                    {/* We always show the last comment but only show the others if the user clicks the button */}
+                    {showingComments && post.comments.map((comment, index) => index !== post.comments.length - 1 && (
+                        <CommentView key={comment.id} comment={comment} deleteComment={() => deleteCommentCallback(comment.id)} />
+                    ))}
+                    <CommentView comment={post.comments[post.comments.length - 1]} deleteComment={() => deleteCommentCallback(post.comments[post.comments.length - 1].id)} />
                 </>}
                 <CreateCommentForm onClick={async (content) => {
                     await addComment(post.schoolId, post.id, content)

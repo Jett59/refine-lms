@@ -353,7 +353,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             }
         }, [authenticatedAPIs]),
         deleteComment: useCallback(async (schoolId, postId, commentId) => {
-            const response = await authenticatedAPIs.call<DeleteCommentResponse, DeleteCommentRequest>('POST', 'remove-comment', { schoolId, postId, commentId })
+            const response = await authenticatedAPIs.call<DeleteCommentResponse, DeleteCommentRequest>('POST', 'delete-comment', { schoolId, postId, commentId })
             if (!isSuccessfulAPIResponse(response)) {
                 addAPIError(response)
             }

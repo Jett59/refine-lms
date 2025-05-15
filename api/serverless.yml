@@ -202,7 +202,7 @@ functions:
           authorizer:
             name: google
       - httpApi:
-          path: /api/remove-comment
+          path: /api/delete-comment
           method: post
           authorizer:
             name: google
