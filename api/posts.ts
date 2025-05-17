@@ -23,10 +23,10 @@ export interface Post {
     comments: Comment[] | null
 
     // For assignments:
-    isoDueDate: string | null
+    isoDueDate: Date | null
     submissionTemplates: Attachment[] | null // 'copied', othersCanEdit
     studentAttachments: { [studentId: string]: Attachment[] } | null // 'shared', !othersCanEdit
-    isoSubmissionDates: { [studentId: string]: string } | null
+    isoSubmissionDates: { [studentId: string]: Date } | null
     markingCriteria: MarkingCriterion[] | null
     marks: { [userId: string]: { [criterionId: string]: number } } | null
     feedback: { [userId: string]: string } | null
@@ -122,7 +122,7 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
             googleFileId: attachment.googleFileId
         })),
         comments: null,
-        isoDueDate: postTemplate.isoDueDate ?? null,
+        isoDueDate: postTemplate.isoDueDate ? new Date(postTemplate.isoDueDate) : null,
         submissionTemplates: postTemplate.submissionTemplates?.map(attachment => ({
             id: new ObjectId(),
             title: attachment.title,
@@ -241,8 +241,11 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
                     user: userInfo
                 }
             }).filter(comment => comment !== null) ?? [],
-            isoDueDate: post.isoDueDate ?? undefined,
-            isoSubmissionDates: post.isoSubmissionDates ?? undefined,
+            isoDueDate: post.isoDueDate?.toISOString() ?? undefined,
+            isoSubmissionDates: post.isoSubmissionDates ? Object.fromEntries(Object.entries(post.isoSubmissionDates).map(([studentId, date]) => [
+                studentId,
+                date.toISOString()
+            ])) : undefined,
             submissionTemplates: post.submissionTemplates?.map(attachment => ({
                 id: attachment.id.toHexString(),
                 title: attachment.title,
@@ -596,7 +599,7 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
     if (post.isoSubmissionDates && post.isoSubmissionDates[userId.toHexString()]) {
         return false
     }
-    const isoSubmissionDate = new Date().toISOString()
+    const submissionDate = new Date()
     const realCopyFile = copyFile ?? createCopy
     const transaction = client.startSession()
     try {
@@ -665,10 +668,6 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
             await transaction.abortTransaction()
             return false
         }
-        if (failed) {
-            await transaction.abortTransaction()
-            return false
-        }
         // Then we should set the submission date
         // First make sure the field exists
         await getCollection(db).updateOne({
@@ -683,7 +682,7 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
             _id: postId
         }, {
             $set: {
-                [`isoSubmissionDates.${userId.toHexString()}`]: isoSubmissionDate
+                [`isoSubmissionDates.${userId.toHexString()}`]: submissionDate
             }
         }, { session: transaction })
         await transaction.commitTransaction()
@@ -694,7 +693,7 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
     return true
 }
 
-export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, marks: {[criterionId: string]: number}): Promise<boolean> {
+export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, marks: { [criterionId: string]: number }): Promise<boolean> {
     const post = await getCollection(db).findOne({ _id: postId })
     if (!post) {
         return false

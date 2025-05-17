@@ -6,7 +6,7 @@ import { useData, useRelevantSchoolInfo } from "./DataContext"
 import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
-import { AttachmentTemplate, MarkingCriterion } from "../../data/post"
+import { AttachmentTemplate, MarkingCriterionTemplate } from "../../data/post"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Dayjs } from "dayjs"
@@ -14,8 +14,8 @@ import { useConfirmationDialog } from "./ConfirmationDialog"
 import NumericalTextBox from "./NumericalTextBox"
 
 function CriterionView({ criterion, update }: {
-    criterion: MarkingCriterion
-    update: (newValue: MarkingCriterion) => void
+    criterion: MarkingCriterionTemplate
+    update: (newValue: MarkingCriterionTemplate) => void
 }) {
     return <Stack direction="row">
         <TextField
@@ -56,7 +56,7 @@ export default function CreateAssignment() {
     const classInfo = course?.classes.find(cls => cls.id === classId)
     const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
     const [submissionTemplates, setSubmissionTemplates] = useState<AttachmentTemplate[]>([])
-    const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterion[]>([])
+    const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterionTemplate[]>([])
 
     const isEmpty = !title && !content && attachments.length === 0 && submissionTemplates.length === 0 && markingCriteria.length === 0
     const createConfirmationDialog = useConfirmationDialog()

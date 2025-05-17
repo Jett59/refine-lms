@@ -2041,7 +2041,7 @@ describe("Posts", () => {
             },
             isoDueDate: null,
             isoSubmissionDates: {
-                [user1.toHexString()]: date.toISOString()
+                [user1.toHexString()]: date
             },
             marks: null,
             linkedSyllabusContentIds: null,
@@ -2150,7 +2150,7 @@ describe("Posts", () => {
                 }
             }],
             isoSubmissionDates: {
-                [user1.toHexString()]: expect.any(String)
+                [user1.toHexString()]: expect.any(Date)
             }
         })
     })
@@ -2208,7 +2208,7 @@ describe("Posts", () => {
             ...post,
             _id: postId,
             isoSubmissionDates: {
-                [user1.toHexString()]: expect.any(String)
+                [user1.toHexString()]: expect.any(Date)
             },
         })
     })
@@ -3111,5 +3111,54 @@ describe("Posts", () => {
                 [criterion2Id.toHexString()]: 3
             }
         })
+    })
+    it("Should not let users submit assignments multiple times", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await submitAssignment(mongoClient, db, user1, school, postId!, async () => {
+            return null
+        })
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase!.isoSubmissionDates).toEqual({
+            [user1.toHexString()]: expect.any(Date)
+        })
+
+        const result2 = await submitAssignment(mongoClient, db, user1, school, postId!, async () => {
+            return null
+        })
+        expect(result2).toBe(false)
+
+        const postFromDatabase2 = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase2).not.toBeNull()
+        expect(postFromDatabase2).toEqual(postFromDatabase)
     })
 })
