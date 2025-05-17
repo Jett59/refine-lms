@@ -266,7 +266,7 @@ export interface RecordMarksRequest {
     schoolId: string
     postId: string
     studentUserId: string
-    marks: number[]
+    marks: { [criterionId: string]: number }
     feedback?: string
 }
 export interface RecordMarksResponse {

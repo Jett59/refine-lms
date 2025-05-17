@@ -43,7 +43,7 @@ export interface DataContextValue {
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
     submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
-    recordMarks: (schoolId: string, postId: string, studentId: string, marks: number[], feedback?: string) => Promise<boolean>
+    recordMarks: (schoolId: string, postId: string, studentId: string, marks: { [criterionId: string]: number }, feedback?: string) => Promise<boolean>
     addComment: (schoolId: string, postId: string, comment: string) => Promise<string | null>
     deleteComment: (schoolId: string, postId: string, commentId: string) => Promise<void>
 }

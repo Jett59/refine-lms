@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback, addComment, deleteComment } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback, addComment, deleteComment, convertPostsForApi } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -87,6 +87,7 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: new ObjectId(),
                 title: 'Criteria 1',
                 maximumMarks: 10
             }],
@@ -2287,6 +2288,8 @@ describe("Posts", () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2301,9 +2304,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: criterion1Id,
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: criterion2Id,
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2319,7 +2324,10 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        const result = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
         expect(result).toBe(true)
 
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
@@ -2327,7 +2335,10 @@ describe("Posts", () => {
             ...post,
             _id: postId,
             marks: {
-                [user2.toHexString()]: [2, 3]
+                [user2.toHexString()]: {
+                    [criterion1Id.toHexString()]: 2,
+                    [criterion2Id.toHexString()]: 3
+                }
             }
         })
     })
@@ -2335,6 +2346,8 @@ describe("Posts", () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2349,9 +2362,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: criterion1Id,
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: criterion2Id,
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2367,7 +2382,10 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        const result = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
         expect(result).toBe(false)
 
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
@@ -2380,6 +2398,8 @@ describe("Posts", () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
         const date = new Date('2025-01-14T23:22:43.157Z')
         const attachmentId = new ObjectId()
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2394,9 +2414,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: criterion1Id,
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: criterion2Id,
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2412,7 +2434,10 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        const result = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
         expect(result).toBe(false)
 
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
@@ -2424,6 +2449,8 @@ describe("Posts", () => {
     it("Should not mark a non-assignment", async () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
         const date = new Date('2025-01-14T23:22:43.157Z')
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2438,9 +2465,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: criterion1Id,
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: criterion2Id,
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2456,7 +2485,10 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const result = await RecordMarks(db, user1, user2, school, postId!, [2, 3])
+        const result = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
         expect(result).toBe(false)
 
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
@@ -2467,12 +2499,14 @@ describe("Posts", () => {
     })
     it("Should not mark a non-existent post", async () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
-        const result = await RecordMarks(db, user1, user2, school, new ObjectId(), [])
+        const result = await RecordMarks(db, user1, user2, school, new ObjectId(), {})
         expect(result).toBe(false)
     })
-    it("Should only set students see their own marks", async () => {
+    it("Should only let students see their own marks", async () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user2, user3], yearGroupId, courseId, classId, [user2, user3])
         const date = new Date('2025-01-14T23:22:43.157Z')
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
 
         const post: Post = {
             postDate: date,
@@ -2487,9 +2521,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: criterion1Id,
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: criterion2Id,
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2505,23 +2541,41 @@ describe("Posts", () => {
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
 
-        const result1 = await RecordMarks(db, user1, user2, school, postId!, [1, 2])
+        const result1 = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
         expect(result1).toBe(true)
-        const result2 = await RecordMarks(db, user1, user3, school, postId!, [2, 3])
+        const result2 = await RecordMarks(db, user1, user3, school, postId!, {
+            [criterion1Id.toHexString()]: 1,
+            [criterion2Id.toHexString()]: 5
+        })
         expect(result2).toBe(true)
 
         const postForTeacher = await getPost(db, school, user1, postId!, yearGroupId, courseId)
         expect(postForTeacher?.marks).toEqual({
-            [user2.toHexString()]: [1, 2],
-            [user3.toHexString()]: [2, 3]
+            [user2.toHexString()]: {
+                [criterion1Id.toHexString()]: 2,
+                [criterion2Id.toHexString()]: 3
+            },
+            [user3.toHexString()]: {
+                [criterion1Id.toHexString()]: 1,
+                [criterion2Id.toHexString()]: 5
+            }
         })
         const postForUser2 = await getPost(db, school, user2, postId!, yearGroupId, courseId)
         expect(postForUser2?.marks).toEqual({
-            [user2.toHexString()]: [1, 2]
+            [user2.toHexString()]: {
+                [criterion1Id.toHexString()]: 2,
+                [criterion2Id.toHexString()]: 3
+            }
         })
         const postForUser3 = await getPost(db, school, user3, postId!, yearGroupId, courseId)
         expect(postForUser3?.marks).toEqual({
-            [user3.toHexString()]: [2, 3]
+            [user3.toHexString()]: {
+                [criterion1Id.toHexString()]: 1,
+                [criterion2Id.toHexString()]: 5
+            }
         })
     })
     it("Should record feedback on assignments", async () => {
@@ -2541,9 +2595,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: new ObjectId(),
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: new ObjectId(),
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2587,9 +2643,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: new ObjectId(),
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: new ObjectId(),
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2632,9 +2690,11 @@ describe("Posts", () => {
             content: 'Hello World',
             attachments: [],
             markingCriteria: [{
+                id: new ObjectId(),
                 title: 'Marking Criterion 1',
                 maximumMarks: 10
             }, {
+                id: new ObjectId(),
                 title: 'Marking Criterion 2',
                 maximumMarks: 20
             }],
@@ -2916,7 +2976,7 @@ describe("Posts", () => {
             comments: null
         })
     })
-    it("Should not let users post comments with forged school IDs", async() => {
+    it("Should not let users post comments with forged school IDs", async () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-05-12T08:21:31.891Z')
         const post: Post = {
@@ -2943,7 +3003,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
-        const fakeSchool  = createSchoolStructure(new ObjectId(), schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const fakeSchool = createSchoolStructure(new ObjectId(), schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const commentId = await addComment(db, user1, fakeSchool, postId!, "Great work!")
         expect(commentId).toBeNull()
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
@@ -2953,7 +3013,7 @@ describe("Posts", () => {
             comments: null
         })
     })
-    it("Should not let non-school-members record marks", async() => {
+    it("Should not let non-school-members record marks", async () => {
         const school = createSchoolStructure(schoolId, [user1], [user1], yearGroupId, courseId, classId, [user1])
         const date = new Date('2025-05-15T01:50:18.902Z')
         const post: Post = {
@@ -2980,7 +3040,7 @@ describe("Posts", () => {
         }
         const postId = await createPost(db, school, post)
         expect(postId).not.toBeNull()
-        const result = await RecordMarks(db, user2, user1, school, postId!, [])
+        const result = await RecordMarks(db, user2, user1, school, postId!, {})
         expect(result).toBe(false)
         const postFromDatabase = await db.collection('posts').findOne({ _id: postId! })
         expect(postFromDatabase).toEqual({
@@ -2988,11 +3048,68 @@ describe("Posts", () => {
             _id: postId,
         })
     })
-    it("Should not record feedback on non-existent posts", async() => {
+    it("Should not record feedback on non-existent posts", async () => {
         const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
         const result = await RecordFeedback(db, user1, user2, school, new ObjectId(), "Great work!")
         expect(result).toBe(false)
         const postFromDatabase = await db.collection('posts').findOne({ _id: new ObjectId() })
         expect(postFromDatabase).toBeNull()
-})
+    })
+    it("Should give marks in convertPostsForAPI", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const attachmentId = new ObjectId()
+        const criterion1Id = new ObjectId()
+        const criterion2Id = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                id: criterion1Id,
+                title: 'Marking Criterion 1',
+                maximumMarks: 10
+            }, {
+                id: criterion2Id,
+                title: 'Marking Criterion 2',
+                maximumMarks: 20
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await RecordMarks(db, user1, user2, school, postId!, {
+            [criterion1Id.toHexString()]: 2,
+            [criterion2Id.toHexString()]: 3
+        })
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+
+        const posts = await convertPostsForApi(db, false, user1, [postFromDatabase!])
+        expect(posts[0].marks).toEqual({
+            [user2.toHexString()]: {
+                [criterion1Id.toHexString()]: 2,
+                [criterion2Id.toHexString()]: 3
+            }
+        })
+    })
 })

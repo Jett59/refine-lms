@@ -1,6 +1,6 @@
 import { Db, Filter, MongoClient, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
-import { MarkingCriterion, PostInfo, PostTemplate, PostType } from "../data/post"
+import { MarkingCriterionTemplate, PostInfo, PostTemplate, PostType } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, createCopy, getFileLink, prepareAttachments } from "./google-drive"
@@ -28,7 +28,7 @@ export interface Post {
     studentAttachments: { [studentId: string]: Attachment[] } | null // 'shared', !othersCanEdit
     isoSubmissionDates: { [studentId: string]: string } | null
     markingCriteria: MarkingCriterion[] | null
-    marks: { [userId: string]: number[] } | null
+    marks: { [userId: string]: { [criterionId: string]: number } } | null
     feedback: { [userId: string]: string } | null
 }
 
@@ -48,6 +48,12 @@ export interface Attachment {
     perUserLinks?: { [userId: string]: string }
     perUserFileIds?: { [userId: string]: string }
     perUserUsersWithAccess?: { [userId: string]: ObjectId[] }
+}
+
+export interface MarkingCriterion {
+    id: ObjectId
+    title: string
+    maximumMarks: number
 }
 
 export interface Comment {
@@ -88,11 +94,11 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
     }
     const linkedSyllabusContentIds = postTemplate.linkedSyllabusContentIds.map(id => {
         try {
-        return new ObjectId(id)
-    } catch (e) {
-        return null
-    }
-}).filter(id => id !== null) as ObjectId[]
+            return new ObjectId(id)
+        } catch (e) {
+            return null
+        }
+    }).filter(id => id !== null) as ObjectId[]
     return {
         postDate: new Date(),
         posterId,
@@ -129,7 +135,11 @@ export async function preparePostFromTemplate(postTemplate: PostTemplate, google
         })) ?? null,
         studentAttachments: null,
         isoSubmissionDates: null,
-        markingCriteria: postTemplate.markingCriteria ?? null,
+        markingCriteria: postTemplate.markingCriteria?.map(criterion => ({
+            id: new ObjectId(),
+            title: criterion.title,
+            maximumMarks: criterion.maximumMarks
+        })) ?? null,
         marks: null,
         feedback: null,
     }
@@ -177,7 +187,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             visibleStudentAttachments = post.studentAttachments
         }
 
-        let visibleMarks: { [id: string]: number[] } | null = null
+        let visibleMarks: { [id: string]: { [criterionId: string]: number } } | null = null
         if (isStudent) {
             if (post.marks?.[currentUserId.toHexString()]) {
                 visibleMarks = { [currentUserId.toHexString()]: post.marks?.[currentUserId.toHexString()] }
@@ -186,7 +196,7 @@ export async function convertPostsForApi(db: Db, isStudent: boolean, currentUser
             visibleMarks = post.marks
         }
 
-let visibleFeedback: { [id: string]: string } | null = null
+        let visibleFeedback: { [id: string]: string } | null = null
         if (isStudent) {
             if (post.feedback?.[currentUserId.toHexString()]) {
                 visibleFeedback = { [currentUserId.toHexString()]: post.feedback?.[currentUserId.toHexString()] }
@@ -258,7 +268,11 @@ let visibleFeedback: { [id: string]: string } | null = null
                     accessLink: getCachedAttachmentLinkIfAvailable(attachment, currentUserId, new ObjectId(studentId)) ?? undefined
                 }))
             ])) : undefined,
-            markingCriteria: post.markingCriteria ?? undefined,
+            markingCriteria: post.markingCriteria?.map(criterion => ({
+                id: criterion.id.toHexString(),
+                title: criterion.title,
+                maximumMarks: criterion.maximumMarks
+            })) ?? undefined,
             marks: visibleMarks ?? undefined,
             feedback: visibleFeedback ?? undefined,
         }
@@ -308,7 +322,7 @@ function canViewPosts(userId: ObjectId, school: School, yearGroupId: ObjectId, c
         } else {
             return true
         }
-    }else {
+    } else {
         // If the user isn't in the school at all, they can't view anything
         return false
     }
@@ -680,7 +694,7 @@ export async function submitAssignment(client: MongoClient, db: Db, userId: Obje
     return true
 }
 
-export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, marks: number[]): Promise<boolean> {
+export async function RecordMarks(db: Db, accessingUserId: ObjectId, studentUserId: ObjectId, school: School, postId: ObjectId, marks: {[criterionId: string]: number}): Promise<boolean> {
     const post = await getCollection(db).findOne({ _id: postId })
     if (!post) {
         return false

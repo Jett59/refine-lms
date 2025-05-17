@@ -21,8 +21,8 @@ export interface PostInfo {
     submissionTemplates?: AttachmentInfo[]
     studentAttachments?: { [studentId: string]: AttachmentInfo[] }
     isoSubmissionDates?: { [studentId: string]: string }
-    markingCriteria?: MarkingCriterion[]
-    marks?: { [userId: string]: number[] }
+    markingCriteria?: MarkingCriterionInfo[]
+    marks?: { [userId: string]: { [criterionId: string]: number } }
     feedback?: { [userId: string]: string }
 }
 export interface AttachmentInfo {
@@ -36,6 +36,11 @@ export interface AttachmentInfo {
     othersCanEdit: boolean
 
     accessLink?: string
+}
+export interface MarkingCriterionInfo {
+    id: string
+    title: string
+    maximumMarks: number
 }
 export interface CommentInfo {
     id: string
@@ -62,7 +67,7 @@ export interface PostTemplate {
     isoDueDate?: string
     submissionTemplates?: AttachmentTemplate[]
 
-    markingCriteria?: MarkingCriterion[]
+    markingCriteria?: MarkingCriterionTemplate[]
 }
 export interface AttachmentTemplate {
     title: string
@@ -73,8 +78,7 @@ export interface AttachmentTemplate {
     host: 'google',
     googleFileId: string
 }
-
-export interface MarkingCriterion {
+export interface MarkingCriterionTemplate {
     title: string
     maximumMarks: number
 }

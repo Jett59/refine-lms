@@ -56,13 +56,9 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
     refreshAssignment: () => Promise<void>
 }) {
     const { recordMarks } = useData()
-    const [marks, setMarks] = useState<number[]>([])
+    const [marks, setMarks] = useState<{ [criterionId: string]: number }>({})
     const [feedback, setFeedback] = useState<string>('')
     const [recordingMarks, setRecordingMarks] = useState(false)
-
-    useEffect(() => {
-        setMarks(new Array(assignment.markingCriteria?.length).fill(0))
-    }, [assignment.markingCriteria])
 
     const previousMarks = assignment.marks?.[student.id]
     const previousFeedback = assignment.feedback?.[student.id]
@@ -71,7 +67,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         if (previousMarks) {
             setMarks(previousMarks)
         } else {
-            setMarks(new Array(assignment.markingCriteria?.length ?? 0).fill(0))
+            setMarks({})
         }
         if (previousFeedback) {
             setFeedback(previousFeedback)
@@ -80,26 +76,42 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         }
     }, [previousMarks, previousFeedback])
 
+    const hasAllMarks = assignment.markingCriteria?.every(criterion => marks[criterion.id] !== undefined)
+    // Only includes the marks against known marking criteria
+    const totalMarks = assignment.markingCriteria?.reduce((total, criterion) => {
+        const mark = marks[criterion.id]
+        if (mark !== undefined) {
+            return total + mark
+        }
+        return total
+    }, 0) ?? 0
+    const maximumTotalMarks = assignment.markingCriteria?.reduce((total, criterion) => {
+        return total + criterion.maximumMarks
+    }, 0) ?? 0
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="row">
             <Typography variant="h4">Marking Criteria</Typography>
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                 <Typography>
-                    {`${marks.reduce((a, b) => a + b, 0)}/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                    {`${hasAllMarks ? totalMarks : ''}/${maximumTotalMarks}`}
                 </Typography>
             }
         </Stack>
         {assignment.markingCriteria && assignment.markingCriteria.length > 0
             ? <Stack direction="column">
-                {assignment.markingCriteria.map((criterion, index) => (
-                    <Stack key={index} direction="row" spacing={2}>
+                {assignment.markingCriteria.map(criterion => (
+                    <Stack key={criterion.id} direction="row" spacing={2}>
                         <Typography>{criterion.title}</Typography>
                         <NumericalTextBox
-                            value={marks[index] ?? 0}
+                            value={marks[criterion.id] ?? 0}
                             onChange={markValue => {
-                                    if (markValue >= 0 && markValue <= criterion.maximumMarks) {
-                                        setMarks(marks => [...marks.fill(markValue, index, index + 1)])
-                                    }
+                                if (markValue >= 0 && markValue <= criterion.maximumMarks) {
+                                    setMarks({
+                                        ...marks,
+                                        [criterion.id]: markValue
+                                    })
+                                }
                             }}
                         />
                         <Typography>
@@ -210,6 +222,18 @@ function Assignment({ assignment, school, refreshPost }: {
     const studentsMarks = assignment.marks?.[student?.id ?? '']
     const studentsFeedback = assignment.feedback?.[student?.id ?? '']
 
+    const hasAllMarks = assignment.markingCriteria?.every(criterion => studentsMarks?.[criterion.id] !== undefined)
+    const totalMarks = assignment.markingCriteria?.reduce((total, criterion) => {
+        const mark = studentsMarks?.[criterion.id]
+        if (mark !== undefined) {
+            return total + mark
+        }
+        return total
+    }, 0) ?? 0
+    const maximumTotalMarks = assignment.markingCriteria?.reduce((total, criterion) => {
+        return total + criterion.maximumMarks
+    }, 0) ?? 0
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="center" spacing={2}>
             {assignment.isoDueDate &&
@@ -238,19 +262,18 @@ function Assignment({ assignment, school, refreshPost }: {
                             <Typography variant="h4">Marking Criteria</Typography>
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                                 <Typography>
-                                    {!isTeacherOrAdministrator && studentsMarks && studentsMarks.reduce((a, b) => a + b, 0)}
-                                    {`/${assignment.markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
+                                    {`${!isTeacherOrAdministrator && hasAllMarks ? totalMarks : ''}/${maximumTotalMarks}`}
                                 </Typography>
                             }
                         </Stack>
                         {assignment.markingCriteria && assignment.markingCriteria.length > 0
                             ? <Stack direction="column">
-                                {assignment.markingCriteria.map((criterion, index) => (
-                                    <Stack key={index} direction="row" spacing={2}>
+                                {assignment.markingCriteria.map(criterion => (
+                                    <Stack key={criterion.id} direction="row" spacing={2}>
                                         <Typography>{criterion.title}</Typography>
                                         <Typography>
-                                            {!isTeacherOrAdministrator && studentsMarks && studentsMarks[index]}
-                                            /{criterion.maximumMarks}
+                                            {!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined ? studentsMarks[criterion.id] : ''}
+                                                / { criterion.maximumMarks }
                                         </Typography>
                                     </Stack>
                                 ))}
