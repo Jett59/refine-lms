@@ -374,6 +374,7 @@ function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo
     const students = studentsWhoCanSeePost(post, schoolInfo)
 
     const { addComment, deleteComment } = useData()
+    const isTeacherOrAdministrator = useIsTeacherOrAdministrator(schoolInfo)
     const switchPage = useSwitchPage()
 
     const [showingComments, setShowingComments] = useState(false)
@@ -395,7 +396,7 @@ function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo
                 ? <Typography variant="h6"><Link to={postLocation}>{post.title || 'Untitled Assignment'}</Link></Typography>
                 : <Typography variant="h6">{post.title || 'Untitled Post'}</Typography>
             }
-            {isAssignment &&
+            {isAssignment && isTeacherOrAdministrator &&
             <SimpleMenu
                 buttonContents={<MoreVert />}
                 buttonAriaLabel="More options"
