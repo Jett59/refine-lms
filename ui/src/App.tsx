@@ -11,7 +11,7 @@ import Class from './Class'
 import PageWrapper from './PageWrapper';
 import Course from './Course';
 import Post from './Post';
-import CreateAssignment from './CreateAssignment';
+import CreateAssignment, { EditAssignment } from './CreateAssignment';
 
 function App() {
   const theme = createTheme();
@@ -33,6 +33,8 @@ function App() {
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/feed" element={<Course tab="feed" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/syllabus" element={<Course tab="syllabus" />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/create-assignment" element={<CreateAssignment />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/create-assignment" element={<CreateAssignment />} />
+          <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/edit-assignment/:postId" element={<EditAssignment />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/posts/:postId" element={<Post />} />
           <Route path="/:schoolId/years/:yearGroupId/courses/:courseId/classes/:classId?" element={<Class />} />
         </Routes>
@@ -83,13 +85,15 @@ export function useLocationParts() {
     parts.postId = rawParts[rawParts.indexOf('posts') + 1]
   }
   // So far, these are the only trailing path component which represents a separate page
-  // The feed/work tab also uses paths so we can't assume that the final part is a separate page
   // TODO: work out a way of finding these out without hardcoding them
   if (rawParts.length === 3 && rawParts[2] === 'people') {
     parts.page = 'people'
   }
   if (rawParts[rawParts.length - 1] === 'create-assignment') {
     parts.page = 'Create Assignment'
+  }
+  if (rawParts[rawParts.length - 2] === 'edit-assignment') {
+    parts.postId = rawParts[rawParts.length - 1]
   }
   return parts
 }

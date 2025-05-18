@@ -1,15 +1,15 @@
 import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { useData, useRelevantSchoolInfo } from "./DataContext"
 import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
-import { AttachmentTemplate, MarkingCriterionTemplate } from "../../data/post"
+import { AttachmentTemplate, MarkingCriterionTemplate, PostInfo } from "../../data/post"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Dayjs } from "dayjs"
+import dayjs, { Dayjs } from "dayjs"
 import { useConfirmationDialog } from "./ConfirmationDialog"
 import NumericalTextBox from "./NumericalTextBox"
 
@@ -34,7 +34,10 @@ function CriterionView({ criterion, update }: {
     </Stack>
 }
 
-export default function CreateAssignment() {
+export default function CreateAssignment({ original, editing }: {
+    original?: PostInfo
+    editing?: boolean
+}) {
     const { schoolId, yearGroupId, courseId } = useParams()
     const { createPost } = useData()
     const school = useRelevantSchoolInfo(schoolId)
@@ -42,21 +45,41 @@ export default function CreateAssignment() {
 
     const navigate = useNavigate()
 
-    useSetPageTitle('Create Assignment')
+    useSetPageTitle(original ? original.title : 'Create Assignment')
 
     const theme = useTheme()
     const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
 
     const [disabled, setDisabled] = useState(false)
 
-    const [title, setTitle] = useState('')
-    const [dueDate, setDueDate] = useState<Dayjs | null>(null)
-    const [content, setContent] = useState('')
-    const [classId, setClassId] = useState<string | undefined>(undefined)
+    const [title, setTitle] = useState(original?.title ?? '')
+    const [dueDate, setDueDate] = useState<Dayjs | null>(original?.isoDueDate ? dayjs(original.isoDueDate) : null)
+    const [content, setContent] = useState(original?.content ?? '')
+    const [classId, setClassId] = useState<string | undefined>(original?.classIds?.[0] ?? undefined)
     const classInfo = course?.classes.find(cls => cls.id === classId)
-    const [attachments, setAttachments] = useState<AttachmentTemplate[]>([])
-    const [submissionTemplates, setSubmissionTemplates] = useState<AttachmentTemplate[]>([])
-    const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterionTemplate[]>([])
+    const [attachments, setAttachments] = useState<AttachmentTemplate[]>(original?.attachments.map(attachment => ({
+        title: attachment.title,
+        thumbnail: attachment.thumbnail,
+        mimeType: attachment.mimeType,
+        shareMode: attachment.shareMode,
+        othersCanEdit: attachment.othersCanEdit,
+        host: attachment.host,
+        googleFileId: attachment.googleFileId
+    })) ?? [])
+    const [submissionTemplates, setSubmissionTemplates] = useState<AttachmentTemplate[]>(original?.submissionTemplates?.map(attachment => ({
+        title: attachment.title,
+        thumbnail: attachment.thumbnail,
+        mimeType: attachment.mimeType,
+        shareMode: attachment.shareMode,
+        othersCanEdit: attachment.othersCanEdit,
+        host: attachment.host,
+        googleFileId: attachment.googleFileId
+    })) ?? [])
+    const [markingCriteria, setMarkingCriteria] = useState<MarkingCriterionTemplate[]>(original?.markingCriteria?.map(criterion => ({
+        id: criterion.id,
+        title: criterion.title,
+        maximumMarks: criterion.maximumMarks
+    })) ?? [])
 
     const isEmpty = !title && !content && attachments.length === 0 && submissionTemplates.length === 0 && markingCriteria.length === 0
     const createConfirmationDialog = useConfirmationDialog()
@@ -166,13 +189,17 @@ export default function CreateAssignment() {
                     if (isEmpty) {
                         navigate(-1)
                     } else {
-                        createConfirmationDialog('Discard Assignment', 'Discard', () => navigate(-1))
+                        createConfirmationDialog(editing ? 'Discard Changes' : 'Discard Assignment', 'Discard', () => navigate(-1))
                     }
                 }}>Discard</Button>
             <Button
                 variant="contained"
                 disabled={disabled}
                 onClick={async () => {
+                    if (editing) {
+                        await createConfirmationDialog('Not Implemented', 'Ok', () => {})
+                        return
+                    }
                     setDisabled(true)
                     await createPost({
                         schoolId,
@@ -191,7 +218,27 @@ export default function CreateAssignment() {
                     })
                     navigate(-1)
                 }}
-            >Assign</Button>
+            >{editing ? 'Save' : 'Assign'}</Button>
         </Stack>
     </Stack>
+}
+
+export function EditAssignment() {
+    const { schoolId, yearGroupId, courseId, postId } = useParams()
+    const { getPost } = useData()
+    const [post, setPost] = useState<PostInfo | undefined>(undefined)
+
+    useEffect(() => {
+        if (schoolId && yearGroupId && courseId && postId) {
+            getPost(postId, schoolId, yearGroupId, courseId).then(post => {
+                if (post) {
+                    setPost(post)
+                }
+            })
+        }
+    }, [schoolId, yearGroupId, courseId, postId])
+    if (!post) {
+        return <Typography>Loading...</Typography>
+    }
+    return <CreateAssignment original={post} editing />
 }

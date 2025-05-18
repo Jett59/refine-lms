@@ -79,6 +79,9 @@ export interface AttachmentTemplate {
     googleFileId: string
 }
 export interface MarkingCriterionTemplate {
+    // Only used for editing; overridden by the server on creation
+    id?: string
+
     title: string
     maximumMarks: number
 }
