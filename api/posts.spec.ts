@@ -1,5 +1,5 @@
 import { Collection, Db, MongoClient, ObjectId } from "mongodb"
-import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback, addComment, deleteComment, convertPostsForApi } from "./posts"
+import { createPost, getUsableAttachmentLink, listPosts, getPost, Post, Attachment, AddAttachmentToSubmission, submitAssignment, RecordMarks, RecordFeedback, addComment, deleteComment, convertPostsForApi, updatePost } from "./posts"
 import { createUser } from "./user"
 import { School } from "./schools"
 import { PostInfo } from "../data/post"
@@ -3160,5 +3160,592 @@ describe("Posts", () => {
         const postFromDatabase2 = await db.collection<Post>('posts').findOne({ _id: postId! })
         expect(postFromDatabase2).not.toBeNull()
         expect(postFromDatabase2).toEqual(postFromDatabase)
+    })
+    it("Should update the title, content, and private status of a post", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true
+        })
+    })
+    it("Should not let a student edit a post made by someone else", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+    it("Should not allow teachers to edit posts by students", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user2], yearGroupId, courseId, classId, [user2])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(false)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId
+        })
+    })
+    it("Should allow teachers to edit posts made by other teachers", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user2,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'post',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true
+        })
+    })
+    it("Should discard ids on newly added marking criteria", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const markingCriterion1Id = new ObjectId()
+        const markingCriterion2Id = new ObjectId()
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            markingCriteria: [{
+                id: markingCriterion1Id.toHexString(),
+                title: "New Criterion 1",
+                maximumMarks: 10
+            }, {
+                id: markingCriterion2Id.toHexString(),
+                title: "New Criterion 2",
+                maximumMarks: 20
+            }]
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            markingCriteria: [{
+                id: expect.any(Object),
+                title: "New Criterion 1",
+                maximumMarks: 10
+            }, {
+                id: expect.any(Object),
+                title: "New Criterion 2",
+                maximumMarks: 20
+            }]
+        })
+        expect(postFromDatabase!.markingCriteria![0].id.toHexString()).not.toBe(markingCriterion1Id.toHexString())
+        expect(postFromDatabase!.markingCriteria![1].id.toHexString()).not.toBe(markingCriterion2Id.toHexString())
+    })
+    it("Should preserve ids on pre-existing marking criteria even when new marking criteria are also added", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+        const markingCriterion1Id = new ObjectId()
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: [{
+                id: markingCriterion1Id,
+                title: "Existing Criterion 1",
+                maximumMarks: 10
+            }],
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const markingCriterion2Id = new ObjectId()
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            markingCriteria: [{
+                id: markingCriterion1Id.toHexString(),
+                title: "Updated Existing Criterion 1",
+                maximumMarks: 15
+            }, {
+                id: markingCriterion2Id.toHexString(),
+                title: "New Criterion 2",
+                maximumMarks: 20
+            }]
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            markingCriteria: [{
+                id: markingCriterion1Id,
+                title: "Updated Existing Criterion 1",
+                maximumMarks: 15
+            }, {
+                id: expect.any(Object),
+                title: "New Criterion 2",
+                maximumMarks: 20
+            }]
+        })
+        expect(postFromDatabase!.markingCriteria![0].id.toHexString()).toBe(markingCriterion1Id.toHexString())
+        expect(postFromDatabase!.markingCriteria![1].id.toHexString()).not.toBe(markingCriterion2Id.toHexString())
+    })
+    it("Should retain attachments when updating a post, possibly changing title or other superficial attributes", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const attachment: Attachment = {
+            id: new ObjectId(),
+            title: "example.pdf",
+            thumbnail: '',
+            mimeType: "application/pdf",
+            host: 'google',
+            googleFileId: '12345',
+            othersCanEdit: false,
+            shareMode: 'shared',
+        }
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [attachment],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [{
+                title: 'New title',
+                thumbnail: attachment.thumbnail,
+                mimeType: attachment.mimeType,
+                host: attachment.host,
+                googleFileId: attachment.googleFileId,
+                othersCanEdit: attachment.othersCanEdit!,
+                shareMode: attachment.shareMode!
+            }],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            attachments: [{
+                ...attachment,
+                title: 'New title',
+            }]
+        })
+    })
+    it("Should add new attachments", async () => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [], yearGroupId, courseId, classId, [])
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const attachment1: Attachment = {
+            id: new ObjectId(),
+            title: "example1.pdf",
+            thumbnail: '',
+            mimeType: "application/pdf",
+            host: 'google',
+            googleFileId: '12345',
+            othersCanEdit: false,
+            shareMode: 'shared',
+        }
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'assignment',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [attachment1],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const attachment2: Attachment = {
+            id: new ObjectId(),
+            title: "example2.pdf",
+            thumbnail: '',
+            mimeType: "application/pdf",
+            host: 'google',
+            googleFileId: '12345', // We use the same one to prevent the code from trying to get access to our made-up file
+            othersCanEdit: true,
+            shareMode: 'copied',
+        }
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'assignment',
+            attachments: [{
+                title: attachment1.title,
+                thumbnail: attachment1.thumbnail,
+                mimeType: attachment1.mimeType,
+                host: attachment1.host,
+                googleFileId: attachment1.googleFileId,
+                othersCanEdit: attachment1.othersCanEdit!,
+                shareMode: attachment1.shareMode!
+            }, {
+                title: attachment2.title,
+                thumbnail: attachment2.thumbnail,
+                mimeType: attachment2.mimeType,
+                host: attachment2.host,
+                googleFileId: attachment2.googleFileId,
+                othersCanEdit: attachment2.othersCanEdit!,
+                shareMode: attachment2.shareMode!
+            }],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true
+        }, school, yearGroupId, courseId, null, null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase
+        ).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            attachments: [attachment1, {
+                ...attachment2,
+                id: expect.any(Object) // The ID should be generated by the database
+        }]
+        })
+    })
+    it("Should not allow students to edit posts to put them in classes to which the student does not belong", async() => {
+        const school = createSchoolStructure(schoolId, schoolMemberIds, [user1], yearGroupId, courseId, classId, [user1])
+        const otherClassId = new ObjectId()
+        // Add the new class to the school
+        school.yearGroups[0].courses[0].classes.push({
+            id: otherClassId,
+            name: "Other Class",
+            teacherIds: [],
+            studentIds: [],
+            requestingStudentIds: []
+        })
+        const date = new Date('2025-01-14T23:22:43.157Z')
+
+        const post: Post = {
+            postDate: date,
+            posterId: user1,
+            schoolId: schoolId,
+            yearGroupId: yearGroupId,
+            courseId: courseId,
+            classIds: null,
+            private: false,
+            type: 'post',
+            title: 'Hello',
+            content: 'Hello World',
+            attachments: [],
+            markingCriteria: null,
+            submissionTemplates: null,
+            studentAttachments: null,
+            isoDueDate: null,
+            isoSubmissionDates: null,
+            marks: null,
+            linkedSyllabusContentIds: null,
+            feedback: null,
+            comments: null
+        }
+        const postId = await createPost(db, school, post)
+        expect(postId).not.toBeNull()
+
+        const result = await updatePost(mongoClient, db, user1, '', postId!, {
+            schoolId: schoolId.toHexString(),
+            yearGroupId: yearGroupId.toHexString(),
+            courseId: courseId.toHexString(),
+            type: 'post',
+            attachments: [],
+            linkedSyllabusContentIds: [],
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            classIds: [classId.toHexString(), otherClassId.toHexString()]
+        }, school, yearGroupId, courseId, [classId, otherClassId], null, null)
+        expect(result).toBe(true)
+
+        const postFromDatabase = await db.collection<Post>('posts').findOne({ _id: postId! })
+        expect(postFromDatabase).not.toBeNull()
+        expect(postFromDatabase).toEqual({
+            ...post,
+            _id: postId,
+            title: "New Title",
+            content: "New Content",
+            private: true,
+            classIds: [classId] // otherClassId was stripped out (hopefully)
+        })
     })
 })

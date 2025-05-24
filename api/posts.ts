@@ -1,6 +1,6 @@
-import { Db, Filter, MongoClient, ObjectId } from "mongodb"
+import { ClientSession, Db, Filter, MongoClient, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
-import { MarkingCriterionTemplate, PostInfo, PostTemplate, PostType } from "../data/post"
+import { AttachmentTemplate, MarkingCriterionTemplate, PostInfo, PostTemplate, PostType } from "../data/post"
 import { ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
 import { AttachmentPreparationError, createCopy, getFileLink, prepareAttachments } from "./google-drive"
@@ -415,7 +415,7 @@ export async function listPosts(db: Db, school: School, userId: ObjectId, before
     }
 }
 
-export async function getPost(db: Db, school: School, userId: ObjectId, postId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Promise<PostInfo | null> {
+async function getRawPost(db: Db, school: School, userId: ObjectId, postId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[], transaction?: ClientSession): Promise<Post | null> {
     // We use the same filter as listPosts, but with the post id added
     const filter = getFilterForPosts(school, userId, null, yearGroupId, courseId, classIds, undefined)
     if (!filter) {
@@ -423,13 +423,21 @@ export async function getPost(db: Db, school: School, userId: ObjectId, postId: 
     }
     filter._id = postId
 
-    const isStudent = school.studentIds.some(student => student.equals(userId))
-
-    const post = await getCollection(db).findOne(filter)
+    const post = await getCollection(db).findOne(filter, { session: transaction })
     if (!post) {
         return null
     }
-    return (await convertPostsForApi(db, isStudent, userId, [post]))[0]
+    return post
+}
+
+export async function getPost(db: Db, school: School, userId: ObjectId, postId: ObjectId, yearGroupId: ObjectId, courseId?: ObjectId, classIds?: ObjectId[]): Promise<PostInfo | null> {
+    const isStudent = school.studentIds.some(student => student.equals(userId))
+    const rawPost = await getRawPost(db, school, userId, postId, yearGroupId, courseId, classIds)
+    if (rawPost) {
+        return (await convertPostsForApi(db, isStudent, userId, [rawPost]))[0]
+    } else {
+        return null
+    }
 }
 
 type LinkAccessorType = (googleFileId: string, googleFileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean) => Promise<{ link: string, fileId: string } | null>
@@ -839,4 +847,158 @@ export async function deleteComment(db: Db, userId: ObjectId, school: School, po
         }
     })
     return true
+}
+
+export async function updatePost(client: MongoClient, db: Db, userId: ObjectId, googleAccessToken: string, postId: ObjectId, newPostTemplate: PostTemplate, school: School, yearGroupId: ObjectId, courseId: ObjectId | null, classIds: ObjectId[] | null, linkedSyllabusContentIds: ObjectId[] | null, dueDate: Date | null): Promise<boolean | AttachmentPreparationError> {
+    if (!canViewPosts(userId, school, yearGroupId, courseId ?? undefined)) {
+        return false
+    }
+    // Start the transaction
+    const transaction = client.startSession()
+    try {
+        await transaction.startTransaction()
+        const post = await getRawPost(db, school, userId, postId, yearGroupId, courseId ?? undefined, classIds ?? undefined, transaction)
+        if (!post) {
+            await transaction.abortTransaction()
+            return false
+        }
+        // First check: that the user has permission to edit the post
+        // - Anyone can edit their own post
+        // - Students cannot edit posts made by any other user
+        // - Teachers and administrators cannot edit posts made by students, but can edit posts made by other teachers and administrators
+        if (!post.posterId.equals(userId)) {
+            // In this case, we need to check that the user is a teacher or administrator and that the post was made by a teacher or administrator
+            const isTeacherOrAdministrator = school.teacherIds.some(teacherId => teacherId.equals(userId)) || school.administratorIds.some(adminId => adminId.equals(userId))
+            const postIsTeacherOrAdministrator = school.teacherIds.some(teacherId => teacherId.equals(post.posterId)) || school.administratorIds.some(adminId => adminId.equals(post.posterId))
+            if (!isTeacherOrAdministrator) {
+                await transaction.abortTransaction()
+                return false
+            }
+            if (!postIsTeacherOrAdministrator) {
+                await transaction.abortTransaction()
+                return false
+            }
+        }
+        const newPost = { ...post }
+        let filteredClassIds: ObjectId[] | null = null
+        if (courseId && classIds) {
+            const course = school.yearGroups.find(yg => yg.id.equals(yearGroupId))?.courses.find(c => c.id.equals(courseId))
+            if (course) {
+                filteredClassIds = filterClassList(userId, school, course, classIds)
+            }
+        }
+        const newlyAddedAttachments = newPostTemplate.attachments.filter(attachment => !post.attachments.some(existingAttachment => existingAttachment.googleFileId === attachment.googleFileId))
+        // Prepare each of these newly added attachments
+        // It is critical that we only prepare *new* attachments, as old attachments may belong to other Google accounts
+        if (newlyAddedAttachments.length === 0) {
+            const attachmentPreparationResult = await prepareAttachments(googleAccessToken, newlyAddedAttachments)
+            if (attachmentPreparationResult !== true) {
+                await transaction.abortTransaction()
+                return attachmentPreparationResult
+            }
+        }
+        // We have to do the same thing for submission templates
+        const newlyAddedSubmissionTemplates: AttachmentTemplate[] | null = newPostTemplate.submissionTemplates?.filter(attachment => !post.submissionTemplates?.some(existingAttachment => existingAttachment.googleFileId === attachment.googleFileId)) ?? null
+        if (newlyAddedSubmissionTemplates) {
+            const submissionTemplatePreparationResult = await prepareAttachments(googleAccessToken, newlyAddedSubmissionTemplates)
+            if (submissionTemplatePreparationResult !== true) {
+                await transaction.abortTransaction()
+                return submissionTemplatePreparationResult
+            }
+        }
+        // Some of the marking criterion templates may have ids on them, so we need to check that these are all valid and remove them if not
+        const newMarkingCriteria: MarkingCriterion[] | null = newPostTemplate.markingCriteria?.map(criterion => {
+            if (criterion.id) {
+                const existingCriterion = post.markingCriteria?.find(existingCriterion => existingCriterion.id.equals(criterion.id))
+                if (existingCriterion) {
+                    return {
+                        id: existingCriterion.id,
+                        title: criterion.title,
+                        maximumMarks: criterion.maximumMarks
+                    }
+                }
+            }
+            return {
+                id: new ObjectId(),
+                title: criterion.title,
+                maximumMarks: criterion.maximumMarks
+            }
+        }) ?? null
+        // Attachments are interesting.
+        // We know now that the Google Drive files are all shared with our service account, but we need to sort out a few issues.
+        // - Existing individual copies of files must not be lost
+        // - Cached attachment links should be kept for performance reasons
+        // - The new attachments should be added to the post
+        // The solution is as follows:
+        // - If an attachment in the template has the same Google file id and permissions settings as an existing attachment, the existing document will be used with any modifications from the template
+        // - If an attachment in the template has the same Google file id but different permissions settings, a new document will be created
+        // - Otherwise a new document must be created anyway
+        const attachments: Attachment[] = newPostTemplate.attachments.map(attachment => {
+            const existingAttachment = post.attachments.find(candidateAttachment => {
+                return candidateAttachment.googleFileId === attachment.googleFileId
+                    && candidateAttachment.shareMode === attachment.shareMode
+                    && candidateAttachment.othersCanEdit === attachment.othersCanEdit
+            })
+            if (existingAttachment) {
+                return {
+                    ...existingAttachment,
+                    // We just need to change the title, thumbnail and mime type
+                    title: attachment.title,
+                    thumbnail: attachment.thumbnail,
+                    mimeType: attachment.mimeType
+                }
+            } else {
+                return {
+                    ...attachment,
+                    id: new ObjectId()
+                }
+            }
+        })
+        // We need to do the same thing for submission templates
+        const submissionTemplates: Attachment[] | null = newPostTemplate.submissionTemplates?.map(attachment => {
+            const existingAttachment = post.submissionTemplates?.find(candidateAttachment => {
+                return candidateAttachment.googleFileId === attachment.googleFileId
+                    // Technically we don't actually need any other conditions, since all submission templates are editable individual copies
+                    // We keep the check here anyway for consistency
+                    && candidateAttachment.shareMode === attachment.shareMode
+                    && candidateAttachment.othersCanEdit === attachment.othersCanEdit
+            })
+            if (existingAttachment) {
+                return existingAttachment
+            } else {
+                return {
+                    ...attachment,
+                    id: new ObjectId(),
+                    perUserFileIds: {},
+                    perUserLinks: {},
+                    perUserUsersWithAccess: {}
+                }
+            }
+        }) ?? null
+        // Now we can update the post
+        await getCollection(db).updateOne({
+            _id: postId,
+            schoolId: school._id
+        }, {
+            $set: {
+                ...newPost,
+                // Typescript catches where the template object differs from the database object, so this is fine if Typescript lets it happen
+                ...newPostTemplate,
+                schoolId: school._id,
+                yearGroupId,
+                courseId,
+                classIds: filteredClassIds ?? classIds,
+                linkedSyllabusContentIds,
+                attachments,
+                submissionTemplates,
+                isoDueDate: dueDate,
+                markingCriteria: newMarkingCriteria
+            }
+        }, { session: transaction })
+        await transaction.commitTransaction()
+        return true
+    } catch (e) {
+        await transaction.abortTransaction()
+        throw e
+    }
 }
