@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
 import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../../data/api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, UpdatePostRequest, UpdatePostResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -41,6 +41,7 @@ export interface DataContextValue {
     } | null>
     getAttachmentLink: (schoolId: string, postId: string, attachmentId: string, individualCopyOwnerId?: string) => Promise<string | null>
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
+    updatePost: (postId: string, schoolId: string, post: PostTemplate) => Promise<void>
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
     submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
     recordMarks: (schoolId: string, postId: string, studentId: string, marks: { [criterionId: string]: number }, feedback?: string) => Promise<boolean>
@@ -73,6 +74,7 @@ const DataContext = createContext<DataContextValue>({
     listPosts: async () => null,
     getAttachmentLink: async () => null,
     getPost: async () => null,
+    updatePost: async () => { },
     addAttachmentToSubmission: async () => null,
     submitAssignment: async () => false,
     recordMarks: async () => false,
@@ -311,6 +313,17 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 return null
             }
         }, [authenticatedAPIs]),
+        updatePost: useCallback(async (postId, schoolId, post) => {
+            const googleAccessToken = await getGoogleAccessToken()
+            if (!googleAccessToken) {
+                addError('Google access token not found')
+                return
+            }
+            const response = await authenticatedAPIs.call<UpdatePostResponse, UpdatePostRequest>('POST', 'update-post', { postId, post, schoolId, googleAccessToken })
+            if (!isSuccessfulAPIResponse(response)) {
+                addAPIError(response)
+            }
+        }, [authenticatedAPIs, getGoogleAccessToken, addError]),
         addAttachmentToSubmission: useCallback(async (schoolId, postId, attachment) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {

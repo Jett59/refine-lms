@@ -244,6 +244,16 @@ export interface GetPostResponse {
     post: PostInfo
 }
 
+export interface UpdatePostRequest {
+    postId: string
+    schoolId: string
+    post: PostTemplate
+    googleAccessToken: string
+}
+export interface UpdatePostResponse {
+    success: boolean
+}
+
 export interface AddAttachmentToSubmissionRequest {
     schoolId: string
     postId: string

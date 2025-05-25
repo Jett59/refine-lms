@@ -272,8 +272,7 @@ function Assignment({ assignment, school, refreshPost }: {
                                     <Stack key={criterion.id} direction="row" spacing={2}>
                                         <Typography>{criterion.title}</Typography>
                                         <Typography>
-                                            {!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined ? studentsMarks[criterion.id] : ''}
-                                                / { criterion.maximumMarks }
+                                            {`${!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined ? studentsMarks[criterion.id] : ''}/${criterion.maximumMarks}`}
                                         </Typography>
                                     </Stack>
                                 ))}

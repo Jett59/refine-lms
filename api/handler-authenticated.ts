@@ -3,8 +3,8 @@ import { errorResponse, getPath, raiseInternalServerError, successResponse, type
 import { MongoClient, ObjectId } from "mongodb";
 import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addSyllabusContent, addSyllabusOutcome, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeSyllabusOutcome, removeUser, requestToJoinClass } from "./schools";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, VisibleSchoolsResponse } from "../data/api";
-import { AddAttachmentToSubmission, addComment, createPost, deleteComment, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment } from "./posts";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, UpdatePostRequest, UpdatePostResponse, VisibleSchoolsResponse } from "../data/api";
+import { AddAttachmentToSubmission, addComment, createPost, deleteComment, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment, updatePost } from "./posts";
 import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 
 const DATABASE_NAME = process.env.REFINE_LMS_DATABASE ?? 'refine-dev'
@@ -628,6 +628,53 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 return successResponse<GetPostResponse>({ post })
             }
+            case "/update-post": {
+                const typedBody: UpdatePostRequest = body
+                if (!typedBody.postId) {
+                    return errorResponse(400, 'Missing post ID')
+                }
+                if (!typedBody.schoolId) {
+                    return errorResponse(400, 'Missing school ID')
+                }
+                if (!typedBody.googleAccessToken) {
+                    return errorResponse(400, 'Missing Google access token')
+                }
+                if (!typedBody.post) {
+                    return errorResponse(400, 'Missing post')
+                }
+                if (!typedBody.post.yearGroupId) {
+                    return errorResponse(400, 'Missing year group ID')
+                }
+                let schoolObjectId: ObjectId
+                let yearGroupObjectId: ObjectId
+                let postId: ObjectId
+                let courseObjectId: ObjectId | null = null
+                let classObjectIds: ObjectId[] | null = null
+                let linkedSyllabusContentIds: ObjectId[] | null = null
+                let dueDate: Date | null = null
+                try {
+                    schoolObjectId = new ObjectId(typedBody.schoolId)
+                    yearGroupObjectId = new ObjectId(typedBody.post.yearGroupId)
+                    postId = new ObjectId(typedBody.postId)
+                    courseObjectId = typedBody.post.courseId ? new ObjectId(typedBody.post.courseId) : null
+                    classObjectIds = typedBody.post.classIds?.map((id: string) => new ObjectId(id)) ?? null
+                    linkedSyllabusContentIds = typedBody.post.linkedSyllabusContentIds.map((id: string) => new ObjectId(id)) ?? null
+                    dueDate = typedBody.post.isoDueDate ? new Date(typedBody.post.isoDueDate) : null
+                } catch (e) {
+                    return errorResponse(400, 'Invalid school, year group, post, course, or class ID')
+                }
+                const school = await getSchool(db, user._id!, schoolObjectId)
+                if (!school) {
+                    return errorResponse(404, `School not found or user does not have access`)
+                }
+                const result = await updatePost(mongoClient, db, user._id!, typedBody.googleAccessToken, postId, typedBody.post, school, yearGroupObjectId, courseObjectId, classObjectIds, linkedSyllabusContentIds, dueDate)
+                if (result !== true) {
+                    // TODO: Detect Google Drive errors and report separately
+                    return errorResponse(400, 'Invalid post')
+                } else {
+                    return successResponse<UpdatePostResponse>({ success: true })
+                }
+            }
             case "/add-attachment-to-submission": {
                 const typedBody: AddAttachmentToSubmissionRequest = body
                 if (!typedBody.schoolId) {
@@ -727,10 +774,10 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                         const feedbackResult = await RecordFeedback(db, user._id!, studentObjectId, school, postObjectId, typedBody.feedback)
                         if (feedbackResult) {
                             return successResponse<RecordMarksResponse>({ success: true })
-                        }else {
+                        } else {
                             return errorResponse(400, 'Invalid post')
                         }
-                    }else {
+                    } else {
                         return successResponse<RecordMarksResponse>({ success: true })
                     }
                 } else {

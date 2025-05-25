@@ -39,7 +39,7 @@ export default function CreateAssignment({ original, editing }: {
     editing?: boolean
 }) {
     const { schoolId, yearGroupId, courseId } = useParams()
-    const { createPost } = useData()
+    const { createPost, updatePost } = useData()
     const school = useRelevantSchoolInfo(schoolId)
     const course = school?.yearGroups.find(yg => yg.id === yearGroupId)?.courses.find(c => c.id === courseId)
 
@@ -197,26 +197,42 @@ export default function CreateAssignment({ original, editing }: {
                 disabled={disabled}
                 onClick={async () => {
                     if (editing) {
-                        await createConfirmationDialog('Not Implemented', 'Ok', () => {})
-                        return
+                        setDisabled(true)
+                        await updatePost(original?.id ?? '', schoolId, {
+                            schoolId,
+                            yearGroupId,
+                            courseId,
+                            classIds: classId ? [classId] : undefined,
+                            type: 'assignment',
+                            private: false,
+                            title,
+                            content,
+                            linkedSyllabusContentIds: [],
+                            attachments,
+                            isoDueDate: dueDate?.isValid() ? dueDate?.toISOString() ?? undefined : undefined,
+                            submissionTemplates,
+                            markingCriteria
+                        })
+                        navigate(-1)
+                    } else {
+                        setDisabled(true)
+                        await createPost({
+                            schoolId,
+                            yearGroupId,
+                            courseId,
+                            classIds: classId ? [classId] : undefined,
+                            type: 'assignment',
+                            private: false,
+                            title,
+                            content,
+                            linkedSyllabusContentIds: [],
+                            attachments,
+                            isoDueDate: dueDate?.isValid() ? dueDate?.toISOString() ?? undefined : undefined,
+                            submissionTemplates,
+                            markingCriteria
+                        })
+                        navigate(-1)
                     }
-                    setDisabled(true)
-                    await createPost({
-                        schoolId,
-                        yearGroupId,
-                        courseId,
-                        classIds: classId ? [classId] : undefined,
-                        type: 'assignment',
-                        private: false,
-                        title,
-                        content,
-                        linkedSyllabusContentIds: [],
-                        attachments,
-                        isoDueDate: dueDate?.isValid() ? dueDate?.toISOString() ?? undefined : undefined,
-                        submissionTemplates,
-                        markingCriteria
-                    })
-                    navigate(-1)
                 }}
             >{editing ? 'Save' : 'Assign'}</Button>
         </Stack>

@@ -182,6 +182,11 @@ functions:
           authorizer:
             name: google
       - httpApi:
+          path: /api/update-post
+          method: post
+          authorizer:
+            name: google
+      - httpApi:
           path: /api/add-attachment-to-submission
           method: post
           authorizer:

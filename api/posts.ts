@@ -890,7 +890,7 @@ export async function updatePost(client: MongoClient, db: Db, userId: ObjectId, 
         const newlyAddedAttachments = newPostTemplate.attachments.filter(attachment => !post.attachments.some(existingAttachment => existingAttachment.googleFileId === attachment.googleFileId))
         // Prepare each of these newly added attachments
         // It is critical that we only prepare *new* attachments, as old attachments may belong to other Google accounts
-        if (newlyAddedAttachments.length === 0) {
+        if (newlyAddedAttachments.length !== 0) {
             const attachmentPreparationResult = await prepareAttachments(googleAccessToken, newlyAddedAttachments)
             if (attachmentPreparationResult !== true) {
                 await transaction.abortTransaction()
@@ -899,7 +899,7 @@ export async function updatePost(client: MongoClient, db: Db, userId: ObjectId, 
         }
         // We have to do the same thing for submission templates
         const newlyAddedSubmissionTemplates: AttachmentTemplate[] | null = newPostTemplate.submissionTemplates?.filter(attachment => !post.submissionTemplates?.some(existingAttachment => existingAttachment.googleFileId === attachment.googleFileId)) ?? null
-        if (newlyAddedSubmissionTemplates) {
+        if (newlyAddedSubmissionTemplates && newlyAddedSubmissionTemplates.length !== 0) {
             const submissionTemplatePreparationResult = await prepareAttachments(googleAccessToken, newlyAddedSubmissionTemplates)
             if (submissionTemplatePreparationResult !== true) {
                 await transaction.abortTransaction()
