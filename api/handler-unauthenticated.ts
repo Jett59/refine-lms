@@ -5,6 +5,8 @@ import { GoogleTokenResponse, GoogleAuthenticateRequest, GoogleRefreshRequest, G
 import { getGoogleProfileInformation } from "./googleProfile"
 import { ensureUserExists } from "./user"
 import { MongoClient } from "mongodb"
+import { GOOGLE_AUTHENTICATE_REQUEST, GOOGLE_REFRESH_REQUEST, GOOGLE_REVOKE_REQUEST } from "./data/api.zod"
+import { z } from "zod/v4"
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET
@@ -38,7 +40,11 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
 
         switch (path) {
             case "/google-authenticate": {
-                const typedBody: GoogleAuthenticateRequest = body
+                const bodyParseResult = GOOGLE_AUTHENTICATE_REQUEST.safeParse(body)
+                if (!bodyParseResult.success) {
+                    return errorResponse(400, z.prettifyError(bodyParseResult.error))
+                }
+                const typedBody = bodyParseResult.data
                 const { tokens } = await oAuth2Client.getToken(typedBody.code)
                 if (!tokens.access_token) {
                     return errorResponse(401, 'Invalid authorization code')
@@ -69,7 +75,11 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 })
             }
             case "/google-refresh": {
-                const typedBody: GoogleRefreshRequest = body
+                const bodyParseResult = GOOGLE_REFRESH_REQUEST.safeParse(body)
+                if (!bodyParseResult.success) {
+                    return errorResponse(400, z.prettifyError(bodyParseResult.error))
+                }
+                const typedBody = bodyParseResult.data
                 const user = new UserRefreshClient(googleClientId, googleClientSecret, typedBody.refreshToken)
                 const response = await user.refreshAccessToken()
                 const tokens = response.credentials
@@ -85,7 +95,11 @@ exports.handler = async (event: APIGatewayProxyEventV2, context: Context): Promi
                 })
             }
             case "/google-revoke": {
-                const typedBody: GoogleRevokeRequest = body
+                const bodyParseResult = GOOGLE_REVOKE_REQUEST.safeParse(body)
+                if (!bodyParseResult.success) {
+                    return errorResponse(400, z.prettifyError(bodyParseResult.error))
+                }
+                const typedBody = bodyParseResult.data
                 const user = new UserRefreshClient(googleClientId, googleClientSecret)
                 await user.revokeToken(typedBody.accessToken)
                 // We don't appear to need to do anything with the refresh token, as it is automatically revoked with the access token
