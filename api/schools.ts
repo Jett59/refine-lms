@@ -391,7 +391,8 @@ export async function removeUser(db: Db, ourUserId: ObjectId, schoolId: ObjectId
             teacherIds: userIdToRemove,
             studentIds: userIdToRemove,
             "yearGroups.$[].courses.$[].classes.$[].teacherIds": userIdToRemove,
-            "yearGroups.$[].courses.$[].classes.$[].studentIds": userIdToRemove
+            "yearGroups.$[].courses.$[].classes.$[].studentIds": userIdToRemove,
+            "yearGroups.$[].courses.$[].classes.$[].requestingStudentIds": userIdToRemove
         }
     })
 }

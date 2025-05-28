@@ -262,6 +262,38 @@ export default function School() {
         return <Typography>Loading...</Typography>
     }
 
+    const pendingJoinRequestsComponent = schoolInfo.pendingClassJoinRequests.length > 0 && <Stack direction="column" justifyContent="center" alignItems="center">
+        <Typography variant="h5">Pending Join Requests</Typography>
+        <List>
+            <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" useFlexGap flexWrap="wrap">
+                {schoolInfo.pendingClassJoinRequests.map((request, index) => <Box key={index} padding={1}>
+                    <ListItem sx={{
+                        backgroundColor: '#d0d0d0',
+                    }}>
+                        <ListItemIcon><Pending /></ListItemIcon>
+                        <Tooltip title={`${request.yearGroupName} ${request.courseName}`}>
+                            <Typography>
+                                {request.className}
+                                {/* Visually hidden, intended for screen readers */}
+                                <span style={{
+                                    position: 'absolute',
+                                    width: '1px',
+                                    margin: '-1px',
+                                    overflow: 'hidden',
+                                    clip: 'rect(0 0 0 0)'
+                                }}>
+                                    &nbsp;{`(${request.yearGroupName} ${request.courseName})`}
+                                </span>
+                            </Typography>
+                        </Tooltip>
+                    </ListItem>
+                </Box>
+                )
+                }
+            </Stack>
+        </List>
+    </Stack>
+
     if (schoolInfo?.yearGroups.length === 0) {
         if (isAdministratorOrTeacher) {
             return <Box display="flex" sx={{ height: '500px' }} justifyContent="center" alignItems="center">
@@ -270,6 +302,11 @@ export default function School() {
         }
         if (schoolInfo.pendingClassJoinRequests.length === 0) {
             return <Typography>You are not currently a member of a class</Typography>
+        } else {
+            return <Stack direction="column" spacing={2}>
+                {pendingJoinRequestsComponent}
+                <Typography>You are not currently a member of a class</Typography>
+            </Stack>
         }
     }
 
@@ -287,38 +324,6 @@ export default function School() {
     }))
 
     return <Stack direction="column" spacing={2}>
-        {schoolInfo.pendingClassJoinRequests.length > 0 && <Stack direction="column" justifyContent="center" alignItems="center">
-            <Typography variant="h5">Pending Join Requests</Typography>
-            <List>
-                <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" useFlexGap flexWrap="wrap">
-                    {schoolInfo.pendingClassJoinRequests.map((request, index) => <Box key={index} padding={1}>
-                        <ListItem sx={{
-                            backgroundColor: '#d0d0d0',
-                        }}>
-                            <ListItemIcon><Pending /></ListItemIcon>
-                            <Tooltip title={`${request.yearGroupName} ${request.courseName}`}>
-                                <Typography>
-                                    {request.className}
-                                    {/* Visually hidden, intended for screen readers */}
-                                    <span style={{
-                                        position: 'absolute',
-                                        width: '1px',
-                                        margin: '-1px',
-                                        overflow: 'hidden',
-                                        clip: 'rect(0 0 0 0)'
-                                    }}>
-                                        &nbsp;{`(${request.yearGroupName} ${request.courseName})`}
-                                    </span>
-                                </Typography>
-                            </Tooltip>
-                        </ListItem>
-                    </Box>
-                    )
-                    }
-                </Stack>
-            </List>
-        </Stack>
-        }
         <Tabs value={selectedYearGroupIndex} onChange={(_, newValue) => {
             switchPage('', schoolId, schoolInfo.yearGroups[newValue].id, undefined, undefined, undefined, true)
         }} aria-label="Year groups">

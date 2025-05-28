@@ -2,7 +2,7 @@ import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useMediaQ
 import { useSetPageTitle } from "./PageWrapper"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { useData, useRelevantSchoolInfo } from "./DataContext"
+import { getVisibleClassIds, useData, useRelevantSchoolInfo } from "./DataContext"
 import SimpleMenu from "./SimpleMenu"
 import { ExpandMore } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
@@ -116,7 +116,7 @@ export default function CreateAssignment({ original, editing }: {
                     <SimpleMenu
                         buttonContents={classInfo?.name ?? 'All classes'}
                         rounded
-                        buttonProps={{ endIcon: <ExpandMore /> }}
+                        buttonProps={{ endIcon: <ExpandMore />, disabled: editing }}
                         childrenSupplier={close => [
                             <MenuItem key="all" onClick={() => { setClassId(undefined); close() }}>All classes</MenuItem>,
                             ...course?.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>) ?? []
@@ -241,18 +241,20 @@ export default function CreateAssignment({ original, editing }: {
 
 export function EditAssignment() {
     const { schoolId, yearGroupId, courseId, postId } = useParams()
+    const school = useRelevantSchoolInfo(schoolId)
     const { getPost } = useData()
     const [post, setPost] = useState<PostInfo | undefined>(undefined)
 
     useEffect(() => {
-        if (schoolId && yearGroupId && courseId && postId) {
-            getPost(postId, schoolId, yearGroupId, courseId).then(post => {
+        if (schoolId && school && yearGroupId && courseId && postId) {
+            const classIds = getVisibleClassIds(school, yearGroupId, courseId)
+            getPost(postId, schoolId, yearGroupId, courseId, classIds).then(post => {
                 if (post) {
                     setPost(post)
                 }
             })
         }
-    }, [schoolId, yearGroupId, courseId, postId])
+    }, [schoolId, school, yearGroupId, courseId, postId])
     if (!post) {
         return <Typography>Loading...</Typography>
     }

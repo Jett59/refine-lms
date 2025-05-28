@@ -64,7 +64,7 @@ const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
 useEffect(() => {
     if (joinedSchools.length > 0) {
         const lastActiveSchoolId = localStorage.getItem(LAST_ACTIVE_SCHOOL_ID_KEY)
-        if (lastActiveSchoolId) {
+        if (lastActiveSchoolId && joinedSchools.find(school => school.id === lastActiveSchoolId)) {
             switchSchool(lastActiveSchoolId, true)
         }else {
             switchSchool(joinedSchools[0].id, true)
