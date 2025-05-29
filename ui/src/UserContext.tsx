@@ -33,7 +33,7 @@ const SCOPES = ['openid', 'https://www.googleapis.com/auth/userinfo.email', 'htt
 export function UserContextProvider({ children }: {
     children: ReactNode
 }) {
-    const { addAPIError, addError } = useError()
+    const { addAPIError } = useError()
 
     const [googleTokens, setGoogleTokens] = useState<GoogleTokenResponse | undefined>(undefined)
 
@@ -48,7 +48,7 @@ export function UserContextProvider({ children }: {
                     setGoogleTokens(parsedTokens)
                 }
             } catch (e) {
-                addError(`Invalid google token structure: ${tokens}`)
+                console.error(`Invalid google token structure: ${tokens}`)
             }
         }
     }, [])
@@ -87,7 +87,7 @@ export function UserContextProvider({ children }: {
                 loginHooks.current = []
                 setHandlingLogout(false)
             } else {
-                addAPIError(response)
+                addAPIError('log in', response)
             }
             setLoggingIn(false)
         },
@@ -132,7 +132,7 @@ export function UserContextProvider({ children }: {
                 if (isSuccessfulAPIResponse(response) && response.body.success) {
                     removeTokens()
                 } else {
-                    addAPIError(response)
+                    addAPIError('log out', response)
                 }
             }
         },
