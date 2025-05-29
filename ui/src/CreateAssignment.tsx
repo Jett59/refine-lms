@@ -198,7 +198,7 @@ export default function CreateAssignment({ original, editing }: {
                 onClick={async () => {
                     if (editing) {
                         setDisabled(true)
-                        await updatePost(original?.id ?? '', schoolId, {
+                        const updatedSuccessfully = await updatePost(original?.id ?? '', schoolId, {
                             schoolId,
                             yearGroupId,
                             courseId,
@@ -213,10 +213,14 @@ export default function CreateAssignment({ original, editing }: {
                             submissionTemplates,
                             markingCriteria
                         })
-                        navigate(-1)
+                        if (updatedSuccessfully) {
+                            navigate(-1)
+                        }else {
+                            setDisabled(false)
+                        }
                     } else {
                         setDisabled(true)
-                        await createPost({
+                        const createdSuccessfully = await createPost({
                             schoolId,
                             yearGroupId,
                             courseId,
@@ -231,7 +235,11 @@ export default function CreateAssignment({ original, editing }: {
                             submissionTemplates,
                             markingCriteria
                         })
-                        navigate(-1)
+                        if (createdSuccessfully) {
+                            navigate(-1)
+                        }else {
+                            setDisabled(false)
+                        }
                     }
                 }}
             >{editing ? 'Save' : 'Assign'}</Button>

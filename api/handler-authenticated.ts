@@ -5,7 +5,7 @@ import { createUser, findUser, findUserByJwtUserId, User } from "./user";
 import { addSyllabusContent, addSyllabusOutcome, addToClass, createClass, createCourse, createSchool, createYearGroup, declineInvitation, getRelevantSchoolInfo, getSchool, getSchoolStructure, invite, joinSchool, listVisibleSchools, removeFromClass, removeSyllabusContent, removeSyllabusOutcome, removeUser, requestToJoinClass } from "./schools";
 import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, UpdatePostRequest, UpdatePostResponse, VisibleSchoolsResponse } from "../data/api";
 import { AddAttachmentToSubmission, addComment, createPost, deleteComment, getPost, getUsableAttachmentLink, listPosts, preparePostFromTemplate, RecordFeedback, RecordMarks, submitAssignment, updatePost } from "./posts";
-import { isAttachmentPreparationError, prepareAttachments } from "./google-drive";
+import { AttachmentPreparationError, isAttachmentPreparationError, prepareAttachments } from "./google-drive";
 import { ADD_ATTACHMENT_TO_SUBMISSION_REQUEST, ADD_COMMENT_REQUEST, ADD_SYLLABUS_CONTENT_REQUEST, ADD_SYLLABUS_OUTCOME_REQUEST, ADD_TO_CLASS_REQUEST, ATTACHMENT_LINK_REQUEST, CREATE_CLASS_REQUEST, CREATE_COURSE_REQUEST, CREATE_POST_REQUEST, CREATE_SCHOOL_REQUEST, CREATE_YEAR_GROUP_REQUEST, DECLINE_INVITATION_REQUEST, DELETE_COMMENT_REQUEST, GET_POST_REQUEST, INVITE_REQUEST, JOIN_SCHOOL_REQUEST, LIST_POSTS_REQUEST, RECORD_MARKS_REQUEST, REMOVE_FROM_CLASS_REQUEST, REMOVE_SYLLABUS_CONTENT_REQUEST, REMOVE_SYLLABUS_OUTCOME_REQUEST, REMOVE_USER_REQUEST, REQUEST_TO_JOIN_CLASS_REQUEST, SUBMIT_ASSIGNMENT_REQUEST, UPDATE_POST_REQUEST } from "./data/api.zod";
 import { z } from "zod/v4";
 
@@ -278,7 +278,7 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 const preparedPost = await preparePostFromTemplate(postTemplate, typedBody.googleAccessToken, user._id!, schoolObjectId, yearGroupObjectId, courseObjectId, classObjectIds)
                 if (isAttachmentPreparationError(preparedPost)) {
-                    return typedErrorResponse(400, preparedPost)
+                    return typedErrorResponse<AttachmentPreparationError>(400, preparedPost)
                 }
                 const postId = await createPost(db, school, preparedPost)
                 if (postId) {
@@ -385,8 +385,12 @@ exports.handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer, context
                 }
                 const result = await updatePost(mongoClient, db, user._id!, typedBody.googleAccessToken, postId, typedBody.post, school, yearGroupObjectId, courseObjectId, classObjectIds, linkedSyllabusContentIds, dueDate)
                 if (result !== true) {
-                    // TODO: Detect Google Drive errors and report separately
+                    if (result === false) {
                     return errorResponse(400, 'Invalid post')
+                    }else {
+                        // The result is a Google drive attachment error
+                        return typedErrorResponse<AttachmentPreparationError>(400, result)
+                    }
                 } else {
                     return successResponse<UpdatePostResponse>({ success: true })
                 }

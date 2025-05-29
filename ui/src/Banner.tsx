@@ -1,11 +1,11 @@
-import { AppBar, Avatar, Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography } from "@mui/material"
+import { AppBar, Avatar, Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, MenuItem, Stack, Tooltip, Typography } from "@mui/material"
 import { useUser } from "./UserContext"
 import { useData } from "./DataContext"
 import { useError } from "./ErrorContext"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSwitchSchool } from "./App"
 import SimpleMenu from "./SimpleMenu"
-import { Add, Email, ExpandMore, House, NotificationImportant } from "@mui/icons-material"
+import { Add, Email, ExpandLess, ExpandMore, House, NotificationImportant, Warning } from "@mui/icons-material"
 import RefineLogo from "./RefineLogo"
 import { CreateSchoolDialog } from "./Schools"
 
@@ -13,29 +13,64 @@ function ErrorButton() {
     const { errors } = useError()
 
     const [open, setOpen] = useState(false)
+    const [advancedOpen, setAdvancedOpen] = useState(false)
+
+// Automatically open the error dialog if a new error occurs
+const previousErrorCount = useRef(errors.length)
+useEffect(() => {
+    if (errors.length > previousErrorCount.current) {
+        setOpen(true)
+        setAdvancedOpen(false)
+    }
+    previousErrorCount.current = errors.length
+}, [errors.length])
 
     if (errors.length > 0) {
+        const lastError = errors[errors.length - 1]
+
         return <>
-            <Button
-                variant="outlined"
-                color="warning"
-                onClick={() => setOpen(true)}
-                sx={{ borderRadius: '50%', width: '50px', height: '50px' }}
-                aria-label={`View ${errors.length} error${errors.length !== 1 ? 's' : ''}`}
-            >
-                {errors.length}
-            </Button>
+            <Tooltip title={`${errors.length} error${errors.length !== 1 ? 's' : ''}`}>
+                <IconButton
+                    color="warning"
+                    onClick={() => setOpen(true)}
+                    sx={{ borderRadius: '50%', width: '50px', height: '50px' }}
+                >
+                    <Warning />
+                </IconButton>
+            </Tooltip>
             <Dialog open={open} onClose={() => setOpen(false)}>
-                <DialogTitle>Errors</DialogTitle>
+                <DialogTitle>Error</DialogTitle>
                 <DialogContent>
                     <Box padding={1}>
-                        <ul>
-                            {errors.map((error, i) => <li key={i}>{error}</li>)}
-                        </ul>
+                        <Typography variant="body1" color="error">{lastError.displayMessage}</Typography>
+                        <Button
+                            variant="text"
+                            aria-expanded={advancedOpen}
+                            onClick={() => setAdvancedOpen(!advancedOpen)}
+                            endIcon={advancedOpen ? <ExpandLess /> : <ExpandMore />}
+                        >
+                            {advancedOpen ? 'Hide details' : 'Show details'}
+                        </Button>
+                        {advancedOpen && <List>
+                            {errors.map((error, index) => (
+                                <ListItem key={index}>
+                                    <Typography variant="body2" color="textSecondary">
+                                        {error.displayMessage}
+                                    </Typography>
+                                    <Typography variant="body2" color="textSecondary">
+                                        {error.detailMessage}
+                                    </Typography>
+                                    {error.statusCode && <Typography variant="body2" color="textSecondary">
+                                        Status Code: {error.statusCode}
+                                    </Typography>}
+                                    {error.errorBody && <pre>{error.errorBody}</pre>}
+                                </ListItem>
+                            ))}
+                        </List>}
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="outlined" onClick={() => setOpen(false)}>Close</Button>
+                    <Button variant="outlined" onClick={() => setOpen(false)}>Ok</Button>
                 </DialogActions>
             </Dialog>
         </>

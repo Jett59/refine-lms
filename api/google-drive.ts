@@ -25,7 +25,8 @@ async function getUserClient(accessToken: string) {
 }
 
 export interface AttachmentPreparationError {
-    attachmentIndex: number
+    attachmentTitle: string
+    attachmentFileId: string
     message: string
 }
 
@@ -46,7 +47,8 @@ export async function prepareAttachments(accessToken: string, attachments: Attac
             } catch (e) {
                 console.error(e)
                 return {
-                    attachmentIndex: index,
+                    attachmentTitle: attachment.title,
+                    attachmentFileId: attachment.googleFileId,
                     message: 'Failed to share the attachment with the service account'
                 }
             }
@@ -61,7 +63,7 @@ export async function prepareAttachments(accessToken: string, attachments: Attac
 }
 
 export function isAttachmentPreparationError(error: any): error is AttachmentPreparationError {
-    return error.attachmentIndex !== undefined && error.message !== undefined
+    return error.attachmentTitle !== undefined && error.attachmentFileId !== undefined && error.message !== undefined
 }
 
 export async function getFileLink(fileId: string, fileName: string, userEmail: string, userName: string, hasEditAccess: boolean, shouldCreateCopy: boolean): Promise<{ link: string, fileId: string } | null> {

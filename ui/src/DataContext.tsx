@@ -34,14 +34,14 @@ export interface DataContextValue {
     addSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, name: string, description: string) => Promise<void>
     removeSyllabusOutcome: (schoolId: string, yearGroupId: string, courseId: string, id: string) => Promise<void>
 
-    createPost: (post: PostTemplate) => Promise<void>
+    createPost: (post: PostTemplate) => Promise<boolean>
     listPosts: (beforeDate: string | null, limit: number, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[], postTypes?: PostType[]) => Promise<{
         posts: PostInfo[]
         isEnd: boolean
     } | null>
     getAttachmentLink: (schoolId: string, postId: string, attachmentId: string, individualCopyOwnerId?: string) => Promise<string | null>
     getPost: (postId: string, schoolId: string, yearGroupId: string, courseId?: string, classIds?: string[]) => Promise<PostInfo | null>
-    updatePost: (postId: string, schoolId: string, post: PostTemplate) => Promise<void>
+    updatePost: (postId: string, schoolId: string, post: PostTemplate) => Promise<boolean>
     addAttachmentToSubmission: (schoolId: string, postId: string, attachment: AttachmentTemplate) => Promise<string | null>
     submitAssignment: (schoolId: string, postId: string) => Promise<boolean>
     recordMarks: (schoolId: string, postId: string, studentId: string, marks: { [criterionId: string]: number }, feedback?: string) => Promise<boolean>
@@ -70,11 +70,11 @@ const DataContext = createContext<DataContextValue>({
     removeSyllabusContent: async () => { },
     addSyllabusOutcome: async () => { },
     removeSyllabusOutcome: async () => { },
-    createPost: async () => { },
+    createPost: async () => false,
     listPosts: async () => null,
     getAttachmentLink: async () => null,
     getPost: async () => null,
-    updatePost: async () => { },
+    updatePost: async () => false,
     addAttachmentToSubmission: async () => null,
     submitAssignment: async () => false,
     recordMarks: async () => false,
@@ -100,7 +100,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             setInvitedSchools(response.body.invitedSchools)
             setLoadingInitialSchoolsList(false) // Only changes the value after the first fetch
         } else {
-            addAPIError(response)
+            addAPIError('get schools list', response)
         }
     }, [authenticatedAPIs, addAPIError])
 
@@ -129,7 +129,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             } else {
                 relevantSchoolInfosCallbacks.current[schoolId].forEach(callback => callback(null))
                 delete relevantSchoolInfosCallbacks.current[schoolId]
-                addAPIError(response)
+                addAPIError('get school information', response)
                 return null
             }
         }
@@ -149,7 +149,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 await updateVisibleSchoolList()
                 return response.body.createdId
             } else {
-                addAPIError(response)
+                addAPIError('create school', response)
             }
             return null
         }, [authenticatedAPIs]),
@@ -159,7 +159,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
                 // Refresh the school info cache
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('create year group', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         createCourse: useCallback(async (schoolId, yearGroupId, name, initialClassNames) => {
@@ -167,7 +167,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('create course', response)
             }
         }, [authenticatedAPIs]),
         createClass: useCallback(async (schoolId, yearGroupId, courseId, name) => {
@@ -175,7 +175,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('create class', response)
             }
         }, [authenticatedAPIs]),
         invite: useCallback(async (schoolId, role, email) => {
@@ -183,7 +183,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('send invitation', response)
             }
         }, [authenticatedAPIs]),
         joinSchool: useCallback(async (schoolId) => {
@@ -191,7 +191,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await updateVisibleSchoolList()
             } else {
-                addAPIError(response)
+                addAPIError('join school', response)
             }
         }, [authenticatedAPIs, updateVisibleSchoolList]),
         declineInvitation: useCallback(async (schoolId) => {
@@ -199,7 +199,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await updateVisibleSchoolList()
             } else {
-                addAPIError(response)
+                addAPIError('decline invitation', response)
             }
         }, [authenticatedAPIs, updateVisibleSchoolList]),
         removeUser: useCallback(async (schoolId, userId) => {
@@ -207,7 +207,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('remove user', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         addToClass: useCallback(async (schoolId, yearGroupId, courseId, classId, role, userId) => {
@@ -215,7 +215,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('add to class', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         removeFromClass: useCallback(async (schoolId, yearGroupId, courseId, classId, userId) => {
@@ -223,7 +223,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('remove from class', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         getSchoolStructure: useCallback(async (schoolId) => {
@@ -231,7 +231,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.school
             } else {
-                addAPIError(response)
+                addAPIError('get school information', response)
                 return null
             }
         }, [authenticatedAPIs]),
@@ -240,7 +240,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('request to join class', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         addSyllabusContent: useCallback(async (schoolId, yearGroupId, courseId, content) => {
@@ -248,7 +248,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('add syllabus content', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         removeSyllabusContent: useCallback(async (schoolId, yearGroupId, courseId, id) => {
@@ -256,7 +256,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('remove syllabus content', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         addSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, name, description) => {
@@ -264,7 +264,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('add syllabus outcome', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         removeSyllabusOutcome: useCallback(async (schoolId, yearGroupId, courseId, id) => {
@@ -272,18 +272,21 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 await getRelevantSchoolInfo(schoolId, true)
             } else {
-                addAPIError(response)
+                addAPIError('remove syllabus outcome', response)
             }
         }, [authenticatedAPIs, getRelevantSchoolInfo]),
         createPost: useCallback(async (post) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError('Google access token not found')
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
+                return false
             } else {
                 const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post, googleAccessToken })
                 if (!isSuccessfulAPIResponse(response)) {
-                    addAPIError(response)
+                    addAPIError('create post', response)
+                    return false
                 }
+                return true
             }
         }, [authenticatedAPIs]),
         listPosts: useCallback(async (beforeDate, limit, schoolId, yearGroupId, courseId, classIds, postTypes) => {
@@ -291,7 +294,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body
             } else {
-                addAPIError(response)
+                addAPIError('get posts list', response)
                 return null
             }
         }, [authenticatedAPIs]),
@@ -300,7 +303,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.link
             } else {
-                addAPIError(response)
+                addAPIError('open attachment', response)
                 return null
             }
         }, [authenticatedAPIs]),
@@ -309,32 +312,34 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.post
             } else {
-                addAPIError(response)
+                addAPIError('get post', response)
                 return null
             }
         }, [authenticatedAPIs]),
         updatePost: useCallback(async (postId, schoolId, post) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError('Google access token not found')
-                return
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
+                return false
             }
             const response = await authenticatedAPIs.call<UpdatePostResponse, UpdatePostRequest>('POST', 'update-post', { postId, post, schoolId, googleAccessToken })
-            if (!isSuccessfulAPIResponse(response)) {
-                addAPIError(response)
+            if (!isSuccessfulAPIResponse(response) || !response.body.success) {
+                addAPIError('update post', response)
+                return false
             }
+            return true
         }, [authenticatedAPIs, getGoogleAccessToken, addError]),
         addAttachmentToSubmission: useCallback(async (schoolId, postId, attachment) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError('Google access token not found')
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
                 return null
             }
             const response = await authenticatedAPIs.call<AddAttachmentToSubmissionResponse, AddAttachmentToSubmissionRequest>('POST', 'add-attachment-to-submission', { schoolId, postId, attachment, googleAccessToken })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.attachmentId
             } else {
-                addAPIError(response)
+                addAPIError('attach file', response)
                 return null
             }
         }, [authenticatedAPIs, getGoogleAccessToken, addError]),
@@ -343,7 +348,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 return true
             } else {
-                addAPIError(response)
+                addAPIError('submit assignment', response)
                 return false
             }
         }, [authenticatedAPIs, addError]),
@@ -352,7 +357,7 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response) && response.body.success) {
                 return true
             } else {
-                addAPIError(response)
+                addAPIError('record marks', response)
                 return false
             }
         }, [authenticatedAPIs, addError]),
@@ -361,14 +366,14 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.id
             } else {
-                addAPIError(response)
+                addAPIError('add comment', response)
                 return null
             }
         }, [authenticatedAPIs]),
         deleteComment: useCallback(async (schoolId, postId, commentId) => {
             const response = await authenticatedAPIs.call<DeleteCommentResponse, DeleteCommentRequest>('POST', 'delete-comment', { schoolId, postId, commentId })
             if (!isSuccessfulAPIResponse(response)) {
-                addAPIError(response)
+                addAPIError('delete comment', response)
             }
         }, [authenticatedAPIs]),
     }}>
