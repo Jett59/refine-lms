@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Role, SchoolInfo, SchoolStructure } from "../../data/school";
 import { AttachmentTemplate, PostInfo, PostTemplate, PostType } from "../../data/post"
-import { isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
-import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, UpdatePostRequest, UpdatePostResponse, VisibleSchoolsResponse } from "../../data/api";
+import { isFailedAPIResponse, isSuccessfulAPIResponse, useAuthenticatedAPIs } from "./api";
+import { AddAttachmentToSubmissionRequest, AddAttachmentToSubmissionResponse, AddCommentRequest, AddCommentResponse, AddSyllabusContentRequest, AddSyllabusContentResponse, AddSyllabusOutcomeRequest, AddSyllabusOutcomeResponse, AddToClassRequest, AddToClassResponse, AttachmentLinkRequest, AttachmentLinkResponse, AttachmentPreparationError, CreateClassRequest, CreateClassResponse, CreateCourseRequest, CreateCourseResponse, CreatePostRequest, CreatePostResponse, CreateSchoolRequest, CreateSchoolResponse, CreateYearGroupRequest, CreateYearGroupResponse, DeclineInvitationRequest, DeclineInvitationResponse, DeleteCommentRequest, DeleteCommentResponse, GetPostRequest, GetPostResponse, InviteRequest, InviteResponse, JoinSchoolRequest, JoinSchoolResponse, ListPostsRequest, ListPostsResponse, RecordMarksRequest, RecordMarksResponse, RelevantSchoolInfoResponse, RemoveFromClassRequest, RemoveFromClassResponse, RemoveSyllabusContentRequest, RemoveSyllabusContentResponse, RemoveSyllabusOutcomeRequest, RemoveSyllabusOutcomeResponse, RemoveUserRequest, RemoveUserResponse, RequestToJoinClassRequest, RequestToJoinClassResponse, SchoolStructureResponse, SubmitAssignmentRequest, SubmitAssignmentResponse, UpdatePostRequest, UpdatePostResponse, VisibleSchoolsResponse } from "../../data/api";
 import { useUser } from "./UserContext";
 import { useError } from "./ErrorContext";
 
@@ -83,7 +83,7 @@ const DataContext = createContext<DataContextValue>({
 })
 
 export function DataContextProvider({ children }: { children: React.ReactNode }) {
-    const { addAPIError, addError } = useError()
+    const { addAPIError, addError, addAttachmentPreparationError } = useError()
 
     const { loggedIn } = useUser()
 
@@ -278,12 +278,17 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         createPost: useCallback(async (post) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found', deleteOnView: false })
                 return false
             } else {
                 const response = await authenticatedAPIs.call<CreatePostResponse, CreatePostRequest>('POST', 'create-post', { post, googleAccessToken })
-                if (!isSuccessfulAPIResponse(response)) {
-                    addAPIError('create post', response)
+                if (isFailedAPIResponse(response)) {
+                    const attachmentPreparationError = tryParseErrorAsAttachmentError(response.error)
+                    if (attachmentPreparationError) {
+                        addAttachmentPreparationError(attachmentPreparationError)
+                    } else {
+                        addAPIError('create post', response)
+                    }
                     return false
                 }
                 return true
@@ -319,26 +324,39 @@ export function DataContextProvider({ children }: { children: React.ReactNode })
         updatePost: useCallback(async (postId, schoolId, post) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found', deleteOnView: false })
                 return false
             }
             const response = await authenticatedAPIs.call<UpdatePostResponse, UpdatePostRequest>('POST', 'update-post', { postId, post, schoolId, googleAccessToken })
-            if (!isSuccessfulAPIResponse(response) || !response.body.success) {
-                addAPIError('update post', response)
-                return false
+            if (isFailedAPIResponse(response)) {
+                const attachmentPreparationError = tryParseErrorAsAttachmentError(response.error)
+                    if (attachmentPreparationError) {
+                        addAttachmentPreparationError(attachmentPreparationError)
+                    } else {
+                        addAPIError('Update post', response)
+                    }
+                    return false
             }
             return true
         }, [authenticatedAPIs, getGoogleAccessToken, addError]),
         addAttachmentToSubmission: useCallback(async (schoolId, postId, attachment) => {
             const googleAccessToken = await getGoogleAccessToken()
             if (!googleAccessToken) {
-                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found' })
+                addError({ displayMessage: 'Failed to connect to Google', detailMessage: 'Google access token not found', deleteOnView: false })
                 return null
             }
             const response = await authenticatedAPIs.call<AddAttachmentToSubmissionResponse, AddAttachmentToSubmissionRequest>('POST', 'add-attachment-to-submission', { schoolId, postId, attachment, googleAccessToken })
             if (isSuccessfulAPIResponse(response)) {
                 return response.body.attachmentId
-            } else {
+            } else if (isFailedAPIResponse(response)) {
+                const attachmentPreparationError = tryParseErrorAsAttachmentError(response.error)
+                    if (attachmentPreparationError) {
+                        addAttachmentPreparationError(attachmentPreparationError)
+                    } else {
+                        addAPIError('create post', response)
+                    }
+                    return null
+            }else {
                 addAPIError('attach file', response)
                 return null
             }
@@ -443,4 +461,14 @@ export function useSchoolStructure(schoolId: string): SchoolStructure | null {
 
 export function getVisibleClassIds(school: SchoolInfo, yearGroupId: string, courseId: string): string[] {
     return school.yearGroups.find(yearGroup => yearGroup.id === yearGroupId)?.courses.find(course => course.id === courseId)?.classes.map(cls => cls.id) ?? []
+}
+
+function tryParseErrorAsAttachmentError(errorMessage: string): AttachmentPreparationError | false {
+    try {
+        const messageObject = JSON.parse(errorMessage)
+        if (messageObject.attachmentTitle && messageObject.attachmentFileId && messageObject.message) {
+            return messageObject
+        }
+    } catch (_e) { }
+    return false
 }

@@ -10,20 +10,20 @@ import RefineLogo from "./RefineLogo"
 import { CreateSchoolDialog } from "./Schools"
 
 function ErrorButton() {
-    const { errors } = useError()
+    const { errors, deleteDeleteOnViewErrors } = useError()
 
     const [open, setOpen] = useState(false)
     const [advancedOpen, setAdvancedOpen] = useState(false)
 
-// Automatically open the error dialog if a new error occurs
-const previousErrorCount = useRef(errors.length)
-useEffect(() => {
-    if (errors.length > previousErrorCount.current) {
-        setOpen(true)
-        setAdvancedOpen(false)
-    }
-    previousErrorCount.current = errors.length
-}, [errors.length])
+    // Automatically open the error dialog if a new error occurs
+    const previousErrorCount = useRef(errors.length)
+    useEffect(() => {
+        if (errors.length > previousErrorCount.current) {
+            setOpen(true)
+            setAdvancedOpen(false)
+        }
+        previousErrorCount.current = errors.length
+    }, [errors.length])
 
     if (errors.length > 0) {
         const lastError = errors[errors.length - 1]
@@ -38,7 +38,10 @@ useEffect(() => {
                     <Warning />
                 </IconButton>
             </Tooltip>
-            <Dialog open={open} onClose={() => setOpen(false)}>
+            <Dialog open={open} onClose={() => {
+                setOpen(false)
+                deleteDeleteOnViewErrors()
+            }}>
                 <DialogTitle>Error</DialogTitle>
                 <DialogContent>
                     <Box padding={1}>
@@ -70,7 +73,10 @@ useEffect(() => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button variant="outlined" onClick={() => setOpen(false)}>Ok</Button>
+                    <Button variant="outlined" onClick={() => {
+                        setOpen(false)
+                        deleteDeleteOnViewErrors()
+                    }}>Ok</Button>
                 </DialogActions>
             </Dialog>
         </>

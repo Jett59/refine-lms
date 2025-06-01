@@ -190,6 +190,12 @@ export interface RemoveSyllabusOutcomeResponse {
     success: boolean
 }
 
+export interface AttachmentPreparationError {
+    attachmentTitle: string
+    attachmentFileId: string
+    message: string
+}
+
 export interface CreatePostRequest {
     post: PostTemplate,
     googleAccessToken: string

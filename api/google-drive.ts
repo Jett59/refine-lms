@@ -1,6 +1,7 @@
 import { GoogleAuth, JWTInput, OAuth2Client } from "google-auth-library";
 import { drive_v3 } from "@googleapis/drive";
 import { AttachmentTemplate } from "../data/post";
+import { AttachmentPreparationError } from "../data/api";
 
 let SERVICE_ACCOUNT_DRIVE_CLIENT: drive_v3.Drive | null = null
 
@@ -22,12 +23,6 @@ async function getUserClient(accessToken: string) {
     const oAuthClient = new OAuth2Client()
     oAuthClient.setCredentials({ access_token: accessToken })
     return new drive_v3.Drive({ auth: oAuthClient })
-}
-
-export interface AttachmentPreparationError {
-    attachmentTitle: string
-    attachmentFileId: string
-    message: string
 }
 
 export async function prepareAttachments(accessToken: string, attachments: AttachmentTemplate[]): Promise<true | AttachmentPreparationError> {
