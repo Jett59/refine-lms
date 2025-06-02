@@ -2,8 +2,9 @@ import { useSetPageTitle } from "./PageWrapper";
 import { useData } from "./DataContext";
 import { useSwitchSchool } from "./App";
 import { TileCard, TileContainer } from "./Tile";
-import { Box, Button, CardActions, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, CardActions, CardHeader, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
+import MaximumLengthTextBox from "./MaximumLengthTextBox";
 
 export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
     open: boolean,
@@ -24,7 +25,8 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
         <DialogTitle>Create a new school</DialogTitle>
         <DialogContent>
             <Box padding={1}>
-                <TextField
+                <MaximumLengthTextBox
+                    maximumLength={100}
                     autoComplete="off"
                     label="School name"
                     value={name}
@@ -59,42 +61,42 @@ export default function Schools() {
     const { joinedSchools, invitedSchools, loadingInitialSchoolsList, joinSchool, declineInvitation } = useData()
     useSetPageTitle(!loadingInitialSchoolsList ? 'Schools' : '')
 
-const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
+    const [createSchoolOpen, setCreateSchoolOpen] = useState(false)
 
-useEffect(() => {
-    if (joinedSchools.length > 0) {
-        const lastActiveSchoolId = localStorage.getItem(LAST_ACTIVE_SCHOOL_ID_KEY)
-        if (lastActiveSchoolId && joinedSchools.find(school => school.id === lastActiveSchoolId)) {
-            switchSchool(lastActiveSchoolId, true)
-        }else {
-            switchSchool(joinedSchools[0].id, true)
+    useEffect(() => {
+        if (joinedSchools.length > 0) {
+            const lastActiveSchoolId = localStorage.getItem(LAST_ACTIVE_SCHOOL_ID_KEY)
+            if (lastActiveSchoolId && joinedSchools.find(school => school.id === lastActiveSchoolId)) {
+                switchSchool(lastActiveSchoolId, true)
+            } else {
+                switchSchool(joinedSchools[0].id, true)
+            }
         }
-    }
-}, [joinedSchools])
+    }, [joinedSchools])
 
     if (joinedSchools.length === 0 && invitedSchools.length === 0) {
         if (!loadingInitialSchoolsList) {
-        return <Stack direction="column" spacing={2} alignItems="center">
-            <Typography>
-                Wait for an invitation to a school or create your own.
-            </Typography>
-            <Button variant="outlined" onClick={() => setCreateSchoolOpen(true)}>Create school</Button>
-            <CreateSchoolDialog open={createSchoolOpen} setOpen={setCreateSchoolOpen} switchOnOpen />
-        </Stack>
-        }else {
+            return <Stack direction="column" spacing={2} alignItems="center">
+                <Typography>
+                    Wait for an invitation to a school or create your own.
+                </Typography>
+                <Button variant="outlined" onClick={() => setCreateSchoolOpen(true)}>Create school</Button>
+                <CreateSchoolDialog open={createSchoolOpen} setOpen={setCreateSchoolOpen} switchOnOpen />
+            </Stack>
+        } else {
             return <Typography>Loading...</Typography>
         }
     }
 
-return <TileContainer centre>
-    {invitedSchools.map(school => (
-        <TileCard key={school.id}>
-            <CardHeader title={school.name.toUpperCase()} titleTypographyProps={{ variant: 'h6' }} />
-            <CardActions>
-                <Button onClick={() => joinSchool(school.id)}>Join</Button>
-                <Button onClick={() => declineInvitation(school.id)}>Decline invitation</Button>
-            </CardActions>
-        </TileCard>
-    ))}
-</TileContainer>
+    return <TileContainer centre>
+        {invitedSchools.map(school => (
+            <TileCard key={school.id}>
+                <CardHeader title={school.name.toUpperCase()} titleTypographyProps={{ variant: 'h6' }} />
+                <CardActions>
+                    <Button onClick={() => joinSchool(school.id)}>Join</Button>
+                    <Button onClick={() => declineInvitation(school.id)}>Decline invitation</Button>
+                </CardActions>
+            </TileCard>
+        ))}
+    </TileContainer>
 }

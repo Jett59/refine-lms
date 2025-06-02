@@ -17,28 +17,28 @@ export const GOOGLE_REVOKE_REQUEST: z.ZodType<GoogleRevokeRequest> = z.object({
 })
 
 export const CREATE_SCHOOL_REQUEST: z.ZodType<CreateSchoolRequest> = z.object({
-    name: z.string() // TODO: min/max
+    name: z.string().nonempty().max(100)
 })
 export const CREATE_YEAR_GROUP_REQUEST: z.ZodType<CreateYearGroupRequest> = z.object({
     schoolId: OBJECT_ID,
-    name: z.string() // TODO: min/max
+    name: z.string().nonempty().max(100)
 })
 export const CREATE_COURSE_REQUEST: z.ZodType<CreateCourseRequest> = z.object({
     schoolId: OBJECT_ID,
     yearGroupId: OBJECT_ID,
-    name: z.string(), // TODO: min/max
-    initialClassNames: z.array(z.string()) // TODO: min/max
+    name: z.string().nonempty().max(100),
+    initialClassNames: z.array(z.string().nonempty().max(100))
 })
 export const CREATE_CLASS_REQUEST: z.ZodType<CreateClassRequest> = z.object({
     schoolId: OBJECT_ID,
     yearGroupId: OBJECT_ID,
     courseId: OBJECT_ID,
-    name: z.string(), // TODO: min/max
+    name: z.string().nonempty().max(100),
 })
 export const INVITE_REQUEST: z.ZodType<InviteRequest> = z.object({
     schoolId: OBJECT_ID,
     role: z.enum(['administrator', 'teacher', 'student']),
-    email: z.string() // TODO: email
+    email: z.string().nonempty().max(254) // TODO: validate email properly (must also be done on UI)
 })
 export const JOIN_SCHOOL_REQUEST: z.ZodType<JoinSchoolRequest> = z.object({
     schoolId: OBJECT_ID
@@ -75,7 +75,7 @@ export const ADD_SYLLABUS_CONTENT_REQUEST: z.ZodType<AddSyllabusContentRequest> 
     schoolId: OBJECT_ID,
     yearGroupId: OBJECT_ID,
     courseId: OBJECT_ID,
-    content: z.string() // TODO: min/max
+    content: z.string().nonempty().max(350)
 })
 export const REMOVE_SYLLABUS_CONTENT_REQUEST: z.ZodType<RemoveSyllabusContentRequest> = z.object({
     schoolId: OBJECT_ID,
@@ -87,8 +87,8 @@ export const ADD_SYLLABUS_OUTCOME_REQUEST: z.ZodType<AddSyllabusOutcomeRequest> 
     schoolId: OBJECT_ID,
     yearGroupId: OBJECT_ID,
     courseId: OBJECT_ID,
-    name: z.string(), // TODO: min/max
-    description: z.string() // TODO: min/max
+    name: z.string().nonempty().max(50),
+    description: z.string().max(350)
 })
 export const REMOVE_SYLLABUS_OUTCOME_REQUEST: z.ZodType<RemoveSyllabusOutcomeRequest> = z.object({
     schoolId: OBJECT_ID,
@@ -145,12 +145,12 @@ export const RECORD_MARKS_REQUEST: z.ZodType<RecordMarksRequest> = z.object({
     postId: OBJECT_ID,
     studentUserId: OBJECT_ID,
     marks: z.record(OBJECT_ID, z.number().int().nonnegative()),
-    feedback: z.string().optional() // TODO: min/max
+    feedback: z.string().max(2500).optional()
 })
 export const ADD_COMMENT_REQUEST: z.ZodType<AddCommentRequest> = z.object({
     schoolId: OBJECT_ID,
     postId: OBJECT_ID,
-    comment: z.string() // TODO: min/max
+    comment: z.string().nonempty().max(1000)
 })
 export const DELETE_COMMENT_REQUEST: z.ZodType<DeleteCommentRequest> = z.object({
     schoolId: OBJECT_ID,

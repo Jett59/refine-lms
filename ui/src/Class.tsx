@@ -1,13 +1,14 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle } from "./PageWrapper"
-import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from "@mui/material"
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material"
 import { ClassPeopleView } from "./People"
 import { ClassInfo, CourseInfo } from "../../data/school"
 import { useSwitchPage } from "./App"
 import TabPanel from "./TabPanel"
 import { useState } from "react"
 import { NotificationImportant } from "@mui/icons-material"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 function getClassHasRequestingStudents(cls: ClassInfo) {
     return cls.requestingStudentIds.length > 0
@@ -36,7 +37,7 @@ function AddClassButton({ onClick }: {
             <DialogTitle>Create New Class</DialogTitle>
             <DialogContent>
                 <Box padding={1}>
-                    <TextField label="Class Name" helperText="e.g. '12SFW1'" value={name} onChange={e => setName(e.target.value)} />
+                    <MaximumLengthTextBox maximumLength={100} label="Class Name" helperText="e.g. '12SFW1'" value={name} onChange={e => setName(e.target.value)} />
                 </Box>
             </DialogContent>
             <DialogActions>

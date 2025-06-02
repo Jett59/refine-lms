@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, TextField, Tooltip, Typography } from "@mui/material";
+import { Avatar, Box, Button, Dialog, DialogActions, DialogContent, Grid, IconButton, List, Stack, Tooltip, Typography } from "@mui/material";
 import { lookupUser, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext";
 import { UserInfo } from "../../data/user";
 import { Add, PersonAdd, Remove } from "@mui/icons-material";
@@ -9,6 +9,7 @@ import { useUser } from "./UserContext";
 import AccessibleAutocomplete from "./Autocomplete";
 import { useSetPageTitle } from "./PageWrapper";
 import { useConfirmationDialog } from "./ConfirmationDialog";
+import MaximumLengthTextBox from "./MaximumLengthTextBox";
 
 // REF: https://stackoverflow.com/a/46181
 const validateEmail = (email: string) => {
@@ -92,7 +93,7 @@ function InviteToSchoolButton({ category, schoolInfo }: {
             <DialogContent>
                 <Typography variant="h4">Invite {relevantIndefiniteArticle} {category} to {schoolInfo.name}</Typography>
                 <Box padding={1}>
-                    <TextField inputRef={emailRef} type="email" autoComplete="off" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
+                    <MaximumLengthTextBox maximumLength={254} inputRef={emailRef} type="email" autoComplete="off" error={emailHasError} label="Email" value={email} onChange={e => setEmail(e.target.value)} />
                     {emailHasError && <Typography color="error">Please enter a valid email</Typography>}
                 </Box>
             </DialogContent>

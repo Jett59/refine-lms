@@ -1,4 +1,4 @@
-import { Box, Button, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -12,13 +12,15 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from "dayjs"
 import { useConfirmationDialog } from "./ConfirmationDialog"
 import NumericalTextBox from "./NumericalTextBox"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 function CriterionView({ criterion, update }: {
     criterion: MarkingCriterionTemplate
     update: (newValue: MarkingCriterionTemplate) => void
 }) {
     return <Stack direction="row">
-        <TextField
+        <MaximumLengthTextBox
+            maximumLength={250}
             autoComplete="off"
             value={criterion.title}
             onChange={e => update({ ...criterion, title: e.target.value })}
@@ -90,7 +92,14 @@ export default function CreateAssignment({ original, editing }: {
 
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="centre" spacing={2}>
-            <TextField autoFocus autoComplete="off" value={title} onChange={e => setTitle(e.target.value)} label="Title" />
+            <MaximumLengthTextBox
+                maximumLength={150}
+                autoFocus
+                autoComplete="off"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                label="Title"
+            />
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DateTimePicker
                     label="Due Date"
@@ -105,7 +114,8 @@ export default function CreateAssignment({ original, editing }: {
         <Stack direction={shouldUseColumns ? 'row' : 'column'} spacing={2}>
             <Box flex={3}>
                 <Typography variant="h5">Instructions</Typography>
-                <TextField
+                <MaximumLengthTextBox
+                    maximumLength={10000}
                     multiline
                     fullWidth
                     value={content}
@@ -215,7 +225,7 @@ export default function CreateAssignment({ original, editing }: {
                         })
                         if (updatedSuccessfully) {
                             navigate(-1)
-                        }else {
+                        } else {
                             setDisabled(false)
                         }
                     } else {
@@ -237,7 +247,7 @@ export default function CreateAssignment({ original, editing }: {
                         })
                         if (createdSuccessfully) {
                             navigate(-1)
-                        }else {
+                        } else {
                             setDisabled(false)
                         }
                     }

@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, TextField, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
 import { useCallback, useEffect, useState } from "react"
@@ -12,6 +12,7 @@ import SimpleMenu from "./SimpleMenu"
 import { useUser } from "./UserContext"
 import { formatDate } from "./date"
 import NumericalTextBox from "./NumericalTextBox"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost }: {
     assignment: PostInfo
@@ -119,7 +120,8 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                         </Typography>
                     </Stack>
                 ))}
-                <TextField
+                <MaximumLengthTextBox
+                    maximumLength={2500}
                     label="Feedback"
                     multiline
                     rows={4}

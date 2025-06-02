@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole, useSchoolStructure } from "./DataContext"
-import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemIcon, Stack, Tab, Table, TableBody, TableCell, TableRow, Tabs, TextField, Tooltip, Typography } from "@mui/material"
+import { Box, Button, ButtonProps, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemIcon, Stack, Tab, Table, TableBody, TableCell, TableRow, Tabs, Tooltip, Typography } from "@mui/material"
 import { useEffect, useMemo, useState } from "react"
 import { CourseInfo, SchoolInfo, SchoolStructure } from "../../data/school"
 import { TileButton, TileContainer } from "./Tile"
@@ -10,6 +10,7 @@ import { SimpleTreeView, TreeItem } from "@mui/x-tree-view"
 import { useUser } from "./UserContext"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import PostsList from "./Feed"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 function JoinClassButton({ schoolInfo, }: {
     schoolInfo: SchoolInfo
@@ -107,7 +108,8 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
             <DialogTitle>Create a new course</DialogTitle>
             <DialogContent>
                 <Box padding={1}>
-                    <TextField
+                    <MaximumLengthTextBox
+                        maximumLength={100}
                         autoComplete="off"
                         label="Course name"
                         value={courseName}
@@ -139,7 +141,8 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
                             ))}
                         </TableBody>
                     </Table>
-                    <TextField
+                    <MaximumLengthTextBox
+                        maximumLength={100}
                         autoComplete="off"
                         label="Class name"
                         value={newClassName}
@@ -205,7 +208,8 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
             <DialogTitle>Create a new year group</DialogTitle>
             <DialogContent>
                 <Box padding={1}>
-                    <TextField
+                    <MaximumLengthTextBox
+                        maximumLength={100}
                         autoComplete="off"
                         label="Year group name"
                         value={name}

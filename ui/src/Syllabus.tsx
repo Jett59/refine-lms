@@ -1,7 +1,8 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, TextField, Typography } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, Stack, Typography } from "@mui/material"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useState } from "react"
 import { Remove } from "@mui/icons-material"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 function AddContentButton({ callback }: {
     callback: (content: string) => Promise<void>
@@ -19,7 +20,8 @@ function AddContentButton({ callback }: {
             <DialogTitle>Add Syllabus Content</DialogTitle>
             <DialogContent >
                 <Box padding={1}>
-                    <TextField
+                    <MaximumLengthTextBox
+                        maximumLength={350}
                         autoComplete="off"
                         value={content}
                         onChange={e => setContent(e.target.value)}
@@ -64,14 +66,16 @@ function AddOutcomeButton({ callback }: {
             <DialogContent >
                 <Box padding={1}>
                     <Stack direction="row" spacing={2}>
-                        <TextField
+                        <MaximumLengthTextBox
+                            maximumLength={50}
                             autoComplete="off"
                             value={name}
                             onChange={e => setName(e.target.value)}
                             label="Name"
                             disabled={callingApi}
                         />
-                        <TextField
+                        <MaximumLengthTextBox
+                            maximumLength={350}
                             autoComplete="off"
                             value={description}
                             onChange={e => setDescription(e.target.value)}

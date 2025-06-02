@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
-import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, TextField, Tooltip, Typography } from "@mui/material"
+import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material"
 import { AttachFile, ExpandLess, ExpandMore, MoreVert, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType, CommentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
@@ -17,6 +17,7 @@ import { Link } from "react-router-dom"
 import { UserInfo } from "../../data/user"
 import { studentsWhoCanSeePost } from "./Post"
 import { useConfirmationDialog } from "./ConfirmationDialog"
+import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
 export function AttachmentView({ schoolId, postId, attachment, students, selectedStudentId }: {
     schoolId: string
@@ -207,7 +208,8 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
 
     return <Stack direction="column" spacing={2} padding={2}>
         <Typography variant="h6">Create post</Typography>
-        <TextField
+        <MaximumLengthTextBox
+            maximumLength={150}
             autoComplete="off"
             label="Title"
             value={title}
@@ -215,7 +217,8 @@ function CreatePostForm({ schoolId, schoolInfo, yearGroupId, courseId, courseInf
             sx={{ maxWidth: '50em' }}
             inputRef={titleRef}
         />
-        <TextField
+        <MaximumLengthTextBox
+            maximumLength={10000}
             multiline
             label="Content"
             value={content}
@@ -319,7 +322,8 @@ function CreateCommentForm({ onClick }: {
     const [posting, setPosting] = useState(false)
 
     return <Stack direction="row" spacing={2} padding={2}>
-        <TextField
+        <MaximumLengthTextBox
+            maximumLength={1000}
             multiline
             label="Comment"
             value={content}
@@ -397,16 +401,16 @@ function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo
                 : <Typography variant="h6">{post.title || 'Untitled Post'}</Typography>
             }
             {isAssignment && isTeacherOrAdministrator &&
-            <SimpleMenu
-                buttonContents={<MoreVert />}
-                buttonAriaLabel="More options"
-                childrenSupplier={close => [
-                    <MenuItem onClick={() => {
-                        switchPage(`edit-assignment/${post.id}`, post.schoolId, post.yearGroupId, post.courseId)
-                        close()
-                    }}>Edit</MenuItem>
-                ]}
-            />
+                <SimpleMenu
+                    buttonContents={<MoreVert />}
+                    buttonAriaLabel="More options"
+                    childrenSupplier={close => [
+                        <MenuItem onClick={() => {
+                            switchPage(`edit-assignment/${post.id}`, post.schoolId, post.yearGroupId, post.courseId)
+                            close()
+                        }}>Edit</MenuItem>
+                    ]}
+                />
             }
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} />
