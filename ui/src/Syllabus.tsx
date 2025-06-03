@@ -27,6 +27,7 @@ function AddContentButton({ callback }: {
                         onChange={e => setContent(e.target.value)}
                         label="Content"
                         disabled={callingApi}
+                        required
                     />
                 </Box>
             </DialogContent>
@@ -34,9 +35,9 @@ function AddContentButton({ callback }: {
                 <Button variant="outlined" onClick={() => setDialogOpen(false)} disabled={callingApi}>
                     Cancel
                 </Button>
-                <Button variant="contained" disabled={callingApi} onClick={async () => {
+                <Button variant="contained" disabled={callingApi || content.trim() === ''} onClick={async () => {
                     setCallingApi(true)
-                    await callback(content)
+                    await callback(content.trim())
                     setCallingApi(false)
                     setContent('')
                     setDialogOpen(false)
@@ -73,6 +74,7 @@ function AddOutcomeButton({ callback }: {
                             onChange={e => setName(e.target.value)}
                             label="Name"
                             disabled={callingApi}
+                            required
                         />
                         <MaximumLengthTextBox
                             maximumLength={350}
@@ -81,6 +83,7 @@ function AddOutcomeButton({ callback }: {
                             onChange={e => setDescription(e.target.value)}
                             label="Description"
                             disabled={callingApi}
+                            required
                         />
                     </Stack>
                 </Box>
@@ -89,9 +92,9 @@ function AddOutcomeButton({ callback }: {
                 <Button variant="outlined" onClick={() => setDialogOpen(false)} disabled={callingApi}>
                     Cancel
                 </Button>
-                <Button variant="contained" disabled={callingApi} onClick={async () => {
+                <Button variant="contained" disabled={callingApi || name.trim() === '' || description.trim() === ''} onClick={async () => {
                     setCallingApi(true)
-                    await callback(name, description)
+                    await callback(name.trim(), description.trim())
                     setCallingApi(false)
                     setName('')
                     setDescription('')

@@ -18,13 +18,14 @@ function CriterionView({ criterion, update }: {
     criterion: MarkingCriterionTemplate
     update: (newValue: MarkingCriterionTemplate) => void
 }) {
-    return <Stack direction="row">
+    return <Stack direction="row" spacing={2} alignItems="start">
         <MaximumLengthTextBox
             maximumLength={250}
             autoComplete="off"
             value={criterion.title}
             onChange={e => update({ ...criterion, title: e.target.value })}
             label="title"
+            required
         />
         <Typography>/</Typography>
         <NumericalTextBox
@@ -52,7 +53,7 @@ export default function CreateAssignment({ original, editing }: {
     const theme = useTheme()
     const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
 
-    const [disabled, setDisabled] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     const [title, setTitle] = useState(original?.title ?? '')
     const [dueDate, setDueDate] = useState<Dayjs | null>(original?.isoDueDate ? dayjs(original.isoDueDate) : null)
@@ -90,6 +91,8 @@ export default function CreateAssignment({ original, editing }: {
         return <Typography>Not found</Typography>
     }
 
+const markingCriteriaValid = markingCriteria.every(criterion => criterion.title.trim() !== '' && criterion.maximumMarks > 0)
+
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="centre" spacing={2}>
             <MaximumLengthTextBox
@@ -120,7 +123,7 @@ export default function CreateAssignment({ original, editing }: {
                     fullWidth
                     value={content}
                     onChange={e => setContent(e.target.value)}
-                    inputProps={{ style: { lineHeight: '1.5em', minHeight: '18em' } }}
+                    inputProps={{ style: { lineHeight: '1.5em', minHeight: '5em' } }}
                 />
                 <Stack direction="row" spacing={2}>
                     <SimpleMenu
@@ -132,7 +135,7 @@ export default function CreateAssignment({ original, editing }: {
                             ...course?.classes.map(c => <MenuItem key={c.id} onClick={() => { setClassId(c.id); close() }}>{c.name}</MenuItem>) ?? []
                         ]}
                     />
-                    <CreatePostFormAddAttachmentButton disabled={disabled} addAttachments={attachments => setAttachments(oldAttachments => [...oldAttachments, ...attachments])} />
+                    <CreatePostFormAddAttachmentButton disabled={loading} addAttachments={attachments => setAttachments(oldAttachments => [...oldAttachments, ...attachments])} />
                 </Stack>
                 {attachments.map(attachment => (
                     <CreatePostFormAttachmentView
@@ -164,7 +167,7 @@ export default function CreateAssignment({ original, editing }: {
                     ))}
                     <Button
                         onClick={() => setMarkingCriteria([...markingCriteria, { title: '', maximumMarks: 0 }])}
-                        disabled={markingCriteria.length > 0 && markingCriteria[markingCriteria.length - 1].maximumMarks === 0}
+                        disabled={!markingCriteriaValid}
                     >Add Criterion</Button>
                 </Stack>
             </Box>
@@ -184,7 +187,7 @@ export default function CreateAssignment({ original, editing }: {
                 ))
             }
             <CreatePostFormAddAttachmentButton
-                disabled={disabled}
+                disabled={loading}
                 defaultShareMode="copied"
                 defaultOthersCanEdit
                 addAttachments={templates => setSubmissionTemplates(oldTemplates => [...oldTemplates, ...templates])}
@@ -194,7 +197,7 @@ export default function CreateAssignment({ original, editing }: {
         <Stack direction="row" justifyContent="end" spacing={2}>
             <Button
                 variant="outlined"
-                disabled={disabled}
+                disabled={loading}
                 onClick={() => {
                     if (isEmpty) {
                         navigate(-1)
@@ -204,10 +207,10 @@ export default function CreateAssignment({ original, editing }: {
                 }}>Discard</Button>
             <Button
                 variant="contained"
-                disabled={disabled}
+                disabled={loading || !markingCriteriaValid}
                 onClick={async () => {
                     if (editing) {
-                        setDisabled(true)
+                        setLoading(true)
                         const updatedSuccessfully = await updatePost(original?.id ?? '', schoolId, {
                             schoolId,
                             yearGroupId,
@@ -226,10 +229,10 @@ export default function CreateAssignment({ original, editing }: {
                         if (updatedSuccessfully) {
                             navigate(-1)
                         } else {
-                            setDisabled(false)
+                            setLoading(false)
                         }
                     } else {
-                        setDisabled(true)
+                        setLoading(true)
                         const createdSuccessfully = await createPost({
                             schoolId,
                             yearGroupId,
@@ -248,7 +251,7 @@ export default function CreateAssignment({ original, editing }: {
                         if (createdSuccessfully) {
                             navigate(-1)
                         } else {
-                            setDisabled(false)
+                            setLoading(false)
                         }
                     }
                 }}

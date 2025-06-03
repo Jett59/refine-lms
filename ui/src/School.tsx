@@ -115,6 +115,7 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
                         value={courseName}
                         onChange={e => setCourseName(e.target.value)}
                         helperText="e.g. 'Software Engineering'"
+                        required
                     />
                 </Box>
                 <Divider />
@@ -158,7 +159,7 @@ function CreateCourseTileButton({ onClick }: { onClick: (courseName: string, cla
                         }}
                     />
                 </Box>
-                <Button onClick={() => {
+                <Button disabled={newClassName.trim() === ''} onClick={() => {
                     if (newClassName.trim() !== '') {
                         setClassNames([...classNames, newClassName.trim()])
                         setNewClassName('')
@@ -215,16 +216,17 @@ function CreateYearGroupButton({ onCreate, buttonText, buttonProps }: {
                         value={name}
                         onChange={e => setName(e.target.value)}
                         helperText="e.g. 'Year 12'"
+                        required
                     />
                 </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="outlined" onClick={() => setDialogOpen(false)}>Cancel</Button>
                 <Button variant="contained" onClick={() => {
-                    onCreate(name)
+                    onCreate(name.trim())
                     setDialogOpen(false)
                     setName('')
-                }}>Create</Button>
+                }} disabled={name.trim() === ''}>Create</Button>
             </DialogActions>
         </Dialog>
     </>

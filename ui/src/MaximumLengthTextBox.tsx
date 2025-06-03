@@ -16,6 +16,6 @@ export default function MaximumLengthTextBox({ maximumLength, ...textFieldpProps
                 textFieldpProps.onChange?.(e)
             }}
         />
-        <Typography>{stringValue.length}/{maximumLength}</Typography>
+        <Typography color={textFieldpProps.required && stringValue.length === 0 ? 'error' : undefined}>{stringValue.length}/{maximumLength}</Typography>
     </Stack>
 }

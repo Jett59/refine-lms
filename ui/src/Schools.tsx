@@ -31,6 +31,7 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
                     label="School name"
                     value={name}
                     onChange={e => setName(e.target.value)}
+                    required
                 />
             </Box>
         </DialogContent>
@@ -39,9 +40,9 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
                 setOpen(false)
                 setName('')
             }}>Cancel</Button>
-            <Button variant="contained" disabled={loading} onClick={() => {
+            <Button variant="contained" onClick={() => {
                 setLoading(true)
-                createSchool(name).then(id => {
+                createSchool(name.trim()).then(id => {
                     setOpen(false)
                     setLoading(false)
                     setName('')
@@ -49,7 +50,7 @@ export function CreateSchoolDialog({ open, setOpen, switchOnOpen }: {
                         switchSchool(id)
                     }
                 })
-            }}>Create</Button>
+            }} disabled={loading || name.trim() === ''}>Create</Button>
         </DialogActions>
     </Dialog>
 }
