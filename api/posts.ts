@@ -1,9 +1,9 @@
 import { ClientSession, Db, Filter, MongoClient, ObjectId } from "mongodb"
 import { Course, School } from "./schools"
 import { AttachmentTemplate, MarkingCriterionTemplate, PostInfo, PostTemplate, PostType } from "../data/post"
-import { ListPostsResponse } from "../data/api"
+import { AttachmentPreparationError, ListPostsResponse } from "../data/api"
 import { findUserInfos } from "./user"
-import { AttachmentPreparationError, createCopy, getFileLink, prepareAttachments } from "./google-drive"
+import { createCopy, getFileLink, prepareAttachments } from "./google-drive"
 import { access, link } from "fs"
 
 export interface Post {
