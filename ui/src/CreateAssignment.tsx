@@ -1,10 +1,10 @@
-import { Box, Button, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Divider, IconButton, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { getVisibleClassIds, useData, useRelevantSchoolInfo } from "./DataContext"
 import SimpleMenu from "./SimpleMenu"
-import { ExpandMore } from "@mui/icons-material"
+import { ExpandMore, Remove } from "@mui/icons-material"
 import { CreatePostFormAddAttachmentButton, CreatePostFormAttachmentView } from "./Feed"
 import { AttachmentTemplate, MarkingCriterionTemplate, PostInfo } from "../../data/post"
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers"
@@ -14,9 +14,10 @@ import { useConfirmationDialog } from "./ConfirmationDialog"
 import NumericalTextBox from "./NumericalTextBox"
 import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
-function CriterionView({ criterion, update }: {
+function CriterionView({ criterion, update, remove }: {
     criterion: MarkingCriterionTemplate
     update: (newValue: MarkingCriterionTemplate) => void
+    remove: () => void
 }) {
     return <Stack direction="row" spacing={2} alignItems="start">
         <MaximumLengthTextBox
@@ -34,7 +35,13 @@ function CriterionView({ criterion, update }: {
                 update({ ...criterion, maximumMarks: Math.max(0, newValue) })
             }}
         />
-    </Stack>
+        <IconButton
+            onClick={() => remove()}
+            aria-label="Remove Criterion"
+        >
+            <Remove />
+        </IconButton>
+    </Stack >
 }
 
 export default function CreateAssignment({ original, editing }: {
@@ -91,7 +98,7 @@ export default function CreateAssignment({ original, editing }: {
         return <Typography>Not found</Typography>
     }
 
-const markingCriteriaValid = markingCriteria.every(criterion => criterion.title.trim() !== '' && criterion.maximumMarks > 0)
+    const markingCriteriaValid = markingCriteria.every(criterion => criterion.title.trim() !== '' && criterion.maximumMarks > 0)
 
     return <Stack direction="column" spacing={2}>
         <Stack direction="column" alignItems="centre" spacing={2}>
@@ -163,6 +170,7 @@ const markingCriteriaValid = markingCriteria.every(criterion => criterion.title.
                                 newCriteria[index] = newValue
                                 setMarkingCriteria(newCriteria)
                             }}
+                            remove={() => setMarkingCriteria(markingCriteria.filter((_, i) => i !== index))}
                         />
                     ))}
                     <Button
