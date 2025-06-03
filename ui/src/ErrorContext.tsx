@@ -57,7 +57,7 @@ export default function ErrorContextProvider({ children }: { children: ReactNode
         },
         deleteDeleteOnViewErrors: () => setErrors(errors => errors.filter(error => !error.deleteOnView)),
         addAttachmentPreparationError: error => addError({
-            displayMessage: `Failed to attach ${error.attachmentTitle}`,
+            displayMessage: `Failed to attach ${error.attachmentTitle}. Make sure you have edit access.`,
             detailMessage: error.message,
             errorBody: JSON.stringify(error),
             deleteOnView: true

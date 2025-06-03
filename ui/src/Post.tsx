@@ -91,7 +91,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
     }, 0) ?? 0
 
     return <Stack direction="column" spacing={2}>
-        <Stack direction="row">
+        <Stack direction="row" spacing={2}>
             <Typography variant="h4">Marking Criteria</Typography>
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                 <Typography>
@@ -177,7 +177,7 @@ export default function Post() {
         }
     }, [postId, getPost, school, schoolId, yearGroupId, courseId])
 
-    useSetPageTitle((postInfo?.title ?? '') || 'Untitled')
+    useSetPageTitle(postInfo ? postInfo.title || 'Untitled' : '')
 
     if (!postId) {
         return <Typography variant="h4">No post selected</Typography>

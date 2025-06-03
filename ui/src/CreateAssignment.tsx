@@ -48,7 +48,7 @@ export default function CreateAssignment({ original, editing }: {
 
     const navigate = useNavigate()
 
-    useSetPageTitle(original ? original.title : 'Create Assignment')
+    useSetPageTitle(original ? original.title || 'Untitled' : 'Create Assignment')
 
     const theme = useTheme()
     const shouldUseColumns = useMediaQuery(theme.breakpoints.up('md'))
