@@ -4,7 +4,7 @@ export default function MaximumLengthTextBox({ maximumLength, ...textFieldpProps
     maximumLength: number
 } & TextFieldProps) {
     const stringValue = String(textFieldpProps.value)
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <TextField
             {...textFieldpProps}
             onChange={e => {

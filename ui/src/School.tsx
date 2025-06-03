@@ -268,7 +268,7 @@ export default function School() {
         return <Typography>Loading...</Typography>
     }
 
-    const pendingJoinRequestsComponent = schoolInfo.pendingClassJoinRequests.length > 0 && <Stack direction="column" justifyContent="center" alignItems="center">
+    const pendingJoinRequestsComponent = schoolInfo.pendingClassJoinRequests.length > 0 && <Stack direction="column" justifyContent="center" alignItems="center" spacing={2}>
         <Typography variant="h5">Pending Join Requests</Typography>
         <List>
             <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" useFlexGap flexWrap="wrap">

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo, useRole } from "./DataContext"
 import { Avatar, Button, FormControlLabel, IconButton, List, ListItem, MenuItem, Paper, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material"
-import { AttachFile, ExpandLess, ExpandMore, MoreVert, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
+import { AttachFile, Attachment, ExpandLess, ExpandMore, MoreVert, NoteAdd, PostAdd, Remove } from "@mui/icons-material"
 import { PostInfo, PostTemplate, AttachmentTemplate, AttachmentInfo, PostType, CommentInfo } from "../../data/post"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { formatDate } from "./date"
@@ -34,7 +34,7 @@ export function AttachmentView({ schoolId, postId, attachment, students, selecte
     if (attachment.shareMode === 'copied' && isTeacherOrAdministrator && !selectedStudentId) {
         return <SimpleMenu
             buttonContents={attachment.title}
-            buttonProps={{ disabled: opening }}
+            buttonProps={{ disabled: opening, startIcon: <Attachment /> }}
             childrenSupplier={close => (
                 students.map(student => (
                     <MenuItem
@@ -55,6 +55,7 @@ export function AttachmentView({ schoolId, postId, attachment, students, selecte
         />
     } else {
         return <Button
+            startIcon={<Attachment />}
             onClick={async () => {
                 if (attachment.accessLink) {
                     window.open(attachment.accessLink, '_blank')
@@ -346,7 +347,7 @@ function CommentView({ comment, deleteComment }: {
     const { userId } = useUser()
     const [deleting, setDeleting] = useState(false)
 
-    return <Stack key={comment.id} direction="column" spacing={1} padding={2} borderRadius={2}>
+    return <Stack key={comment.id} direction="column" spacing={2} padding={2} borderRadius={2}>
         <Stack direction="row" alignItems="center" spacing={2}>
             <Avatar aria-hidden src={comment.user.picture} />
             <Typography>{comment.user.name}</Typography>
@@ -577,7 +578,7 @@ export default function PostsList({ schoolId, yearGroupId, courseId, listType }:
     </Tooltip>
 
     return <Stack direction="column" spacing={2} padding={2}>
-        <Stack direction="row" justifyContent={canCreatePosts ? "space-between" : "normal"} alignItems="center">
+        <Stack direction="row" spacing={2} justifyContent={canCreatePosts ? "space-between" : "normal"} alignItems="center">
             <Typography variant="h5">
                 {listType === 'feed'
                     ? `Posts to ${containerName}`

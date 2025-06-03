@@ -100,7 +100,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
             }
         </Stack>
         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-            ? <Stack direction="column">
+            ? <Stack direction="column" spacing={2}>
                 {assignment.markingCriteria.map(criterion => (
                     <Stack key={criterion.id} direction="row" spacing={2}>
                         <Typography>{criterion.title}</Typography>
@@ -130,7 +130,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                     fullWidth
                     variant="outlined"
                 />
-                <Stack direction="row" alignItems="end">
+                <Stack direction="row" alignItems="end" spacing={2}>
                     <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
                         setRecordingMarks(true)
                         console.log('A')
@@ -215,6 +215,7 @@ function Assignment({ assignment, school, refreshPost }: {
     useSetPageTitleButtons(() => (
         isTeacherOrAdministrator && <SimpleMenu
             buttonContents={student?.name ?? 'Select a student...'}
+            buttonProps={{ color: 'secondary' }}
             childrenSupplier={close => studentsWhoCanSeePost(assignment, school).map(student => (
                 <MenuItem key={student.id} onClick={() => { setCurrentStudentId(student.id); close() }}>{student.name}</MenuItem>
             ))}
@@ -260,7 +261,7 @@ function Assignment({ assignment, school, refreshPost }: {
                 {isTeacherOrAdministrator && student && isSubmitted
                     ? <MarkingInterface assignment={assignment} student={student} refreshAssignment={refreshPost} />
                     : <>
-                        <Stack direction="row">
+                        <Stack direction="row" spacing={2}>
                             <Typography variant="h4">Marking Criteria</Typography>
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                                 <Typography>
@@ -269,7 +270,7 @@ function Assignment({ assignment, school, refreshPost }: {
                             }
                         </Stack>
                         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-                            ? <Stack direction="column">
+                            ? <Stack direction="column" spacing={2}>
                                 {assignment.markingCriteria.map(criterion => (
                                     <Stack key={criterion.id} direction="row" spacing={2}>
                                         <Typography>{criterion.title}</Typography>

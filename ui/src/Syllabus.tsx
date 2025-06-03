@@ -122,7 +122,7 @@ export default function Syllabus({ schoolId, yearGroupId, courseId }: {
     const [removingContent, setRemovingContent] = useState(false)
     const [removingOutcome, setRemovingOutcome] = useState(false)
 
-    return <Stack direction="column">
+    return <Stack direction="column" spacing={2}>
         <Typography variant="h6">Content</Typography>
         <List>
             {course?.syllabusContent.map((content, index) => (
