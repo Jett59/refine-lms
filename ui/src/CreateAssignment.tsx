@@ -1,4 +1,4 @@
-import { Box, Button, Divider, IconButton, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Divider, Grid, IconButton, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useSetPageTitle } from "./PageWrapper"
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
@@ -14,34 +14,45 @@ import { useConfirmationDialog } from "./ConfirmationDialog"
 import NumericalTextBox from "./NumericalTextBox"
 import MaximumLengthTextBox from "./MaximumLengthTextBox"
 
-function CriterionView({ criterion, update, remove }: {
+function CriterionViewInGrid({ criterion, update, remove }: {
     criterion: MarkingCriterionTemplate
     update: (newValue: MarkingCriterionTemplate) => void
     remove: () => void
 }) {
-    return <Stack direction="row" spacing={2} alignItems="start">
-        <MaximumLengthTextBox
-            maximumLength={250}
-            autoComplete="off"
-            value={criterion.title}
-            onChange={e => update({ ...criterion, title: e.target.value })}
-            label="title"
-            required
-        />
-        <Typography>/</Typography>
-        <NumericalTextBox
-            numberValue={criterion.maximumMarks}
-            onNumberChange={newValue => {
-                update({ ...criterion, maximumMarks: Math.max(0, newValue) })
-            }}
-        />
-        <IconButton
-            onClick={() => remove()}
-            aria-label="Remove Criterion"
-        >
-            <Remove />
-        </IconButton>
-    </Stack >
+    return <>
+        <Grid item xs={12}>
+            <Divider />
+        </Grid>
+        <Grid item xs={12} md={6}>
+            <MaximumLengthTextBox
+                maximumLength={250}
+                autoComplete="off"
+                value={criterion.title}
+                onChange={e => update({ ...criterion, title: e.target.value })}
+                label="title"
+                required
+            />
+        </Grid>
+        <Grid item xs={1}>
+            <Typography>/</Typography>
+        </Grid>
+        <Grid item xs={9} md={4}>
+            <NumericalTextBox
+                numberValue={criterion.maximumMarks}
+                onNumberChange={newValue => {
+                    update({ ...criterion, maximumMarks: Math.max(0, newValue) })
+                }}
+            />
+        </Grid>
+        <Grid item xs={2} md={1}>
+            <IconButton
+                onClick={() => remove()}
+                aria-label="Remove Criterion"
+            >
+                <Remove />
+            </IconButton>
+        </Grid>
+    </>
 }
 
 export default function CreateAssignment({ original, editing }: {
@@ -154,15 +165,20 @@ export default function CreateAssignment({ original, editing }: {
                 ))}
             </Box>
             <Box flex={1}>
-                <Stack direction="row" spacing={2}>
-                    <Typography variant="h5">Marking Criteria</Typography>
-                    <Typography>
-                        {`/${markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}`}
-                    </Typography>
-                </Stack>
-                <Stack direction="column" spacing={2}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                        <Typography variant="h5">Marking Criteria</Typography>
+                    </Grid>
+                    <Grid item xs={1}>
+                        <Typography>/</Typography>
+                    </Grid>
+                    <Grid item xs={11} md={5}>
+                        <Typography padding={1}>
+                            {markingCriteria.reduce((a, b) => a + b.maximumMarks, 0)}
+                        </Typography>
+                    </Grid>
                     {markingCriteria.map((criterion, index) => (
-                        <CriterionView
+                        <CriterionViewInGrid
                             key={index}
                             criterion={criterion}
                             update={newValue => {
@@ -173,11 +189,16 @@ export default function CreateAssignment({ original, editing }: {
                             remove={() => setMarkingCriteria(markingCriteria.filter((_, i) => i !== index))}
                         />
                     ))}
-                    <Button
-                        onClick={() => setMarkingCriteria([...markingCriteria, { title: '', maximumMarks: 0 }])}
-                        disabled={!markingCriteriaValid}
-                    >Add Criterion</Button>
-                </Stack>
+                    <Grid item xs={12}>
+                        <Divider />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Button
+                            onClick={() => setMarkingCriteria([...markingCriteria, { title: '', maximumMarks: 0 }])}
+                            disabled={!markingCriteriaValid}
+                        >Add Criterion</Button>
+                    </Grid>
+                </Grid>
             </Box>
         </Stack>
         <Divider />

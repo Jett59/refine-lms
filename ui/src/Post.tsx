@@ -1,7 +1,7 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
-import { useCallback, useEffect, useState } from "react"
+import { Fragment, useCallback, useEffect, useState } from "react"
 import { getVisibleClassIds, useData, useIsTeacherOrAdministrator, useRelevantSchoolInfo } from "./DataContext"
 import { useSetPageTitle, useSetPageTitleButtons } from "./PageWrapper"
 import { AttachmentView, CreatePostFormAddAttachmentButton } from "./Feed"
@@ -89,18 +89,18 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         return total + criterion.maximumMarks
     }, 0) ?? 0
 
-    return <Grid container spacing={2}>
-        <Grid item columns={{ xs: 12, md: 6 }}>
+    return <Grid container spacing={2} >
+        <Grid item xs={12} md={6}>
             <Typography variant="h4">Marking Criteria</Typography>
         </Grid>
-        <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+        <Grid item xs={12} md={3} display="flex" alignItems="end">
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                 <Typography>
                     {totalMarks}
                 </Typography>
             }
         </Grid>
-        <Grid item columns={{ xs: 12, md: 3 }}>
+        <Grid item xs={12} md={3}>
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                 <Typography>
                     /{maximumTotalMarks}
@@ -108,11 +108,14 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
             }
         </Grid>
         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-            ? assignment.markingCriteria.map(criterion => <>
-                <Grid item columns={{ xs: 12, md: 6 }}>
+            ? assignment.markingCriteria.map(criterion => <Fragment key={criterion.id}>
+                <Grid item xs={12}>
+                    <Divider />
+                </Grid>
+                <Grid item xs={12} md={6}>
                     <Typography>{criterion.title}</Typography>
                 </Grid>
-                <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                <Grid item xs={12} md={3} display="flex" justifyItems="end">
                     <NumericalTextBox
                         numberValue={marks[criterion.id] ?? 0}
                         onNumberChange={markValue => {
@@ -125,23 +128,31 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
                         }}
                     />
                 </Grid>
-                <Grid item columns={{ xs: 12, md: 3 }}>
+                <Grid item xs={12} md={3}>
                     <Typography>
                         /{criterion.maximumMarks}
                     </Typography>
                 </Grid>
-            </>)
+            </Fragment>)
             : <Typography>No marking criteria</Typography>}
-        <MaximumLengthTextBox
-            maximumLength={2500}
-            label="Feedback"
-            multiline
-            rows={4}
-            value={feedback}
-            onChange={e => setFeedback(e.target.value)}
-            fullWidth
-            variant="outlined"
-        />
+        <Grid item xs={12}>
+            <Divider />
+        </Grid>
+        <Grid item xs={12}>
+            <Typography variant="h4">Feedback</Typography>
+        </Grid>
+        <Grid item xs={12}>
+            <MaximumLengthTextBox
+                maximumLength={2500}
+                label="Feedback"
+                multiline
+                rows={4}
+                value={feedback}
+                onChange={e => setFeedback(e.target.value)}
+                fullWidth
+                variant="outlined"
+            />
+        </Grid>
         <Stack direction="row" alignItems="end" spacing={2}>
             <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
                 setRecordingMarks(true)
@@ -268,17 +279,17 @@ function Assignment({ assignment, school, refreshPost }: {
                 {isTeacherOrAdministrator && student && isSubmitted
                     ? <MarkingInterface assignment={assignment} student={student} refreshAssignment={refreshPost} />
                     : <Grid container spacing={2}>
-                        <Grid item columns={{ xs: 12, md: 6 }}>
+                        <Grid item xs={12} md={6}>
                             <Typography variant="h4">Marking Criteria</Typography>
                         </Grid>
-                        <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                        <Grid item xs={12} md={3} display="flex" justifyItems="end">
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 && !isTeacherOrAdministrator && hasAllMarks &&
                                 <Typography>
                                     {totalMarks}
                                 </Typography>
                             }
                         </Grid>
-                        <Grid item columns={{ xs: 12, md: 3 }}>
+                        <Grid item xs={12} md={3}>
                             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                                 <Typography>
                                     /{maximumTotalMarks}
@@ -286,30 +297,40 @@ function Assignment({ assignment, school, refreshPost }: {
                             }
                         </Grid>
                         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-                            ? assignment.markingCriteria.map(criterion => <>
-                                <Grid item columns={{ xs: 12, md: 6 }}>
+                            ? assignment.markingCriteria.map(criterion => <Fragment key={criterion.id}>
+                                <Grid item xs={12}>
+                                    <Divider />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
                                     <Typography>{criterion.title}</Typography>
                                 </Grid>
-                                <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                                <Grid item xs={12} md={3} display="flex" justifyItems="end">
                                     {!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined &&
                                         <Typography>
                                             {studentsMarks[criterion.id]}
                                         </Typography>
                                     }
                                 </Grid>
-                                <Grid item columns={{ xs: 12, md: 3 }}>
+                                <Grid item xs={12} md={3}>
                                     <Typography>
                                         /{criterion.maximumMarks}
                                     </Typography>
                                 </Grid>
-                            </>)
+                            </Fragment>)
                             : <Typography>No marking criteria</Typography>
                         }
                         {!isTeacherOrAdministrator && studentsFeedback && <>
-                            <Typography variant="h4">Feedback</Typography>
-                            <Typography>
-                                {studentsFeedback}
-                            </Typography>
+                            <Grid item xs={12}>
+                                <Divider />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="h4">Feedback</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography>
+                                    {studentsFeedback}
+                                </Typography>
+                            </Grid>
                         </>
                         }
                     </Grid>
