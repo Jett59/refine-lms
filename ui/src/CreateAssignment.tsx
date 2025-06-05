@@ -30,8 +30,8 @@ function CriterionView({ criterion, update, remove }: {
         />
         <Typography>/</Typography>
         <NumericalTextBox
-            value={criterion.maximumMarks}
-            onChange={newValue => {
+            numberValue={criterion.maximumMarks}
+            onNumberChange={newValue => {
                 update({ ...criterion, maximumMarks: Math.max(0, newValue) })
             }}
         />

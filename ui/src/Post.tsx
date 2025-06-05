@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, MenuItem, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 import { useParams } from "react-router-dom"
 import { PostInfo } from "../../data/post"
 import { useCallback, useEffect, useState } from "react"
@@ -68,7 +68,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         if (previousMarks) {
             setMarks(previousMarks)
         } else {
-            setMarks({})
+            setMarks(Object.fromEntries(assignment.markingCriteria?.map(criterion => [criterion.id, 0]) ?? []))
         }
         if (previousFeedback) {
             setFeedback(previousFeedback)
@@ -77,7 +77,6 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         }
     }, [previousMarks, previousFeedback])
 
-    const hasAllMarks = assignment.markingCriteria?.every(criterion => marks[criterion.id] !== undefined)
     // Only includes the marks against known marking criteria
     const totalMarks = assignment.markingCriteria?.reduce((total, criterion) => {
         const mark = marks[criterion.id]
@@ -90,65 +89,73 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         return total + criterion.maximumMarks
     }, 0) ?? 0
 
-    return <Stack direction="column" spacing={2}>
-        <Stack direction="row" spacing={2}>
+    return <Grid container spacing={2}>
+        <Grid item columns={{ xs: 12, md: 6 }}>
             <Typography variant="h4">Marking Criteria</Typography>
+        </Grid>
+        <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
             {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
                 <Typography>
-                    {`${hasAllMarks ? totalMarks : ''}/${maximumTotalMarks}`}
+                    {totalMarks}
                 </Typography>
             }
-        </Stack>
+        </Grid>
+        <Grid item columns={{ xs: 12, md: 3 }}>
+            {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
+                <Typography>
+                    /{maximumTotalMarks}
+                </Typography>
+            }
+        </Grid>
         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-            ? <Stack direction="column" spacing={2}>
-                {assignment.markingCriteria.map(criterion => (
-                    <Stack key={criterion.id} direction="row" spacing={2}>
-                        <Typography>{criterion.title}</Typography>
-                        <NumericalTextBox
-                            value={marks[criterion.id] ?? 0}
-                            onChange={markValue => {
-                                if (markValue >= 0 && markValue <= criterion.maximumMarks) {
-                                    setMarks({
-                                        ...marks,
-                                        [criterion.id]: markValue
-                                    })
-                                }
-                            }}
-                        />
-                        <Typography>
-                            /{criterion.maximumMarks}
-                        </Typography>
-                    </Stack>
-                ))}
-                <MaximumLengthTextBox
-                    maximumLength={2500}
-                    label="Feedback"
-                    multiline
-                    rows={4}
-                    value={feedback}
-                    onChange={e => setFeedback(e.target.value)}
-                    fullWidth
-                    variant="outlined"
-                />
-                <Stack direction="row" alignItems="end" spacing={2}>
-                    <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
-                        setRecordingMarks(true)
-                        console.log('A')
-                        await recordMarks(assignment.schoolId, assignment.id, student.id, marks, feedback)
-                        await refreshAssignment()
-                        console.log('B')
-                        setRecordingMarks(false)
-                    }}>
-                        {previousMarks
-                            ? 'Update marks'
-                            : 'Save and return marks'
-                        }
-                    </Button>
-                </Stack>
-            </Stack>
-            : <Typography>No marking criteria</Typography>
-        }
-    </Stack>
+            ? assignment.markingCriteria.map(criterion => <>
+                <Grid item columns={{ xs: 12, md: 6 }}>
+                    <Typography>{criterion.title}</Typography>
+                </Grid>
+                <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                    <NumericalTextBox
+                        numberValue={marks[criterion.id] ?? 0}
+                        onNumberChange={markValue => {
+                            if (markValue >= 0 && markValue <= criterion.maximumMarks) {
+                                setMarks({
+                                    ...marks,
+                                    [criterion.id]: markValue
+                                })
+                            }
+                        }}
+                    />
+                </Grid>
+                <Grid item columns={{ xs: 12, md: 3 }}>
+                    <Typography>
+                        /{criterion.maximumMarks}
+                    </Typography>
+                </Grid>
+            </>)
+            : <Typography>No marking criteria</Typography>}
+        <MaximumLengthTextBox
+            maximumLength={2500}
+            label="Feedback"
+            multiline
+            rows={4}
+            value={feedback}
+            onChange={e => setFeedback(e.target.value)}
+            fullWidth
+            variant="outlined"
+        />
+        <Stack direction="row" alignItems="end" spacing={2}>
+            <Button variant="outlined" disabled={recordingMarks} onClick={async () => {
+                setRecordingMarks(true)
+                await recordMarks(assignment.schoolId, assignment.id, student.id, marks, feedback)
+                await refreshAssignment()
+                setRecordingMarks(false)
+            }}>
+                {previousMarks
+                    ? 'Update marks'
+                    : 'Save and return marks'
+                }
+            </Button>
+        </Stack>
+    </Grid>
 }
 
 export default function Post() {
@@ -260,91 +267,109 @@ function Assignment({ assignment, school, refreshPost }: {
             <Box flex={1}>
                 {isTeacherOrAdministrator && student && isSubmitted
                     ? <MarkingInterface assignment={assignment} student={student} refreshAssignment={refreshPost} />
-                    : <>
-                        <Stack direction="row" spacing={2}>
+                    : <Grid container spacing={2}>
+                        <Grid item columns={{ xs: 12, md: 6 }}>
                             <Typography variant="h4">Marking Criteria</Typography>
-                            {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
+                        </Grid>
+                        <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                            {assignment.markingCriteria && assignment.markingCriteria.length > 0 && !isTeacherOrAdministrator && hasAllMarks &&
                                 <Typography>
-                                    {`${!isTeacherOrAdministrator && hasAllMarks ? totalMarks : ''}/${maximumTotalMarks}`}
+                                    {totalMarks}
                                 </Typography>
                             }
-                        </Stack>
+                        </Grid>
+                        <Grid item columns={{ xs: 12, md: 3 }}>
+                            {assignment.markingCriteria && assignment.markingCriteria.length > 0 &&
+                                <Typography>
+                                    /{maximumTotalMarks}
+                                </Typography>
+                            }
+                        </Grid>
                         {assignment.markingCriteria && assignment.markingCriteria.length > 0
-                            ? <Stack direction="column" spacing={2}>
-                                {assignment.markingCriteria.map(criterion => (
-                                    <Stack key={criterion.id} direction="row" spacing={2}>
-                                        <Typography>{criterion.title}</Typography>
+                            ? assignment.markingCriteria.map(criterion => <>
+                                <Grid item columns={{ xs: 12, md: 6 }}>
+                                    <Typography>{criterion.title}</Typography>
+                                </Grid>
+                                <Grid item columns={{ xs: 12, md: 3 }} display="flex" alignItems="end">
+                                    {!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined &&
                                         <Typography>
-                                            {`${!isTeacherOrAdministrator && studentsMarks && studentsMarks[criterion.id] !== undefined ? studentsMarks[criterion.id] : ''}/${criterion.maximumMarks}`}
+                                            {studentsMarks[criterion.id]}
                                         </Typography>
-                                    </Stack>
-                                ))}
-                                {!isTeacherOrAdministrator && studentsFeedback && <>
-                                    <Typography variant="h4">Feedback</Typography>
+                                    }
+                                </Grid>
+                                <Grid item columns={{ xs: 12, md: 3 }}>
                                     <Typography>
-                                        {studentsFeedback}
+                                        /{criterion.maximumMarks}
                                     </Typography>
-                                </>
-                                }
-                            </Stack>
+                                </Grid>
+                            </>)
                             : <Typography>No marking criteria</Typography>
                         }
-                    </>
+                        {!isTeacherOrAdministrator && studentsFeedback && <>
+                            <Typography variant="h4">Feedback</Typography>
+                            <Typography>
+                                {studentsFeedback}
+                            </Typography>
+                        </>
+                        }
+                    </Grid>
                 }
             </Box>
         </Stack>
-        {isTeacherOrAdministrator && student && <>
-            <Divider />
-            <Typography variant="h4">{student.name}'s Work</Typography>
-            {isSubmitted && <Typography>
-                Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
-            </Typography>}
-            <TileContainer>
-                {assignment.submissionTemplates?.map(attachment => (
-                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
-                ))}
-                {assignment.studentAttachments?.[student.id]?.map(attachment => (
-                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
-                ))}
-            </TileContainer>
-            {(!assignment.submissionTemplates || assignment.submissionTemplates.length === 0) && (!assignment.studentAttachments?.[student.id] || assignment.studentAttachments?.[student.id].length === 0) &&
-                <Typography>No attachments</Typography>
-            }
-        </>
+        {
+            isTeacherOrAdministrator && student && <>
+                <Divider />
+                <Typography variant="h4">{student.name}'s Work</Typography>
+                {isSubmitted && <Typography>
+                    Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
+                </Typography>}
+                <TileContainer>
+                    {assignment.submissionTemplates?.map(attachment => (
+                        <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
+                    ))}
+                    {assignment.studentAttachments?.[student.id]?.map(attachment => (
+                        <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student.id} />
+                    ))}
+                </TileContainer>
+                {(!assignment.submissionTemplates || assignment.submissionTemplates.length === 0) && (!assignment.studentAttachments?.[student.id] || assignment.studentAttachments?.[student.id].length === 0) &&
+                    <Typography>No attachments</Typography>
+                }
+            </>
         }
-        {!isTeacherOrAdministrator && <>
-            <Divider />
-            <Typography variant="h4">Your Work</Typography>
-            {isSubmitted && <Typography>
-                Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
-            </Typography>}
-            <TileContainer>
-                {assignment.submissionTemplates?.map(attachment => (
-                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
-                ))}
-                {assignment.studentAttachments?.[student?.id ?? '']?.map(attachment => (
-                    <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
-                ))}
-                {!isSubmitted && <CreatePostFormAddAttachmentButton
-                    defaultOthersCanEdit={false}
-                    defaultShareMode="shared"
-                    disabled={addAttachmentDisabled}
-                    addAttachments={async attachments => {
-                        setAddAttachmentDisabled(true)
-                        for (const attachment of attachments) {
-                            await addAttachmentToSubmission(school.id, assignment.id, attachment)
-                        }
-                        await refreshPost()
-                        setAddAttachmentDisabled(false)
-                    }}
-                />}
-            </TileContainer>
-            <Stack direction="row" spacing={2} justifyContent="end">
-                <SubmitAssignmentButton schoolId={school.id} assignment={assignment} isSubmitted={isSubmitted} refreshPost={refreshPost} />
-            </Stack>
-        </>
+        {
+            !isTeacherOrAdministrator && <>
+                <Divider />
+                <Typography variant="h4">Your Work</Typography>
+                {isSubmitted && <Typography>
+                    Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
+                </Typography>}
+                <TileContainer>
+                    {assignment.submissionTemplates?.map(attachment => (
+                        <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
+                    ))}
+                    {assignment.studentAttachments?.[student?.id ?? '']?.map(attachment => (
+                        <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
+                    ))}
+                    {!isSubmitted && <CreatePostFormAddAttachmentButton
+                        defaultOthersCanEdit={false}
+                        defaultShareMode="shared"
+                        disabled={addAttachmentDisabled}
+                        addAttachments={async attachments => {
+                            setAddAttachmentDisabled(true)
+                            for (const attachment of attachments) {
+                                await addAttachmentToSubmission(school.id, assignment.id, attachment)
+                            }
+                            await refreshPost()
+                            setAddAttachmentDisabled(false)
+                        }}
+                    />}
+                </TileContainer>
+                <Stack direction="row" spacing={2} justifyContent="end">
+                    <SubmitAssignmentButton schoolId={school.id} assignment={assignment} isSubmitted={isSubmitted} refreshPost={refreshPost} />
+                </Stack>
+            </>
         }
-    </Stack>
+    </Stack >
 }
 
 export function studentsWhoCanSeePost(post: PostInfo, school: SchoolInfo): UserInfo[] {

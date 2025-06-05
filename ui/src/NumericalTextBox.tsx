@@ -1,44 +1,45 @@
-import { TextField } from "@mui/material";
+import { TextField, TextFieldProps } from "@mui/material";
 import { useEffect, useState } from "react";
 
-export default function NumericalTextBox({ value, onChange, permitDecimal }: {
-    value: number
-    onChange: (value: number) => void
+export default function NumericalTextBox({ numberValue, onNumberChange, permitDecimal, ...textFieldProps }: {
+    numberValue: number
+    onNumberChange: (value: number) => void
     permitDecimal?: boolean
-}) {
+} & TextFieldProps) {
     // To allow the user to empty the text box, we need this condition
     const [isEmpty, setIsEmpty] = useState(false)
 
     // But if the provided value is non-zero, we need to set the text box to that value
     useEffect(() => {
-        if (value !== 0 && isEmpty) {
+        if (numberValue !== 0 && isEmpty) {
             setIsEmpty(false)
         }
-    }, [value, isEmpty])
+    }, [numberValue, isEmpty])
 
     return <TextField
+        {...textFieldProps}
         type="number"
-        value={isEmpty ? '' : value}
+        value={isEmpty ? '' : numberValue}
         onChange={(e) => {
             if (e.target.value === "") {
                 setIsEmpty(true)
-                onChange(0)
+                onNumberChange(0)
             } else {
                 try {
                     const newValue = Number(e.target.value)
                     if (!permitDecimal && newValue % 1 !== 0) {
                         // The number is a decimal, so we set the text box to empty
                         setIsEmpty(true)
-                        onChange(0)
+                        onNumberChange(0)
                     } else {
                         setIsEmpty(false)
-                        onChange(newValue)
+                        onNumberChange(newValue)
                     }
                 } catch (e) {
                     // The number was obviously invalid
                     // So we set the text box to empty
                     setIsEmpty(true)
-                    onChange(0)
+                    onNumberChange(0)
                 }
             }
         }}
