@@ -36,7 +36,7 @@ export default function ErrorContextProvider({ children }: { children: ReactNode
     return <errorContext.Provider value={{
         errors,
         addError,
-        addAPIError: (apiDisplayTitle, response, deleteOnView) => {
+        addAPIError: useCallback((apiDisplayTitle, response, deleteOnView) => {
             if (isFailedAPIResponse(response)) {
                 addError({
                     displayMessage: `Failed to ${apiDisplayTitle}`,
@@ -54,14 +54,14 @@ export default function ErrorContextProvider({ children }: { children: ReactNode
                     deleteOnView: Boolean(deleteOnView)
                 })
             }
-        },
-        deleteDeleteOnViewErrors: () => setErrors(errors => errors.filter(error => !error.deleteOnView)),
-        addAttachmentPreparationError: error => addError({
+        }, []),
+        deleteDeleteOnViewErrors: useCallback(() => setErrors(errors => errors.filter(error => !error.deleteOnView)), []),
+        addAttachmentPreparationError: useCallback(error => addError({
             displayMessage: `Failed to attach ${error.attachmentTitle}. Make sure you have edit access.`,
             detailMessage: error.message,
             errorBody: JSON.stringify(error),
             deleteOnView: true
-        })
+        }), [])
     }}>
         {children}
     </errorContext.Provider>
