@@ -307,7 +307,7 @@ export default function School() {
             </Box>
         }
         if (schoolInfo.pendingClassJoinRequests.length === 0) {
-            return <Typography>You are not currently a member of a class</Typography>
+            return <Typography>You are not currently a member of a class. Click <JoinClassButton schoolInfo={schoolInfo} /> to request to join one.</Typography>
         } else {
             return <Stack direction="column" spacing={2}>
                 {pendingJoinRequestsComponent}
