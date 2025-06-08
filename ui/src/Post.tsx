@@ -13,6 +13,8 @@ import { useUser } from "./UserContext"
 import { formatDate } from "./date"
 import NumericalTextBox from "./NumericalTextBox"
 import MaximumLengthTextBox from "./MaximumLengthTextBox"
+import { MoreVert } from "@mui/icons-material"
+import { useSwitchPage } from "./App"
 
 function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost }: {
     assignment: PostInfo
@@ -230,14 +232,28 @@ function Assignment({ assignment, school, refreshPost }: {
 
     const isSubmitted = currentStudentId === null || currentStudentId in (assignment.isoSubmissionDates ?? {})
 
+    const switchPage = useSwitchPage()
+
     useSetPageTitleButtons(() => (
-        isTeacherOrAdministrator && <SimpleMenu
-            buttonContents={student?.name ?? 'Select a student...'}
-            buttonProps={{ color: 'secondary' }}
-            childrenSupplier={close => studentsWhoCanSeePost(assignment, school).map(student => (
-                <MenuItem key={student.id} onClick={() => { setCurrentStudentId(student.id); close() }}>{student.name}</MenuItem>
-            ))}
-        />
+        isTeacherOrAdministrator && <>
+            <SimpleMenu
+                buttonContents={<MoreVert />}
+                buttonAriaLabel="More options"
+                childrenSupplier={close => [
+                    <MenuItem onClick={() => {
+                        switchPage(`edit-assignment/${assignment.id}`, assignment.schoolId, assignment.yearGroupId, assignment.courseId)
+                        close()
+                    }}>Edit</MenuItem>
+                ]}
+            />
+            <SimpleMenu
+                buttonContents={student?.name ?? 'Select a student...'}
+                buttonProps={{ color: 'secondary' }}
+                childrenSupplier={close => studentsWhoCanSeePost(assignment, school).map(student => (
+                    <MenuItem key={student.id} onClick={() => { setCurrentStudentId(student.id); close() }}>{student.name}</MenuItem>
+                ))}
+            />
+        </>
     ), [assignment, school, student])
 
     const studentsMarks = assignment.marks?.[student?.id ?? '']

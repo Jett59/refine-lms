@@ -397,22 +397,24 @@ function PostView({ post, schoolInfo, courseInfo, updatePost }: { post: PostInfo
 
     return <Paper elevation={4}>
         <Stack direction="column" padding={2} spacing={2}>
-            {isAssignment
-                ? <Typography variant="h6"><Link to={postLocation}>{post.title || 'Untitled Assignment'}</Link></Typography>
-                : <Typography variant="h6">{post.title || 'Untitled Post'}</Typography>
-            }
-            {isAssignment && isTeacherOrAdministrator &&
-                <SimpleMenu
-                    buttonContents={<MoreVert />}
-                    buttonAriaLabel="More options"
-                    childrenSupplier={close => [
-                        <MenuItem onClick={() => {
-                            switchPage(`edit-assignment/${post.id}`, post.schoolId, post.yearGroupId, post.courseId)
-                            close()
-                        }}>Edit</MenuItem>
-                    ]}
-                />
-            }
+            <Stack direction="row" spacing={2}>
+                {isAssignment
+                    ? <Typography variant="h6"><Link to={postLocation}>{post.title || 'Untitled'}</Link></Typography>
+                    : <Typography variant="h6">{post.title || 'Untitled'}</Typography>
+                }
+                {isAssignment && isTeacherOrAdministrator &&
+                    <SimpleMenu
+                        buttonContents={<MoreVert />}
+                        buttonAriaLabel="More options"
+                        childrenSupplier={close => [
+                            <MenuItem onClick={() => {
+                                switchPage(`edit-assignment/${post.id}`, post.schoolId, post.yearGroupId, post.courseId)
+                                close()
+                            }}>Edit</MenuItem>
+                        ]}
+                    />
+                }
+            </Stack>
             <Stack direction="row" alignItems="center" spacing={2}>
                 <Avatar aria-hidden src={post.poster.picture} />
                 <Typography>{post.poster.name}</Typography>
