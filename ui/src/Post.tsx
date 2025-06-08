@@ -16,10 +16,11 @@ import MaximumLengthTextBox from "./MaximumLengthTextBox"
 import { MoreVert } from "@mui/icons-material"
 import { useSwitchPage } from "./App"
 
-function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost }: {
+function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, submissionAttachmentCount, refreshPost }: {
     assignment: PostInfo
     schoolId: string
     isSubmitted: boolean
+    submissionAttachmentCount: number
     refreshPost: () => Promise<void>
 }) {
     const { submitAssignment } = useData()
@@ -28,12 +29,15 @@ function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost
 
     return <>
         <Button variant="contained" color="primary" onClick={() => setConfirmDialogOpen(true)} disabled={isSubmitted}>
-            Submit Assignment
+            {isSubmitted ? 'Submitted' : submissionAttachmentCount > 0 ? 'Submit Assignment' : 'Mark as Complete'}
         </Button>
         <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-            <DialogTitle>Submit assignment</DialogTitle>
+            <DialogTitle>{submissionAttachmentCount > 0 ? 'Submit Assignment' : 'Mark as Complete'}</DialogTitle>
             <DialogContent>
-                <Typography>Are you sure you want to submit {assignment.title || 'Untitled'}?</Typography>
+                {submissionAttachmentCount > 0
+                ? <Typography>Are you sure you want to submit {assignment.title || 'Untitled'}?</Typography>
+                : <Typography>Are you sure you want to mark {assignment.title || 'Untitled'} as complete? No files will be submitted.</Typography>
+                }
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setConfirmDialogOpen(false)} variant="outlined" disabled={submitting}>
@@ -46,7 +50,7 @@ function SubmitAssignmentButton({ assignment, schoolId, isSubmitted, refreshPost
                     setSubmitting(false)
                     setConfirmDialogOpen(false)
                 }} variant="contained" disabled={submitting}>
-                    Submit
+                    {submissionAttachmentCount > 0 ? 'Submit' : 'Mark as Complete'}
                 </Button>
             </DialogActions>
         </Dialog>
@@ -380,7 +384,7 @@ function Assignment({ assignment, school, refreshPost }: {
                 {isSubmitted && <Typography>
                     Submitted {formatDate(new Date(assignment.isoSubmissionDates?.[currentStudentId ?? ''] ?? ''))}
                 </Typography>}
-                <TileContainer>
+                <Stack direction="column" spacing={2} alignItems="center">
                     {assignment.submissionTemplates?.map(attachment => (
                         <AttachmentView key={attachment.id} attachment={attachment} postId={assignment.id} schoolId={school.id} students={school.students} selectedStudentId={student?.id} />
                     ))}
@@ -400,9 +404,15 @@ function Assignment({ assignment, school, refreshPost }: {
                             setAddAttachmentDisabled(false)
                         }}
                     />}
-                </TileContainer>
+                </Stack>
                 <Stack direction="row" spacing={2} justifyContent="end">
-                    <SubmitAssignmentButton schoolId={school.id} assignment={assignment} isSubmitted={isSubmitted} refreshPost={refreshPost} />
+                    <SubmitAssignmentButton
+                    schoolId={school.id}
+                    assignment={assignment}
+                    isSubmitted={isSubmitted}
+                    refreshPost={refreshPost}
+                    submissionAttachmentCount={assignment.studentAttachments?.[student?.id ?? '']?.length ?? 0 + (assignment.submissionTemplates?.length ?? 0)}
+                    />
                 </Stack>
             </>
         }
