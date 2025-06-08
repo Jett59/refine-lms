@@ -18,7 +18,7 @@ export default function Welcome() {
     <ListItem><ListItemIcon><Assignment /></ListItemIcon> Bring assignments to life instantly</ListItem>
     <ListItem><ListItemIcon><Edit /></ListItemIcon> Transform ideas into engaging content</ListItem>
     <ListItem><ListItemIcon><People /></ListItemIcon> Build meaningful student connections</ListItem>
-    <ListItem><ListItemIcon><Folder /></ListItemIcon> Keep your teaching world organized</ListItem>
+    <ListItem><ListItemIcon><Folder /></ListItemIcon> Keep your teaching world organised</ListItem>
     <ListItem><ListItemIcon><Message /></ListItemIcon> Stay connected with your classroom</ListItem>
     <ListItem><ListItemIcon><CalendarToday /></ListItemIcon> Plan lessons that inspire learning</ListItem>
 </List>
