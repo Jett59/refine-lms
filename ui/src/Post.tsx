@@ -149,7 +149,7 @@ function MarkingInterface({ assignment, student, refreshAssignment }: {
         </Grid>
         <Grid item xs={12}>
             <MaximumLengthTextBox
-                maximumLength={2500}
+                maximumLength={10000}
                 label="Feedback"
                 multiline
                 rows={4}

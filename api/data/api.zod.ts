@@ -145,7 +145,7 @@ export const RECORD_MARKS_REQUEST: z.ZodType<RecordMarksRequest> = z.object({
     postId: OBJECT_ID,
     studentUserId: OBJECT_ID,
     marks: z.record(OBJECT_ID, z.number().int().nonnegative()),
-    feedback: z.string().max(2500).optional()
+    feedback: z.string().max(10000).optional()
 })
 export const ADD_COMMENT_REQUEST: z.ZodType<AddCommentRequest> = z.object({
     schoolId: OBJECT_ID,
